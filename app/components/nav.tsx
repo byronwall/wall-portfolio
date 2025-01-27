@@ -1,9 +1,14 @@
 import Link from "next/link";
 import Image from "next/image";
+import { SocialIcons } from "./social-icons";
+import { mainNavLinks, socialLinks } from "../data/site-links";
 
 const navItems = {
   "/": {
     name: "home",
+  },
+  "/about": {
+    name: "about",
   },
   "/blog": {
     name: "blog",
@@ -15,31 +20,48 @@ export function Navbar() {
     <aside className="-ml-[8px] mb-16 tracking-tight">
       <div className="lg:sticky lg:top-20">
         <nav
-          className="flex flex-row items-start relative px-0 pb-0 fade md:overflow-auto scroll-pr-6 md:relative"
+          className="w-full flex flex-row items-start relative px-0 pb-0 fade md:overflow-auto scroll-pr-6 md:relative"
           id="nav"
         >
-          <div className="flex flex-row items-center space-x-0 pr-10">
-            <Link href="/" className="flex items-center mr-4">
-              <Image
-                src="/byron-wall-2024.jpeg"
-                alt="Profile picture"
-                width={40}
-                height={40}
-                className="rounded-full"
-                priority
-              />
-            </Link>
-            {Object.entries(navItems).map(([path, { name }]) => {
-              return (
+          <div className="w-full flex flex-row items-center space-x-0 pr-10 justify-between">
+            <div className="flex flex-row items-center space-x-0">
+              <Link href="/" className="flex items-center mr-4">
+                <Image
+                  src="/byron-wall-2024.jpeg"
+                  alt="Profile picture"
+                  width={40}
+                  height={40}
+                  className="rounded-full"
+                  priority
+                />
+              </Link>
+              {mainNavLinks.map((link) => (
                 <Link
-                  key={path}
-                  href={path}
+                  key={link.href}
+                  href={link.href}
                   className="transition-all hover:text-neutral-800 dark:hover:text-neutral-200 flex align-middle relative py-1 px-2 m-1"
                 >
-                  {name}
+                  {link.label}
                 </Link>
-              );
-            })}
+              ))}
+            </div>
+            <div className="flex items-center space-x-4 ml-4">
+              {socialLinks
+                .filter((link) => link.shouldShowInNav)
+                .map(({ href, label, Icon }) => (
+                  <Link
+                    key={label}
+                    href={href}
+                    className="text-gray-600 hover:text-gray-900 transition-colors"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={label}
+                  >
+                    {Icon && <Icon className="w-5 h-5" />}
+                    <span className="sr-only">{label}</span>
+                  </Link>
+                ))}
+            </div>
           </div>
         </nav>
       </div>
