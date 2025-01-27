@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 const navItems = {
   "/": {
@@ -17,7 +18,17 @@ export function Navbar() {
           className="flex flex-row items-start relative px-0 pb-0 fade md:overflow-auto scroll-pr-6 md:relative"
           id="nav"
         >
-          <div className="flex flex-row space-x-0 pr-10">
+          <div className="flex flex-row items-center space-x-0 pr-10">
+            <Link href="/" className="flex items-center mr-4">
+              <Image
+                src="/byron-wall-2024.jpeg"
+                alt="Profile picture"
+                width={40}
+                height={40}
+                className="rounded-full"
+                priority
+              />
+            </Link>
             {Object.entries(navItems).map(([path, { name }]) => {
               return (
                 <Link

@@ -5,10 +5,10 @@ export default function HomePage() {
     <section>
       <h1 className="font-bold text-3xl mb-8">Byron Wall</h1>
       <p className="prose prose-neutral dark:prose-invert mb-8">
-        Software engineer with 10+ years of experience building data-driven
-        applications. Currently working as a Hydraulic and Fluid Systems
-        Engineer at Allison Transmission, where I develop software solutions for
-        data analysis and visualization.
+        Software engineer with 14+ years of experience building data-driven
+        applications. Currently working as a Staff Software Developer at Allison
+        Transmission, where I develop software solutions for data analysis and
+        visualization.
       </p>
 
       <h2 className="font-bold text-2xl mb-4">Featured Projects</h2>
