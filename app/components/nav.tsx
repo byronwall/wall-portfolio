@@ -1,19 +1,6 @@
-import Link from "next/link";
 import Image from "next/image";
-import { SocialIcons } from "./social-icons";
+import Link from "next/link";
 import { mainNavLinks, socialLinks } from "../data/site-links";
-
-const navItems = {
-  "/": {
-    name: "home",
-  },
-  "/about": {
-    name: "about",
-  },
-  "/blog": {
-    name: "blog",
-  },
-};
 
 export function Navbar() {
   return (
