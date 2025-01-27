@@ -35,3 +35,7 @@ Build and start:
 pnpm build
 pnpm start
 ```
+
+## Source
+
+This site started with this template: [Portfolio Starter Kit](https://vercel.com/templates/next.js/portfolio-starter-kit)
