@@ -10,6 +10,7 @@ export interface SiteLink {
 
 export const mainNavLinks: SiteLink[] = [
   { href: "/", label: "Home" },
+  { href: "/projects", label: "Projects" },
   { href: "/blog", label: "Blog" },
   { href: "/about", label: "About" },
 ];

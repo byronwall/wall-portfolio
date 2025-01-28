@@ -82,7 +82,8 @@ export default function Home() {
 
         <div className="prose prose-neutral dark:prose-invert">
           <p>
-            <Link href="/blog">Read my blog</Link> or{" "}
+            Check out my <Link href="/projects">projects</Link>,{" "}
+            <Link href="/blog">read my blog</Link> or{" "}
             <a href="mailto:byron@byroni.us">get in touch</a>.
           </p>
         </div>
