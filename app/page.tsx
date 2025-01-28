@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ProjectCards } from "./components/project-cards";
 
 export default function Home() {
@@ -8,23 +9,33 @@ export default function Home() {
         <h1 className="text-4xl font-bold mb-4">Byron Wall</h1>
         <p className="text-xl mb-8">
           Software engineer with 14+ years of experience building data-driven
-          applications. Currently working as a Staff Software Developer at
-          Allison Transmission, where I develop software solutions for data
-          analysis and visualization.
+          applications.{" "}
+        </p>
+        <p>
+          Currently working as a Staff Software Developer at{" "}
+          <Link
+            href="https://allisontransmission.com"
+            target="_blank"
+            className="hover:underline"
+          >
+            Allison Transmission
+          </Link>
+          , where I develop software solutions for data analysis and
+          visualization.
         </p>
 
         <ProjectCards />
 
         <section>
-          <h2 className="font-bold text-2xl mb-4">Featured Projects</h2>
+          <h2 className="font-bold text-2xl mb-4">Additional Projects</h2>
           <ul className="list-disc list-inside space-y-4 mb-8">
             <li>
               <strong>Transmission Data Analysis Platform</strong>
               <p className="ml-6">
-                Built a 60k+ LOC platform using C#, TypeScript, and React for
+                Built a 100k+ LOC platform using C#, TypeScript, and React for
                 analyzing transmission testing data. Features include a custom
-                calculation DSL and interactive visualizations using d3.js and
-                DC.js.
+                calculation DSL and interactive visualizations using custom
+                charting components (SVG + canvas).
               </p>
             </li>
             <li>
@@ -32,6 +43,8 @@ export default function Home() {
               <p className="ml-6">
                 Developed an Electron-based application using React and
                 TypeScript for hydraulic system visualization and analysis.
+                Allows for user defined schematics with complicated logic and
+                connectivity.
               </p>
             </li>
             <li>

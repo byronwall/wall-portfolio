@@ -5,7 +5,8 @@ interface ProjectCard {
   title: string;
   description: string;
   link: string;
-  imageUrl?: string;
+  imageUrl: string;
+  faviconUrl: string;
 }
 
 const projects: ProjectCard[] = [
@@ -15,6 +16,7 @@ const projects: ProjectCard[] = [
       "An offline-first Hacker News reader using service workers. Browse and read HN comments even when you're disconnected.",
     link: "https://hnoffline.dev",
     imageUrl: "/images/hn-offline-logo.png", // Add this image when available
+    faviconUrl: "/images/hn-offline-favicon.ico",
   },
   {
     title: "Plan•Task•Tic",
@@ -22,6 +24,7 @@ const projects: ProjectCard[] = [
       "A powerful task management platform designed to help you organize and track your projects efficiently.",
     link: "https://plantasktic.dev",
     imageUrl: "/images/plantasktic-logo.png", // Add this image when available
+    faviconUrl: "/images/plantasktic-favicon.ico",
   },
 ];
 
@@ -53,9 +56,19 @@ export function ProjectCards() {
                   </div>
                 )}
               </div>
-              <h3 className="text-xl font-semibold mb-2 group-hover:text-blue-500 transition-colors">
-                {project.title}
-              </h3>
+              {/* add a favicon next to the title */}
+              <div className="flex items-center">
+                <Image
+                  src={project.faviconUrl}
+                  alt="Favicon"
+                  width={16}
+                  height={16}
+                  className="mr-2"
+                />
+                <h3 className="text-xl font-semibold mb-2 group-hover:text-blue-500 transition-colors">
+                  {project.title}
+                </h3>
+              </div>
               <p className="text-gray-600 dark:text-gray-400">
                 {project.description}
               </p>
