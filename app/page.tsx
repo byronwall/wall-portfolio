@@ -11,8 +11,9 @@ export default function Home() {
           Software engineer with 14+ years of experience building data-driven
           applications.{" "}
         </p>
-        <p>
-          Currently working as a Staff Software Developer at{" "}
+        <p className="text-xl">
+          Currently working as a{" "}
+          <span className="font-semibold">Staff Software Developer</span> at{" "}
           <Link
             href="https://allisontransmission.com"
             target="_blank"
