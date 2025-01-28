@@ -17,7 +17,7 @@ function parseFrontmatter(fileContent: string) {
   let frontMatterBlock = match![1];
   let content = fileContent.replace(frontmatterRegex, "").trim();
   let frontMatterLines = frontMatterBlock.trim().split("\n");
-  let metadata: Partial<BaseMetadata> = {};
+  let metadata = {} as BaseMetadata;
 
   frontMatterLines.forEach((line) => {
     let [key, ...valueArr] = line.split(": ");
@@ -71,7 +71,10 @@ export function getProjects() {
   return getMDXData(projectsDirectory);
 }
 
-export function formatDate(date: string, includeRelative = false) {
+export function formatDate(date: string | undefined, includeRelative = false) {
+  if (!date) {
+    return "N/A";
+  }
   let currentDate = new Date();
   if (!date.includes("T")) {
     date = `${date}T00:00:00`;
