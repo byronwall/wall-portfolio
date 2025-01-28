@@ -12,25 +12,24 @@ export default function Home() {
         </p>
         <p className="text-xl">
           Currently working as a{" "}
-          <span className="font-semibold">Staff Software Developer</span> at{" "}
-          <Link
-            href="https://allisontransmission.com"
-            target="_blank"
-            className="hover:underline"
-          >
-            Allison Transmission
-          </Link>
-          , where I develop software solutions for data analysis and
-          visualization.
+          <span className="font-semibold">Staff Software Developer</span> at
+          Allison Transmission, where I develop software solutions for data
+          analysis and visualization. My preferred stack includes TypeScript,
+          React, C#, and increasingly Next.js.
         </p>
 
         <ProjectCards />
 
         <section>
           <h2 className="font-bold text-2xl mb-4">Additional Projects</h2>
-          <ul className="list-disc list-inside space-y-4 mb-8">
+          <ul className="list-none list-inside space-y-4 mb-8 prose prose-neutral dark:prose-invert">
             <li>
-              <strong>Transmission Data Analysis Platform</strong>
+              <Link
+                href="/projects/transmission-data-analysis"
+                className="hover:underline"
+              >
+                <strong>Transmission Data Analysis Platform</strong>
+              </Link>
               <p className="ml-6">
                 Built a 100k+ LOC platform using C#, TypeScript, and React for
                 analyzing transmission testing data. Features include a custom
@@ -39,7 +38,12 @@ export default function Home() {
               </p>
             </li>
             <li>
-              <strong>Interactive Hydraulic Schematic Tool</strong>
+              <Link
+                href="/projects/hydraulic-schematic-tool"
+                className="hover:underline"
+              >
+                <strong>Interactive Hydraulic Schematic Tool</strong>
+              </Link>
               <p className="ml-6">
                 Developed an Electron-based application using React and
                 TypeScript for hydraulic system visualization and analysis.
@@ -48,7 +52,9 @@ export default function Home() {
               </p>
             </li>
             <li>
-              <strong>runnDAILY.com</strong>
+              <Link href="/projects/runndaily" className="hover:underline">
+                <strong>runnDAILY.com [2009]</strong>
+              </Link>
               <p className="ml-6">
                 Co-founded and developed a fitness mapping website using PHP,
                 MySQL, and JavaScript.
@@ -63,19 +69,24 @@ export default function Home() {
             <h3 className="font-semibold mb-2">Expert</h3>
             <ul className="list-disc list-inside">
               <li>TypeScript/JavaScript</li>
+              <li>React</li>
               <li>Excel/VBA</li>
               <li>Data Analysis</li>
+              <li>Data Visualization</li>
               <li>Statistics</li>
             </ul>
           </div>
           <div>
             <h3 className="font-semibold mb-2">Proficient</h3>
             <ul className="list-disc list-inside">
+              <li>Next.js</li>
               <li>C#</li>
-              <li>React</li>
               <li>Node.js</li>
               <li>Python</li>
               <li>Git</li>
+              <li>SQLite</li>
+              <li>PostgreSQL</li>
+              <li>Docker</li>
             </ul>
           </div>
         </div>
