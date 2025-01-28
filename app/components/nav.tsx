@@ -39,9 +39,17 @@ export function Navbar() {
                   <Link
                     key={label}
                     href={href}
-                    className="text-gray-600 hover:text-gray-900 transition-colors"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                    target={
+                      href.startsWith("http") || href.endsWith(".pdf")
+                        ? "_blank"
+                        : undefined
+                    }
+                    rel={
+                      href.startsWith("http")
+                        ? "noopener noreferrer"
+                        : undefined
+                    }
                     title={label}
                   >
                     {Icon && <Icon className="w-5 h-5" />}

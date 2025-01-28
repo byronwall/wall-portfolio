@@ -5,7 +5,7 @@ export function Footer() {
     <footer className="mt-8 border-t py-8">
       <div className="container mx-auto px-4">
         <div className="flex flex-col items-center justify-center space-y-4">
-          <div className="flex flex-wrap justify-center gap-6">
+          <div className="flex flex-wrap justify-center gap-6 items-center">
             {socialLinks.map(({ href, label, Icon }) => (
               <a
                 key={href}

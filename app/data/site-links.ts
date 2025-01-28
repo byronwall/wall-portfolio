@@ -17,6 +17,12 @@ export const mainNavLinks: SiteLink[] = [
 
 export const socialLinks: SiteLink[] = [
   {
+    href: "/resume_byron_wall.pdf",
+    label: "Resume",
+    Icon: SocialIcons.Resume,
+    shouldShowInNav: true,
+  },
+  {
     href: "https://github.com/byronwall",
     label: "GitHub",
     external: true,
