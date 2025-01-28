@@ -7,10 +7,10 @@ export function Navbar() {
     <aside className="-ml-[8px] mb-8 tracking-tight">
       <div className="lg:sticky lg:top-20">
         <nav
-          className="w-full flex flex-row items-start relative px-0 pb-0 fade md:overflow-auto scroll-pr-6 md:relative"
+          className="w-full flex-wrap flex flex-row items-start relative px-0 pb-0 fade md:overflow-auto scroll-pr-6 md:relative"
           id="nav"
         >
-          <div className="w-full flex flex-row items-center space-x-0 pr-10 justify-between">
+          <div className="w-full flex flex-wrap flex-row items-center gap-2 pr-10 justify-between">
             <div className="flex flex-row items-center space-x-0">
               <Link href="/" className="flex items-center mr-4">
                 <Image
