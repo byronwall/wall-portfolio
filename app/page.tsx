@@ -25,10 +25,10 @@ export default function Home() {
           <ul className="list-none list-inside space-y-4 mb-8 prose prose-neutral dark:prose-invert">
             <li>
               <Link
-                href="/projects/transmission-data-analysis"
+                href="/projects/data-visualization"
                 className="hover:underline"
               >
-                <strong>Transmission Data Analysis Platform</strong>
+                <strong>Data Visualization Platform</strong>
               </Link>
               <p className="ml-6">
                 Built a 100k+ LOC platform using C#, TypeScript, and React for
