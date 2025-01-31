@@ -36,18 +36,18 @@ export const socialLinks: SiteLink[] = [
     Icon: SocialIcons.LinkedIn,
     shouldShowInNav: true,
   },
-  {
-    href: "https://x.com/byronwall",
-    label: "Twitter",
-    external: true,
-    Icon: SocialIcons.Twitter,
-  },
-  {
-    href: "https://www.youtube.com/@byronwalld",
-    label: "YouTube",
-    external: true,
-    Icon: SocialIcons.YouTube,
-  },
+  // {
+  //   href: "https://x.com/byronwall",
+  //   label: "Twitter",
+  //   external: true,
+  //   Icon: SocialIcons.Twitter,
+  // },
+  // {
+  //   href: "https://www.youtube.com/@byronwalld",
+  //   label: "YouTube",
+  //   external: true,
+  //   Icon: SocialIcons.YouTube,
+  // },
   {
     href: "mailto:byron@byroni.us",
     label: "Email",
