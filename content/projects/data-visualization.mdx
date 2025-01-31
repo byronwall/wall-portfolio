@@ -1,13 +1,13 @@
 ---
 title: "Custom Data Visualization Library"
 description: "A specialized charting library built for complex engineering data visualization"
-date: "2023-06-01"
-publishedAt: "2023-06-01"
+date: "2025-01-31"
+publishedAt: "2025-01-31"
 summary: "A specialized charting library built for complex engineering data visualization"
 tags: ["TypeScript", "D3.js", "SVG", "Canvas", "React"]
 ---
 
-Developed a comprehensive data visualization library that combines the power of D3.js with custom rendering optimizations for large datasets. This library powers various engineering applications at Allison Transmission.
+Developed a comprehensive data visualization library that combines the power of D3.js with custom rendering optimizations for large datasets.
 
 ## Key Features
 
@@ -19,26 +19,18 @@ Developed a comprehensive data visualization library that combines the power of 
 
 ## Technical Implementation
 
-- Built on D3.js for powerful data transformations
+- Built on D3.js for generating SVG elements
 - Custom React components for easy integration
 - Hybrid rendering approach:
   - SVG for interactive elements
-  - Canvas for high-density data
+  - Canvas where needed to maintain performance (scatter charts and parallel coordinates)
 - TypeScript for type safety and better maintainability
-- Modular architecture for extensibility
 
 ## Impact
 
 This visualization library has become a cornerstone of our data analysis platforms, enabling engineers to:
 
 - Identify patterns in transmission testing data
-- Analyze performance metrics in real-time
+- Analyze performance metrics in near real-time
 - Make data-driven decisions quickly
 - Share insights through interactive visualizations
-
-## Performance Optimizations
-
-- Implemented virtual scrolling for large datasets
-- Used WebWorkers for heavy computations
-- Optimized render cycles with React's virtual DOM
-- Created efficient data structures for quick lookups
