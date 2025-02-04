@@ -4,20 +4,41 @@ import { Timeline } from "app/components/Timeline";
 export default function AboutPage() {
   const experienceItems = [
     {
-      title: "Allison Transmission — Hydraulic and Fluid Systems Engineer",
-      date: "November 2017 – Present",
+      title: "Allison Transmission — Staff Software Developer",
+      date: "February 2023 – Present",
       children: (
         <ul>
           <li>
-            Created a data analysis platform (60k+ LOC) using C#, TypeScript,
-            and React
+            Created and maintain a data analysis platform (100k+ LOC) using C#,
+            TypeScript, and React with interactive visualizations via D3.js
           </li>
           <li>
-            Developed interactive hydraulic schematic tools using Electron and
-            React
+            Developed domain-specific language for custom engineering analyses
           </li>
-          <li>Enhanced Python tools for transmission architecture search</li>
-          <li>Managed technical aspects of transmission fluid globally</li>
+          <li>
+            Led security platform migration for Engineering division (800+
+            workstations)
+          </li>
+          <li>
+            Created extensive documentation and training materials including 10+
+            hours of video content
+          </li>
+        </ul>
+      ),
+    },
+    {
+      title: "Allison Transmission — Staff/Senior Engineer",
+      date: "November 2017 – January 2023",
+      children: (
+        <ul>
+          <li>
+            Built interactive hydraulic schematic tool using Electron, React,
+            and TypeScript
+          </li>
+          <li>
+            Developed visualization tools for engineering design and
+            troubleshooting
+          </li>
         </ul>
       ),
     },
@@ -26,21 +47,15 @@ export default function AboutPage() {
       date: "August 2015 – October 2017",
       children: (
         <ul>
-          <li>Supported $2MM+ CO2 capture pilot plant design and operation</li>
-          <li>Developed data pipelines and visualization tools</li>
-          <li>Created Excel add-ins using C#</li>
-        </ul>
-      ),
-    },
-    {
-      title:
-        "Chevron Phillips Chemical Company — Operations and Process Engineer",
-      date: "June 2010 – July 2014",
-      children: (
-        <ul>
-          <li>Developed Excel VBA add-ins for data analysis</li>
-          <li>Built desktop applications with C#</li>
-          <li>Consistently ranked in top 5% of employees</li>
+          <li>
+            Designed data pipeline connecting CSV files to InfluxDB with Grafana
+            visualization
+          </li>
+          <li>Developed Excel add-in in C# for database connectivity</li>
+          <li>
+            Created automated quoting tools reducing processing time from hours
+            to minutes
+          </li>
         </ul>
       ),
     },
@@ -64,16 +79,17 @@ export default function AboutPage() {
       </div>
       <div className="prose prose-neutral dark:prose-invert">
         <p className="mb-8 text-lg">
-          I'm a Chemical Engineer by education who has consistently leveraged
-          software development throughout my engineering career. From developing
-          data analysis platforms and automation tools to creating enterprise
-          applications, I've combined my engineering background with my passion
-          for programming to deliver innovative solutions across various
-          industries.
+          I'm a Software Developer with 14+ years of experience, specializing in
+          creating highly interactive data-centric applications. With a
+          foundation in Chemical Engineering, I've evolved into a full-stack
+          developer focusing on TypeScript, React, and C#. I excel at building
+          tools that help engineers and technical teams analyze data, visualize
+          complex systems, and automate workflows.
         </p>
 
         <p className="mb-8">
-          Software Developer & Engineer based in Indianapolis, IN
+          Full Stack Developer based in Indianapolis, IN, specializing in
+          engineering software solutions
         </p>
 
         <h3>Professional Experience</h3>

@@ -14,8 +14,8 @@ export default function Home() {
           Currently working as a{" "}
           <span className="font-semibold">Staff Software Developer</span> at
           Allison Transmission, where I develop software solutions for data
-          analysis and visualization. My preferred stack includes TypeScript,
-          React, C#, and increasingly Next.js.
+          analysis and visualization of time series data. My preferred stack
+          includes TypeScript, React, C#, and increasingly Next.js.
         </p>
 
         <ProjectCards />

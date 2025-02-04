@@ -12,84 +12,43 @@ My links:
 My resume for filling out content:
 
 BYRON WALL
-
-<byron@byroni.us> | byroni.us
-
-Indianapolis, IN 46220
-
-Objective
-
-Transition to a full-time software development role, emphasizing programming contributions in engineering roles.
-
-Skills and Competencies
-
-Expert:
-Excel/VBA
-TypeScript/JavaScript
-Data analysis and visualization
-Statistics
-Proficient:
-C#
-Node.JS, Express
-React
-SQLite
-Python, R
-RESTful APIs
-Git
-Professional Experience
-
+<byron@byroni.us> | <https://byroni.us> | Indianapolis, IN
+Software Developer with an extensive 14+ year career in engineering and software. Skilled in
+C#, TypeScript, JavaScript, and React, delivering highly interactive data-centric applications.
+Skill and Competencies
+• Front End: HTML, CSS, SVG, TypeScript, JavaScript, React, Electron, D3.js
+• Back End and Databases: Azure, C#, Next.js, SQL, SQLite, InfluxDB, PostgreSQL, Python
+• Problem Solving and Technical: Statistics, Data Analysis, Interactive Data Visualization, R
+• Documentation and Training: Technical Writing, OBS, Markdown, Docusaurus
 Allison Transmission / Indianapolis, IN
-
-Hydraulic and Fluid Systems Engineer
-
-November 2017 – Present
-
-Managed technical aspects of transmission fluid globally, supported hydraulic development
-Created a data analysis platform for transmission testing data
-Codebase: ~60k LOC, C# (back end), Typescript, React (front end)
-Significant productivity and transmission operation insights
-Custom calculation DSL/syntax
-Interactive data analysis using d3.js, DC.js
-Developed interactive hydraulic schematic tool (Electron app, React, TypeScript)
-Enhanced Python tool for transmission architecture search
+Staff Software Developer, Engineering Systems February 2023 – Present
+Created and maintain a data analysis and visualization platform for transmission time series data
+• Tech stack: Back end uses C# with Nancy, SQLite databases; Front end is Typescript and React
+• Architected and programmed a 100k LOC codebase, balancing between front end and back end
+• Reduced reporting time from hours to minutes, replacing Excel and MATLAB for 100+ engineers
+• Wrote unit tests related to data parsing, calculation engine, and time series analysis
+• Created domain-specific language enabling engineers to develop custom analyses faster
+• Front end provides interactive and exploratory data analysis using D3.js and SVG for data viz
+• Wrote 100s of help pages in Docusaurus and filmed 10+ hours of training videos with OBS
+Serve as primary technical contact between Engineering and IT organization
+• Led security platform migration for Engineering with zero downtime and fewer false positives
+• Managed conversion from Carbon Black App Control to ThreatLocker for 800+ workstations
+• Worked across all Engineering groups to build robust rules that minimized disruption
+• Coordinate software installs and dev environment provisioning for new employees
+Staff Engineer, Hydraulic Systems November 2021 – January 2023
+Senior Engineer, Hydraulic Systems November 2017 – October 2021
+Created a tool to view and create interactive hydraulic schematics
+• Built as an Electron app with visuals rendered to SVG elements via React and Typescript.
+• Tool allows engineers to model existing and prototype products, aiding design and troubleshooting
 TDA Research / Denver, CO
-
-Research and Project Engineer
-
-August 2015 – October 2017
-
-Supported $2MM+ CO2 capture pilot plant design and operation
-Programmed data pipeline for CSV to InfluxDB transfer and Grafana charting
-Developed Excel add-in (C# XLL)
-Automated quoting tool using Excel/VBA
-Continental Technologies / Boulder, CO
-
-November 2014 – July 2015
-
-Chevron Phillips Chemical Company / Pasadena, TX
-
-Operations and Process Engineer
-
-June 2010 – July 2014
-
-Supported polyethylene and polypropylene units' operations
-Developed Excel VBA add-in for data querying and analysis
-Created a SharePoint site for centralized access
-Built desktop applications with C#
-Ranked in the top 5% of employees consecutively
-runnDAILY.com / Indianapolis, IN
-
-Co-Founder and Full Stack Developer
-
-November 2008 – August 2010
-
-Developed a fitness mapping website
-Front end: HTML, CSS, JavaScript, jQuery
-Back end: PHP, MySQL, Apache
-Featured in Purdue Exponent newspaper
-Education
-
-Purdue University / West Lafayette, IN
-Bachelor of Science in Chemical Engineering
-GPA: 3.97/4.00
-August 2006 – May 2010
+Research and Project Engineer August 2015 – October 2017
+• Designed a data pipeline to transfer CSV files into InfluxDB with Grafana for charting.
+• Built an Excel add-in (C# XLL) to connect to the InfluxDB instance via Excel UDFs
+• Built an automated quoting tool in Excel/VBA, reducing time from hours to minutes.
+Continental Technologies / Boulder, CO November 2014 – July 2015
+Chevron Phillips Chemical Company / Houston, TX
+Operations and Process Engineer June 2010 – July 2014
+• Built an Excel VBA add-in to query and analyze quality data, used by 20-30 engineers
+ConocoPhillips / Terre Haute, IN May 2009 – July 2009
+Purdue University / West Lafayette, IN August 2006 – May 2010
+Bachelor of Science in Chemical Engineering (GPA: 3.97/4.00)
