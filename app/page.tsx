@@ -7,8 +7,8 @@ export default function Home() {
       <div className="z-10 max-w-5xl w-full items-center justify-between text-sm">
         <h1 className="text-4xl font-bold mb-4">Byron Wall</h1>
         <p className="text-xl mb-8">
-          Software engineer with 14+ years of experience building data-driven
-          applications.{" "}
+          Software engineer with 14+ years of experience in Software and
+          Chemical Engineering.
         </p>
         <p className="text-xl">
           Currently working as a{" "}

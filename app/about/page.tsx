@@ -79,12 +79,13 @@ export default function AboutPage() {
       </div>
       <div className="prose prose-neutral dark:prose-invert">
         <p className="mb-8 text-lg">
-          I'm a Software Developer with 14+ years of experience, specializing in
-          creating highly interactive data-centric applications. With a
-          foundation in Chemical Engineering, I've evolved into a full-stack
-          developer focusing on TypeScript, React, and C#. I excel at building
-          tools that help engineers and technical teams analyze data, visualize
-          complex systems, and automate workflows.
+          I'm a Software Developer with 14+ years of experience in Software and
+          Chemical Engineering. I specialize in creating highly interactive
+          data-centric applications. With a foundation in Chemical Engineering,
+          I've evolved into a full-stack developer focusing on TypeScript,
+          React, and C#. I excel at building tools that help engineers and
+          technical teams analyze data, visualize complex systems, and automate
+          workflows.
         </p>
 
         <p className="mb-8">

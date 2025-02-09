@@ -12,7 +12,7 @@ export function Navbar() {
         >
           <div className="w-full flex flex-wrap flex-row items-center gap-2 pr-10 justify-between">
             <div className="flex flex-row items-center space-x-0">
-              <Link href="/" className="flex items-center mr-4">
+              <Link href="/" className="flex items-center mr-4 shrink-0">
                 <Image
                   src="/byron-wall-2024.jpeg"
                   alt="Profile picture"
