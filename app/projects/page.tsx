@@ -13,7 +13,7 @@ export default function ProjectsPage() {
             <h2 className="text-2xl font-bold mb-2">
               <Link
                 href={`/projects/${project.slug}`}
-                className="hover:text-blue-500"
+                className="hover:underline"
               >
                 {project.metadata.title}
               </Link>

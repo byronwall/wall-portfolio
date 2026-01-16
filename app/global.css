@@ -33,6 +33,31 @@ html {
   min-width: 360px;
 }
 
+/* Links: inherit text color everywhere (no blue/purple), subtle underline on hover */
+a {
+  color: inherit;
+  text-decoration-line: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.18em;
+  transition: color 150ms ease, text-decoration-color 150ms ease;
+}
+
+a:visited {
+  color: inherit;
+}
+
+a:hover {
+  text-decoration-color: color-mix(in srgb, currentColor 55%, transparent);
+  color: color-mix(in srgb, currentColor 85%, black);
+}
+
+@media (prefers-color-scheme: dark) {
+  a:hover {
+    color: color-mix(in srgb, currentColor 85%, white);
+  }
+}
+
 .prose .anchor {
   @apply absolute invisible no-underline;
 
@@ -47,8 +72,24 @@ html {
   @apply visible;
 }
 
-.prose a {
-  @apply underline transition-all decoration-neutral-400 dark:decoration-neutral-600 underline-offset-2 decoration-[0.1em];
+.prose a:not(.anchor) {
+  color: inherit;
+  text-decoration-line: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.18em;
+  transition: color 150ms ease, text-decoration-color 150ms ease;
+}
+
+.prose a:not(.anchor):hover {
+  text-decoration-color: color-mix(in srgb, currentColor 55%, transparent);
+  color: color-mix(in srgb, currentColor 85%, black);
+}
+
+@media (prefers-color-scheme: dark) {
+  .prose a:not(.anchor):hover {
+    color: color-mix(in srgb, currentColor 85%, white);
+  }
 }
 
 .prose .anchor:after {

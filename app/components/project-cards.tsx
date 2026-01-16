@@ -43,7 +43,7 @@ export function ProjectCards() {
           <Link
             key={project.title}
             href={project.link}
-            className="group block hover:no-underline"
+            className="group block"
             target={isExternal ? "_blank" : undefined}
             rel={isExternal ? "noopener noreferrer" : undefined}
           >
@@ -59,7 +59,7 @@ export function ProjectCards() {
                   height={24}
                   className="mr-2"
                 />
-                <h3 className="text-xl font-semibold  group-hover:text-blue-500 transition-colors">
+                <h3 className="text-xl font-semibold transition-colors group-hover:text-black dark:group-hover:text-white">
                   {project.title}
                 </h3>
               </div>

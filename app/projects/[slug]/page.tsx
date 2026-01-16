@@ -66,7 +66,7 @@ export default async function ProjectPage({
     <article className="max-w-5xl mx-auto">
       <Link
         href="/projects"
-        className="text-blue-500 hover:underline mb-4 block"
+        className="hover:underline mb-4 block"
       >
         ← Back to Projects
       </Link>
