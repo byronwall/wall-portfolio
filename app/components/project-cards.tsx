@@ -15,9 +15,9 @@ const projects: ProjectCard[] = [
     title: "HN Offline",
     description:
       "An offline-first Hacker News reader using service workers. Browse and read HN comments even when you're disconnected.",
-    link: "https://hnoffline.dev",
+    link: "/projects/hn-offline",
     faviconUrl: "/images/hn-offline-favicon.png",
-    tags: ["Remix", "React", "TypeScript", "Service Workers"],
+    tags: ["Remix", "SolidJS", "TypeScript", "Service Workers"],
     className: "border-orange-500 hover:border-orange-600",
   },
   {
@@ -37,12 +37,15 @@ export function ProjectCards() {
       <h2 className="text-3xl font-bold mb-6">Featured Projects</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {projects.map((project) => (
+          (() => {
+            const isExternal = project.link.startsWith("http");
+            return (
           <Link
             key={project.title}
             href={project.link}
             className="group block hover:no-underline"
-            target="_blank"
-            rel="noopener noreferrer"
+            target={isExternal ? "_blank" : undefined}
+            rel={isExternal ? "noopener noreferrer" : undefined}
           >
             <div
               className={`border rounded-lg p-6 h-full transition-all duration-200 hover:shadow-lg  ${project.className}`}
@@ -72,6 +75,8 @@ export function ProjectCards() {
               </div>
             </div>
           </Link>
+            );
+          })()
         ))}
       </div>
     </div>

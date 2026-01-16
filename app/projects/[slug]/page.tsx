@@ -17,8 +17,6 @@ export function generateMetadata({ params }) {
     return;
   }
 
-  console.log("post", post);
-
   let {
     title,
     publishedAt: publishedTime,
@@ -37,7 +35,7 @@ export function generateMetadata({ params }) {
       description,
       type: "article",
       publishedTime,
-      url: `${baseUrl}/blog/${post.slug}`,
+      url: `${baseUrl}/projects/${post.slug}`,
       images: [
         {
           url: ogImage,

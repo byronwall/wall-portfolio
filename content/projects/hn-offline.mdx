@@ -1,0 +1,53 @@
+---
+title: "HN Offline"
+description: "An offline-first Hacker News reader optimized for comment threads"
+date: "2024-01-01"
+publishedAt: "2024-01-01"
+summary: "An offline-first Hacker News reader optimized for comment threads"
+tags: ["Remix", "SolidJS", "TypeScript", "Service Workers", "LocalStorage", "Hacker News"]
+---
+
+HN Offline is a lightweight web app for reading Hacker News with a focus on the comment experience. It stores visited stories and comment threads locally so you can keep reading even when you’re disconnected.
+
+- Live site: [hnoffline.dev](https://hnoffline.dev)
+- Source: [byronwall/hn-offline](https://github.com/byronwall/hn-offline)
+
+## Interface
+
+<div className="not-prose grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+  <img
+    src="https://raw.githubusercontent.com/byronwall/hn-offline/master/docs/image.png"
+    alt="HN Offline desktop screenshot"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+  <img
+    src="https://raw.githubusercontent.com/byronwall/hn-offline/master/docs/image-3.png"
+    alt="HN Offline mobile screenshot"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+</div>
+
+## How it works
+
+HN Offline is built as a SolidJS/Remix app with an “offline-first” approach:
+
+- **Data sources**:
+  - Uses the official Hacker News Firebase API to load story and comment details.
+  - Uses Algolia’s Hacker News search to fetch the top “day” and “week” story lists.
+- **Offline storage**:
+  - A service worker + local storage are used to keep previously loaded stories and comment threads available offline.
+  - Visited stories are stored locally so the UI can grey them out (and optionally hide already-read items).
+- **Background refresh**:
+  - The server periodically refreshes lists (front page more frequently) and only reloads a story’s comments when enough time has passed, avoiding unnecessary re-fetching.
+- **Comment-focused UX**:
+  - Threads are collapsible; collapse state is persisted locally so you can leave and come back without losing your place.
+  - HN links inside comments are detected and loaded in-app so you can keep navigating comment threads.
+  - Authors get consistent colors, with logic to reduce collisions within a thread.
+
+## Highlights
+
+- Mobile-friendly comment reading (including nicer rendering for code blocks)
+- “Subway-style” connectors to clarify reply structure
+- No login, posting, or analytics—just reading

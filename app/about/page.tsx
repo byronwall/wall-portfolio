@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { Timeline } from "../components/Timeline";
 
 export default function AboutPage() {
@@ -6,15 +5,19 @@ export default function AboutPage() {
     {
       title: (
         <>
-          <a
-            href="https://relational.ai"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:underline"
-          >
-            RelationalAI
-          </a>{" "}
-          — Full Stack Engineer
+          <span className="block">
+            <a
+              href="https://relational.ai"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:underline"
+            >
+              RelationalAI
+            </a>
+          </span>
+          <span className="block text-base font-normal text-neutral-700 dark:text-neutral-300">
+            Full Stack Engineer
+          </span>
         </>
       ),
       date: "April 2025 – Present",
@@ -35,15 +38,19 @@ export default function AboutPage() {
     {
       title: (
         <>
-          <a
-            href="https://www.allisontransmission.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:underline"
-          >
-            Allison Transmission
-          </a>{" "}
-          — Staff Software Developer
+          <span className="block">
+            <a
+              href="https://www.allisontransmission.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:underline"
+            >
+              Allison Transmission
+            </a>
+          </span>
+          <span className="block text-base font-normal text-neutral-700 dark:text-neutral-300">
+            Staff Software Developer
+          </span>
         </>
       ),
       date: "February 2023 – March 2025",
@@ -71,15 +78,19 @@ export default function AboutPage() {
     {
       title: (
         <>
-          <a
-            href="https://www.allisontransmission.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:underline"
-          >
-            Allison Transmission
-          </a>{" "}
-          — Staff/Senior Engineer
+          <span className="block">
+            <a
+              href="https://www.allisontransmission.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:underline"
+            >
+              Allison Transmission
+            </a>
+          </span>
+          <span className="block text-base font-normal text-neutral-700 dark:text-neutral-300">
+            Staff/Senior Engineer
+          </span>
         </>
       ),
       date: "November 2017 – January 2023",
@@ -99,15 +110,19 @@ export default function AboutPage() {
     {
       title: (
         <>
-          <a
-            href="https://www.tda.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:underline"
-          >
-            TDA Research
-          </a>{" "}
-          — Research and Project Engineer
+          <span className="block">
+            <a
+              href="https://www.tda.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:underline"
+            >
+              TDA Research
+            </a>
+          </span>
+          <span className="block text-base font-normal text-neutral-700 dark:text-neutral-300">
+            Research and Project Engineer
+          </span>
         </>
       ),
       date: "August 2015 – October 2017",
@@ -129,19 +144,10 @@ export default function AboutPage() {
 
   return (
     <section>
-      <div className="flex justify-between items-end">
+      <div className="mb-6">
         <h1 className="font-medium text-4xl  tracking-tighter">
           About: Byron Wall
         </h1>
-
-        <Image
-          src="/byron-wall-2024.jpeg"
-          alt="Byron Wall"
-          width={150}
-          height={150}
-          className="rounded-full"
-          priority
-        />
       </div>
       <div className="prose prose-neutral dark:prose-invert">
         <p className="mb-8 text-lg">
