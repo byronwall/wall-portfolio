@@ -52,6 +52,14 @@ a:hover {
   color: color-mix(in srgb, currentColor 85%, black);
 }
 
+/* Project cards are giant clickable areas; don't underline/color-shift on hover */
+a.project-card-link,
+a.project-card-link:hover {
+  text-decoration: none;
+  text-decoration-color: transparent;
+  color: inherit;
+}
+
 @media (prefers-color-scheme: dark) {
   a:hover {
     color: color-mix(in srgb, currentColor 85%, white);
@@ -105,12 +113,18 @@ a:hover {
   @apply bg-neutral-50 dark:bg-neutral-900 rounded-lg overflow-x-auto border border-neutral-200 dark:border-neutral-900 py-2 px-3 text-sm;
 }
 
+/* Inline code: subtle pill background (but not in fenced blocks) */
+.prose :not(pre) > code {
+  @apply px-1 py-0.5 rounded-md bg-neutral-100 dark:bg-neutral-800 border border-neutral-200/70 dark:border-neutral-700/60;
+}
+
+/* Base code styling (includes highlighted spans); keep it neutral */
 .prose code {
-  @apply px-1 py-0.5 rounded-lg;
+  @apply rounded-md;
 }
 
 .prose pre code {
-  @apply p-0;
+  @apply p-0 bg-transparent border-0;
   border: initial;
   line-height: 1.5;
 }

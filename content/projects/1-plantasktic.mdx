@@ -1,0 +1,47 @@
+---
+title: "Plantasktic"
+description: "A modern hierarchical task manager with projects, workspaces, and powerful filtering"
+date: "2026-01-15"
+publishedAt: "2026-01-15"
+summary: "A modern hierarchical task manager with projects, workspaces, and powerful filtering"
+tags: ["Next.js", "TypeScript", "tRPC", "Prisma", "NextAuth.js", "Tailwind", "shadcn/ui"]
+---
+
+Plantasktic is a full-stack task management app designed around hierarchical tasks (nesting to any depth) so you can break down big goals into a structure that’s easy to navigate and maintain.
+
+- Live site: [plantasktic.dev](https://plantasktic.dev)
+- Source: [byronwall/plantasktic](https://github.com/byronwall/plantasktic)
+
+<div className="not-prose mt-6">
+  <img
+    src="https://plantasktic.dev/_next/image?url=%2Flanding%2Ftimeblock.png&w=3840&q=75"
+    alt="Plantasktic time-blocking interface screenshot"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+</div>
+
+## Interface
+
+The UI focuses on a clean, modern workflow: quick task entry, nested task trees, and filtering views for focusing on what matters. (Screenshots coming soon.)
+
+## How it works
+
+Plantasktic is built as a modern Next.js app with a type-safe, database-backed API:
+
+- **App framework**:
+  - Next.js (App Router) for server-rendered pages and fast navigation.
+- **Type-safe API**:
+  - tRPC for end-to-end types between client and server.
+- **Data & auth**:
+  - Prisma for database access and schema management.
+  - NextAuth.js for authentication.
+- **UI**:
+  - Tailwind CSS and shadcn/ui for a clean, consistent component system.
+
+## Highlights
+
+- Hierarchical tasks with parent/child relationships for structured planning
+- Workspaces and projects to keep related work grouped
+- Rich task details (status, priority, due dates, descriptions)
+- Filtering-focused views for staying on track

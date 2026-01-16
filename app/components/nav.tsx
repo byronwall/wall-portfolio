@@ -32,37 +32,10 @@ export function Navbar() {
                 </Link>
               ))}
             </div>
-            <div className="flex items-center space-x-4 ml-4">
+            <div className="flex items-center space-x-4 ml-auto">
               {socialLinks
                 .filter(
                   (link) => link.shouldShowInNav && link.label !== "Resume"
-                )
-                .map(({ href, label, Icon }) => (
-                  <Link
-                    key={label}
-                    href={href}
-                    className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
-                    target={
-                      href.startsWith("http") || href.endsWith(".pdf")
-                        ? "_blank"
-                        : undefined
-                    }
-                    rel={
-                      href.startsWith("http")
-                        ? "noopener noreferrer"
-                        : undefined
-                    }
-                    title={label}
-                  >
-                    {Icon && <Icon className="w-5 h-5" />}
-                    <span className="sr-only">{label}</span>
-                  </Link>
-                ))}
-            </div>
-            <div className="flex items-center ml-auto">
-              {socialLinks
-                .filter(
-                  (link) => link.shouldShowInNav && link.label === "Resume"
                 )
                 .map(({ href, label, Icon }) => (
                   <Link

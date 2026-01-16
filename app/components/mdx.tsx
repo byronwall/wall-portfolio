@@ -48,9 +48,28 @@ function RoundedImage(props) {
   return <Image alt={props.alt} className="rounded-lg" {...props} />
 }
 
-function Code({ children, ...props }) {
+function Code({ children, className, ...props }) {
+  // Only syntax-highlight fenced code blocks. For inline code, keep a single,
+  // consistent text color (no random token coloring like ".yml").
+  const isFencedBlock =
+    typeof className === 'string' && className.includes('language-')
+
+  if (!isFencedBlock || typeof children !== 'string') {
+    return (
+      <code className={className} {...props}>
+        {children}
+      </code>
+    )
+  }
+
   let codeHTML = highlight(children)
-  return <code dangerouslySetInnerHTML={{ __html: codeHTML }} {...props} />
+  return (
+    <code
+      className={className}
+      dangerouslySetInnerHTML={{ __html: codeHTML }}
+      {...props}
+    />
+  )
 }
 
 function slugify(str) {
