@@ -10,7 +10,7 @@ export function Navbar() {
           className="w-full flex-wrap flex flex-row items-start relative px-0 pb-0 fade md:overflow-auto scroll-pr-6 md:relative"
           id="nav"
         >
-          <div className="w-full flex flex-wrap flex-row items-center gap-2 pr-10 justify-between">
+          <div className="w-full flex flex-wrap flex-row items-center gap-2 pr-10">
             <div className="flex flex-row items-center space-x-0">
               <Link href="/" className="flex items-center mr-4 shrink-0">
                 <Image
@@ -34,7 +34,32 @@ export function Navbar() {
             </div>
             <div className="flex items-center space-x-4 ml-4">
               {socialLinks
-                .filter((link) => link.shouldShowInNav)
+                .filter((link) => link.shouldShowInNav && link.label !== "Resume")
+                .map(({ href, label, Icon }) => (
+                  <Link
+                    key={label}
+                    href={href}
+                    className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                    target={
+                      href.startsWith("http") || href.endsWith(".pdf")
+                        ? "_blank"
+                        : undefined
+                    }
+                    rel={
+                      href.startsWith("http")
+                        ? "noopener noreferrer"
+                        : undefined
+                    }
+                    title={label}
+                  >
+                    {Icon && <Icon className="w-5 h-5" />}
+                    <span className="sr-only">{label}</span>
+                  </Link>
+                ))}
+            </div>
+            <div className="flex items-center ml-auto">
+              {socialLinks
+                .filter((link) => link.shouldShowInNav && link.label === "Resume")
                 .map(({ href, label, Icon }) => (
                   <Link
                     key={label}
