@@ -12,10 +12,19 @@ export default function Home() {
         </p>
         <p className="text-xl">
           Currently working as a{" "}
-          <span className="font-semibold">Staff Software Developer</span> at
-          Allison Transmission, where I develop software solutions for data
-          analysis and visualization of time series data. My preferred stack
-          includes TypeScript, React, C#, and increasingly Next.js.
+          <span className="font-semibold">Full Stack Engineer</span> at{" "}
+          <a
+            href="https://relational.ai"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:underline"
+          >
+            RelationalAI
+          </a>
+          , where I'm building an agentic/LLM data modeling application for
+          Snowflake databases using SolidJS. My preferred stack includes
+          TypeScript, SolidJS, and SolidStart. I previously used React, C#, and
+          Next.js.
         </p>
 
         <ProjectCards />

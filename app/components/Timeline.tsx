@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 
-interface TimelineItem {
-  title: string;
+export interface TimelineItem {
+  title: ReactNode;
   date: string;
   children: ReactNode;
 }

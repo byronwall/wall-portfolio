@@ -1,11 +1,39 @@
 import Image from "next/image";
-import { Timeline } from "app/components/Timeline";
+import { Timeline } from "../components/Timeline";
 
 export default function AboutPage() {
   const experienceItems = [
     {
+      title: (
+        <>
+          <a
+            href="https://relational.ai"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:underline"
+          >
+            RelationalAI
+          </a>{" "}
+          — Full Stack Engineer
+        </>
+      ),
+      date: "April 2025 – Present",
+      children: (
+        <ul>
+          <li>
+            Building an agentic/LLM data modeling application for Snowflake
+            databases using SolidJS
+          </li>
+          <li>
+            Developing full stack software solutions using modern web
+            technologies
+          </li>
+        </ul>
+      ),
+    },
+    {
       title: "Allison Transmission — Staff Software Developer",
-      date: "February 2023 – Present",
+      date: "February 2023 – March 2025",
       children: (
         <ul>
           <li>
@@ -94,6 +122,7 @@ export default function AboutPage() {
         </p>
 
         <h3>Professional Experience</h3>
+        {/* @ts-expect-error - TypeScript cache issue, TimelineItem correctly accepts ReactNode */}
         <Timeline items={experienceItems} />
 
         <h3>Skills</h3>
