@@ -33,7 +33,19 @@ export default function AboutPage() {
       ),
     },
     {
-      title: "Allison Transmission — Staff Software Developer",
+      title: (
+        <>
+          <a
+            href="https://www.allisontransmission.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:underline"
+          >
+            Allison Transmission
+          </a>{" "}
+          — Staff Software Developer
+        </>
+      ),
       date: "February 2023 – March 2025",
       children: (
         <ul>
@@ -57,7 +69,19 @@ export default function AboutPage() {
       ),
     },
     {
-      title: "Allison Transmission — Staff/Senior Engineer",
+      title: (
+        <>
+          <a
+            href="https://www.allisontransmission.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:underline"
+          >
+            Allison Transmission
+          </a>{" "}
+          — Staff/Senior Engineer
+        </>
+      ),
       date: "November 2017 – January 2023",
       children: (
         <ul>
@@ -73,7 +97,19 @@ export default function AboutPage() {
       ),
     },
     {
-      title: "TDA Research — Research and Project Engineer",
+      title: (
+        <>
+          <a
+            href="https://www.tda.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:underline"
+          >
+            TDA Research
+          </a>{" "}
+          — Research and Project Engineer
+        </>
+      ),
       date: "August 2015 – October 2017",
       children: (
         <ul>
@@ -119,7 +155,6 @@ export default function AboutPage() {
         </p>
 
         <h3>Professional Experience</h3>
-        {/* @ts-expect-error - TypeScript cache issue, TimelineItem correctly accepts ReactNode */}
         <Timeline items={experienceItems} />
 
         <h3>Skills</h3>
@@ -147,8 +182,27 @@ export default function AboutPage() {
         </div>
 
         <h3>Education</h3>
-        <h4>Purdue University</h4>
-        <p>Bachelor of Science in Chemical Engineering</p>
+        <h4>
+          <a
+            href="https://www.purdue.edu"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:underline"
+          >
+            Purdue University
+          </a>
+        </h4>
+        <p>
+          Bachelor of Science in{" "}
+          <a
+            href="https://engineering.purdue.edu/ChE"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:underline"
+          >
+            Chemical Engineering
+          </a>
+        </p>
       </div>
     </section>
   );

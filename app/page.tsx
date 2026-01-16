@@ -6,11 +6,11 @@ export default function Home() {
     <main className="flex min-h-screen flex-col items-center justify-between">
       <div className="z-10 max-w-5xl w-full items-center justify-between text-sm">
         <h1 className="text-4xl font-bold mb-4">Byron Wall</h1>
-        <p className="text-xl mb-8">
+        <p className="text-xl mb-4">
           Software engineer with 14+ years of experience in Software and
           Chemical Engineering.
         </p>
-        <p className="text-xl">
+        <p className="text-xl mb-4">
           Currently working as a{" "}
           <span className="font-semibold">Full Stack Engineer</span> at{" "}
           <a
@@ -22,9 +22,11 @@ export default function Home() {
             RelationalAI
           </a>
           , where we're building an agentic/LLM data modeling application for
-          Snowflake databases using SolidJS. My preferred stack includes
-          TypeScript, SolidJS, and SolidStart. I previously used React/SolidJS, C#, and
-          Next.js.
+          Snowflake databases using SolidJS.
+        </p>
+        <p className="text-xl">
+          My preferred stack includes TypeScript, SolidJS, and SolidStart. I
+          previously used React/SolidJS, C#, and Next.js.
         </p>
 
         <ProjectCards />
@@ -40,10 +42,10 @@ export default function Home() {
                 <strong>Data Visualization Platform</strong>
               </Link>
               <p className="ml-6">
-                Built a 100k+ LOC platform using C#, TypeScript, and React/SolidJS for
-                analyzing transmission testing data. Features include a custom
-                calculation DSL and interactive visualizations using custom
-                charting components (SVG + canvas).
+                Built a 100k+ LOC platform using C#, TypeScript, and
+                React/SolidJS for analyzing transmission testing data. Features
+                include a custom calculation DSL and interactive visualizations
+                using custom charting components (SVG + canvas).
               </p>
             </li>
             <li>
