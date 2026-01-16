@@ -22,7 +22,7 @@ export default function Home() {
             RelationalAI
           </a>
           , where we're building an agentic/LLM data modeling application for
-          Snowflake databases using SolidJS.
+          Snowflake databases.
         </p>
         <p className="text-xl">
           My preferred stack includes TypeScript, SolidJS, and SolidStart. I
