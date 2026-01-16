@@ -4,15 +4,15 @@ publishedAt: 2025-02-01
 summary: "Notes from getting LibreChat running on Coolify: the env vars that matter, why the API serves the UI, and how to force upgrades to pull :latest."
 ---
 
-I run a self-hosted [LibreChat](https://www.librechat.ai) instance on a [Coolify](https://coolify.io) server. The first deploy was straightforward, but the “why am I getting 404 / bad gateway?” and “why won’t it upgrade even though I’m using `:latest`?” parts were surprisingly non-obvious.
+This post documents running a self-hosted [LibreChat](https://www.librechat.ai) instance on a [Coolify](https://coolify.io) server. The first deploy is straightforward, but common failure modes (404 / bad gateway) and upgrades while using `:latest` are less obvious.
 
-This is the short version of what actually mattered.
+These are the key points that mattered.
 
 ## The key gotcha: the API container serves the web UI
 
-If you’re coming from a typical “client + api” deployment mindset, it’s easy to assume you must expose a separate `client` container. In LibreChat’s compose setup, the `api` service already serves the static client assets.
+In LibreChat’s compose setup, the `api` service serves the static client assets. You typically do not need to expose a separate `client` container.
 
-If you’re curious where that happens, it’s in the Express server in LibreChat’s API service (example reference from my fork at the time): [LibreChat API server source](https://github.com/byronwall/LibreChat/blob/main/api/server/index.js#L46).
+Reference (from my fork at the time): [LibreChat API server source](https://github.com/byronwall/LibreChat/blob/main/api/server/index.js#L46).
 
 Practical implication:
 
@@ -21,7 +21,7 @@ Practical implication:
 
 ## Deploying on Coolify with `deploy-compose.yml`
 
-What I did (and what worked):
+Steps:
 
 - Create a new resource from a public GitHub repo (your fork or the upstream LibreChat repo).
 - Choose “Docker Compose”.
@@ -38,13 +38,12 @@ One trap: renaming `.env.example` to `.env` in your fork and assuming Coolify wi
 
 ## The minimum environment variables (and how to generate them)
 
-LibreChat will often start “kind of” working while hiding the real failure in logs. The easiest way to get unstuck is:
+LibreChat can appear to start while the real failure is only visible in logs. The fastest way to get unstuck is:
 
 - **Check logs for the `api` service** in Coolify.
 - When you see missing-secret / crypto-related errors, generate values with LibreChat’s toolkit: [creds generator](https://www.librechat.ai/toolkit/creds_generator)
 
-Here’s the minimum set I needed to get a clean first run with OpenAI models available. **Generate your own secrets**—do not copy/paste these placeholders as-is:
-Here’s the minimum set I needed to get a clean first run with OpenAI models available. Generate your own secrets—do not copy/paste these placeholders as-is:
+Here’s the minimum set I used to get a clean first run with OpenAI models available. **Generate your own secrets**—do not copy/paste these placeholders as-is:
 
 ```bash
 ALLOW_REGISTRATION=true
@@ -64,14 +63,13 @@ Notes:
 - The `CREDS_*` / `JWT_*` secrets: required for the app to behave correctly; missing values can lead to confusing 404s / gateway errors.
 - `MEILI_MASTER_KEY`: I included it because the creds generator produced it; if you’re not using search/RAG features, your needs may differ—again, follow the `api` logs.
 
-## “Why am I still on an old version if the compose uses `:latest`?”
+## Upgrades: why `:latest` may still be old
 
-Coolify can end up reusing cached images even if your compose references `:latest`. I hit this when I was stuck on an older LibreChat tag even after redeploys.
+Coolify can end up reusing cached images even if your compose references `:latest`, leaving you on an older LibreChat tag after redeploys.
 
 The fix was to add a **custom start command** so the deployment always pulls images:
-The fix was to add a custom start command so the deployment always pulls images:
 
-```bash
+```text
 docker compose -f ./deploy-compose.yml up -d --pull always
 ```
 
@@ -82,8 +80,5 @@ After that, redeploying correctly pulled the newer LibreChat image.
 - **If the domain shows 404**: check `api` logs first; it’s often missing env vars/secrets.
 - **If you removed the `client` service**: that’s fine; the UI is served by `api` in this setup.
 - **If upgrades don’t apply**: force a pull with the custom start command above.
-- If the domain shows 404: check `api` logs first; it’s often missing env vars/secrets.
-- If you removed the `client` service: that’s fine; the UI is served by `api` in this setup.
-- If upgrades don’t apply: force a pull with the custom start command above.
 
-If you’re stuck, the fastest path is almost always: open the `api` service logs, search for the first real error, and add the missing env var(s).
+If you run into issues, the fastest path is usually: open the `api` service logs, find the first actionable error, and add the missing env var(s).

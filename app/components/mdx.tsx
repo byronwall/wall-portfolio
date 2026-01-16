@@ -53,8 +53,14 @@ function Code({ children, className, ...props }) {
   // consistent text color (no random token coloring like ".yml").
   const isFencedBlock =
     typeof className === 'string' && className.includes('language-')
+  const language =
+    typeof className === 'string'
+      ? className.match(/language-([A-Za-z0-9_-]+)/)?.[1]?.toLowerCase()
+      : undefined
+  const isPlainText =
+    language === 'text' || language === 'plain' || language === 'plaintext'
 
-  if (!isFencedBlock || typeof children !== 'string') {
+  if (!isFencedBlock || isPlainText || typeof children !== 'string') {
     return (
       <code className={className} {...props}>
         {children}
