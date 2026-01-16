@@ -21,12 +21,13 @@ export default function AboutPage() {
       children: (
         <ul>
           <li>
-            Building an agentic/LLM data modeling application for Snowflake
-            databases using SolidJS
+            Building server-side components with FastAPI, Pydantic AI, and
+            Python for an agentic/LLM data modeling application for Snowflake
+            databases
           </li>
           <li>
-            Developing full stack software solutions using modern web
-            technologies
+            Developing client-side components using SolidJS for the same data
+            modeling application
           </li>
         </ul>
       ),
@@ -38,7 +39,8 @@ export default function AboutPage() {
         <ul>
           <li>
             Created and maintain a data analysis platform (100k+ LOC) using C#,
-            TypeScript, and React with interactive visualizations via D3.js
+            TypeScript, and React/SolidJS with interactive visualizations via
+            D3.js
           </li>
           <li>
             Developed domain-specific language for custom engineering analyses
@@ -60,8 +62,8 @@ export default function AboutPage() {
       children: (
         <ul>
           <li>
-            Built interactive hydraulic schematic tool using Electron, React,
-            and TypeScript
+            Built interactive hydraulic schematic tool using Electron,
+            React/SolidJS, and TypeScript
           </li>
           <li>
             Developed visualization tools for engineering design and
@@ -111,14 +113,9 @@ export default function AboutPage() {
           Chemical Engineering. I specialize in creating highly interactive
           data-centric applications. With a foundation in Chemical Engineering,
           I've evolved into a full-stack developer focusing on TypeScript,
-          React, and C#. I excel at building tools that help engineers and
-          technical teams analyze data, visualize complex systems, and automate
-          workflows.
-        </p>
-
-        <p className="mb-8">
-          Full Stack Developer based in Indianapolis, IN, specializing in
-          engineering software solutions
+          React/SolidJS, and C#. I excel at building tools that help engineers
+          and technical teams analyze data, visualize complex systems, and
+          automate workflows.
         </p>
 
         <h3>Professional Experience</h3>
@@ -140,7 +137,7 @@ export default function AboutPage() {
             <h4>Proficient in:</h4>
             <ul>
               <li>C#</li>
-              <li>React</li>
+              <li>React/SolidJS</li>
               <li>Node.js</li>
               <li>Python</li>
               <li>Git</li>

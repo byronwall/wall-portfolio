@@ -15,11 +15,11 @@ export const metadata: Metadata = {
     template: "%s | Byron Wall",
   },
   description:
-    "Software engineer with expertise in TypeScript, React, and data visualization. Currently working as a Hydraulic and Fluid Systems Engineer at Allison Transmission.",
+    "Software engineer with expertise in TypeScript, React/SolidJS, and data visualization. Currently working as a Hydraulic and Fluid Systems Engineer at Allison Transmission.",
   openGraph: {
     title: "Byron Wall",
     description:
-      "Software engineer with expertise in TypeScript, React, and data visualization. Currently working as a Hydraulic and Fluid Systems Engineer at Allison Transmission.",
+      "Software engineer with expertise in TypeScript, React/SolidJS, and data visualization. Currently working as a Hydraulic and Fluid Systems Engineer at Allison Transmission.",
     url: baseUrl,
     siteName: "Byron Wall",
     locale: "en_US",

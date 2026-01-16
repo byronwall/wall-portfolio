@@ -21,9 +21,9 @@ export default function Home() {
           >
             RelationalAI
           </a>
-          , where I'm building an agentic/LLM data modeling application for
+          , where we're building an agentic/LLM data modeling application for
           Snowflake databases using SolidJS. My preferred stack includes
-          TypeScript, SolidJS, and SolidStart. I previously used React, C#, and
+          TypeScript, SolidJS, and SolidStart. I previously used React/SolidJS, C#, and
           Next.js.
         </p>
 
@@ -40,7 +40,7 @@ export default function Home() {
                 <strong>Data Visualization Platform</strong>
               </Link>
               <p className="ml-6">
-                Built a 100k+ LOC platform using C#, TypeScript, and React for
+                Built a 100k+ LOC platform using C#, TypeScript, and React/SolidJS for
                 analyzing transmission testing data. Features include a custom
                 calculation DSL and interactive visualizations using custom
                 charting components (SVG + canvas).
@@ -54,7 +54,7 @@ export default function Home() {
                 <strong>Interactive Hydraulic Schematic Tool</strong>
               </Link>
               <p className="ml-6">
-                Developed an Electron-based application using React and
+                Developed an Electron-based application using React/SolidJS and
                 TypeScript for hydraulic system visualization and analysis.
                 Allows for user defined schematics with complicated logic and
                 connectivity.
@@ -78,7 +78,7 @@ export default function Home() {
             <h3 className="font-semibold mb-2">Expert</h3>
             <ul className="list-disc list-inside">
               <li>TypeScript/JavaScript</li>
-              <li>React</li>
+              <li>React/SolidJS</li>
               <li>Excel/VBA</li>
               <li>Data Analysis</li>
               <li>Data Visualization</li>
