@@ -1,0 +1,62 @@
+---
+title: "Comic Book Creator"
+description: "A printable comic book editor for making kid-friendly books with pages, templates, bubbles, and local JSON persistence"
+date: "2026-04-26"
+publishedAt: "2026-04-26"
+summary: "A printable comic book editor for making kid-friendly books with pages, templates, bubbles, and local JSON persistence"
+tags: ["SolidStart", "SolidJS", "TypeScript", "Panda CSS", "Park UI", "JSON"]
+image: "https://raw.githubusercontent.com/byronwall/comic-book-creator/main/docs/screenshots/comic-book-editor.png"
+---
+
+Comic Book Creator is a personal SolidStart app for making printable comic books. It is built around a desktop-style editor where books are saved locally, pages can be arranged into different panel layouts, and comic text can be placed directly on the printable page.
+
+Source: [byronwall/comic-book-creator](https://github.com/byronwall/comic-book-creator)
+
+## Interface
+
+<div className="not-prose grid grid-cols-1 gap-4">
+  <img
+    src="https://raw.githubusercontent.com/byronwall/comic-book-creator/main/docs/screenshots/comic-books-index.png"
+    alt="Comic Book Creator library page"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+  <img
+    src="https://raw.githubusercontent.com/byronwall/comic-book-creator/main/docs/screenshots/comic-book-editor.png"
+    alt="Comic Book Creator editor with page templates and comic text controls"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+  <img
+    src="https://raw.githubusercontent.com/byronwall/comic-book-creator/main/docs/screenshots/comic-book-rename-dialog.png"
+    alt="Comic Book Creator rename dialog"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+</div>
+
+## How it works
+
+The app keeps the workflow intentionally direct: create a book, add pages, pick printable layouts, place text, and print. Edits autosave back to JSON files on the server so the project works well as a local family tool without needing accounts or hosted infrastructure.
+
+- **Editor framework**:
+  - SolidStart and SolidJS power the app shell, routes, and reactive editing state.
+- **Persistence**:
+  - Comic books are stored as local JSON records, with server-side normalization for older records and missing fields.
+- **Page design**:
+  - Pages support letter and half-sheet paper sizes in portrait or landscape.
+  - Layout templates include classic grids, splash pages, strips, reveal layouts, letterbox pages, webtoon-style stacks, and angled action panels.
+- **Text tooling**:
+  - Printable text elements include speech bubbles, thought bubbles, captions, and sound effects.
+  - Text can be dragged, resized, rotated, deleted, wrapped, aligned, and switched between bubble styles.
+- **UI system**:
+  - Panda CSS, Park UI, Ark UI wrappers, and Lucide icons provide the shared controls and dialog flows.
+
+## Highlights
+
+- Multi-book library with create, open, rename, and delete flows
+- Page rail for selecting, adding, reordering, and deleting pages
+- Template picker with live miniature previews for each layout
+- Direct manipulation of comic text on the printable page
+- Side-panel controls for bubble type, copy, size, alignment, wrapping, and rotation
+- Print actions for the current page or the whole book
