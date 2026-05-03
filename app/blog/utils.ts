@@ -9,7 +9,35 @@ type BaseMetadata = {
   summary: string;
   image?: string;
   tags?: string[];
+  [key: string]: string | string[] | undefined;
 };
+
+function normalizeImageSrc(src: string) {
+  try {
+    const imageUrl = new URL(src);
+    const optimizedSrc = imageUrl.searchParams.get("url");
+
+    if (imageUrl.pathname === "/_next/image" && optimizedSrc) {
+      return optimizedSrc.startsWith("/")
+        ? `${imageUrl.origin}${optimizedSrc}`
+        : optimizedSrc;
+    }
+  } catch {
+    // Relative URLs are already valid for local project thumbnails.
+  }
+
+  return src;
+}
+
+function getFirstContentImage(content: string) {
+  const markdownImageMatch = content.match(
+    /!\[[^\]]*]\(([^)\s]+)(?:\s+"[^"]*")?\)/
+  );
+  const htmlImageMatch = content.match(/<img[\s\S]*?\bsrc=["']([^"']+)["']/i);
+  const imageSrc = markdownImageMatch?.[1] ?? htmlImageMatch?.[1];
+
+  return imageSrc ? normalizeImageSrc(imageSrc) : undefined;
+}
 
 function parseFrontmatter(fileContent: string) {
   let frontmatterRegex = /---\s*([\s\S]*?)\s*---/;
@@ -57,6 +85,7 @@ function getMDXData(dir: string) {
       metadata,
       slug,
       content,
+      thumbnail: metadata.image ?? getFirstContentImage(content),
     };
   });
 }

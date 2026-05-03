@@ -1,0 +1,53 @@
+---
+title: "Srcly"
+description: "An interactive codebase treemap, metrics, and code-flow viewer for finding code hotspots"
+date: "2026-05-03"
+publishedAt: "2026-05-03"
+summary: "An interactive codebase treemap, metrics, and code-flow viewer for finding code hotspots"
+tags: ["Python", "FastAPI", "SolidJS", "TypeScript", "Tree-sitter", "Static Analysis"]
+image: "https://raw.githubusercontent.com/byronwall/srcly/main/docs/00-main.png"
+---
+
+Srcly is a local-first tool for exploring codebases through a treemap, metrics, and code-flow views. It combines Lizard with tree-sitter analyzers to build a hierarchical model of folders, files, functions, and nested scopes, then renders the result as an explorable browser UI.
+
+- Try it: `uvx srcly`
+- Source: [byronwall/srcly](https://github.com/byronwall/srcly)
+
+## Interface
+
+<div className="not-prose mt-6">
+  <img
+    src="https://raw.githubusercontent.com/byronwall/srcly/main/docs/00-main.png"
+    alt="Srcly codebase treemap, explorer, and code analysis interface"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+</div>
+
+## How it works
+
+Srcly runs as a FastAPI-backed local application with a SolidJS frontend:
+
+- **Static analysis**:
+  - Uses Lizard for broad complexity and LOC coverage.
+  - Adds tree-sitter analyzers for TypeScript/TSX, Python, CSS/SCSS, Markdown, and notebooks.
+  - Extracts functions, nested scopes, complexity, comments, TODOs, imports, JSX signals, and language-specific quality metrics.
+- **Codebase model**:
+  - Builds a folder/file/function tree that mirrors the repository structure.
+  - Represents nested scopes and remaining body fragments so treemap area does not double-count code.
+  - Aggregates metrics upward so folders and files can be sorted, colored, and ranked.
+- **Interactive UI**:
+  - Shows a LOC-sized treemap with selectable hotspot coloring.
+  - Provides an explorer sidebar with sorting, file-type filters, and Hot Spots ranking.
+  - Opens source in a syntax-highlighted code viewer with metrics, scope overlays, and flow views.
+- **Agent-ready reports**:
+  - Supports headless commands for reports, hotspots, tree summaries, findings, and focused file explanations.
+  - Emits compact artifacts designed to help coding agents understand a repository before making changes.
+
+## Highlights
+
+- One-command local usage with `uvx srcly`
+- Treemap, explorer, and hotspot views backed by the same metrics model
+- TypeScript/TSX dependency graph, scope flow, and data-flow inspection
+- Source viewer with Shiki highlighting and Markdown/notebook previews
+- Report mode for generating `report.md`, `findings.json`, metric schemas, and compact tree summaries
