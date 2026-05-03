@@ -1,0 +1,43 @@
+---
+title: "Visual Notes"
+description: "A markdown note ingestion and visualization app with embeddings, UMAP projections, and a visual canvas"
+date: "2026-05-03"
+publishedAt: "2026-05-03"
+summary: "A markdown note ingestion and visualization app with embeddings, UMAP projections, and a visual canvas"
+tags: ["SolidStart", "TypeScript", "Prisma", "PostgreSQL", "OpenAI", "Data Visualization"]
+image: "https://raw.githubusercontent.com/byronwall/visual-notes/main/docs/main-ui.png"
+---
+
+Visual Notes is an app for ingesting markdown documents, storing them as structured records, and exploring them visually. The project started with a minimal markdown ingest flow and grew into an embeddings and UMAP-backed canvas for arranging notes by semantic similarity.
+
+- Source: [byronwall/visual-notes](https://github.com/byronwall/visual-notes)
+
+## Interface
+
+<div className="not-prose mt-6">
+  <img
+    src="https://raw.githubusercontent.com/byronwall/visual-notes/main/docs/main-ui.png"
+    alt="Visual Notes markdown ingest and document viewer interface"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+</div>
+
+## How it works
+
+Visual Notes treats markdown as source material for a searchable and visual note workspace:
+
+- Ingests markdown through API routes or the client form.
+- Converts markdown to normalized HTML for document viewing.
+- Persists documents with Prisma and PostgreSQL.
+- Computes OpenAI embeddings for stored documents.
+- Trains UMAP projections and stores 2D or 3D point layouts.
+- Uses the latest UMAP run to position notes on the visual canvas.
+
+## Highlights
+
+- Minimal end-to-end markdown ingest and viewer flow
+- Embedding runs with model and dimension metadata
+- UMAP train and project workflows with persisted artifacts
+- Canvas visualization backed by semantic note positions
+- Docker Compose setup for Postgres and the app

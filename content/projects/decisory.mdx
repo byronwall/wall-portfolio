@@ -1,0 +1,49 @@
+---
+title: "Decisory"
+description: "An AI consultation app that turns open-ended decisions into guided questions and structured recommendations"
+date: "2026-05-03"
+publishedAt: "2026-05-03"
+summary: "An AI consultation app that turns open-ended decisions into guided questions and structured recommendations"
+tags: ["SolidStart", "SolidJS", "TypeScript", "OpenAI", "Panda CSS", "Decision Tools"]
+image: "https://raw.githubusercontent.com/byronwall/llm-question-asker/main/docs/screenshot-session.png"
+---
+
+Decisory is an AI-powered consultation tool for working through complex decisions with structured question-and-answer sessions. Instead of starting from a blank page, users describe a goal, answer targeted follow-up questions, and receive recommendations based on the accumulated context.
+
+- Source: [byronwall/llm-question-asker](https://github.com/byronwall/llm-question-asker)
+
+## Interface
+
+<div className="not-prose grid grid-cols-1 gap-4">
+  <img
+    src="https://raw.githubusercontent.com/byronwall/llm-question-asker/main/docs/screenshot-home.png"
+    alt="Decisory home page showing recent consultation sessions"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+  <img
+    src="https://raw.githubusercontent.com/byronwall/llm-question-asker/main/docs/screenshot-session.png"
+    alt="Decisory active consultation session with questions and analysis"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+</div>
+
+## Workflow
+
+Decisory turns a loose goal into a guided consultation:
+
+- Start a session by describing the decision or project goal in plain language.
+- Generate a concise session title, description, and initial question set.
+- Answer multiple-choice questions with optional custom context.
+- Review AI-generated recommendations based on submitted answers.
+- Run additional rounds when the decision needs refinement.
+- Copy analysis results as Markdown for reuse elsewhere.
+
+## Highlights
+
+- 8-12 targeted questions generated for each situation
+- Iterative follow-up rounds that build on previous answers
+- Local JSON session persistence
+- Collapsible question sections and expandable long prompts
+- SolidStart, Panda CSS, Ark UI, and OpenAI-backed server logic
