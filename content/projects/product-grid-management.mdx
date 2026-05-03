@@ -1,0 +1,42 @@
+---
+title: "Product Grid Management"
+description: "A spatial graph workspace for mapping product ideas, UI architecture, and planning context"
+date: "2026-05-03"
+publishedAt: "2026-05-03"
+summary: "A spatial graph workspace for mapping product ideas, UI architecture, and planning context"
+tags: ["SolidStart", "SolidJS", "TypeScript", "OpenAI", "Spatial UI", "Product Tools"]
+image: "https://raw.githubusercontent.com/byronwall/prod-mgmt-grid/main/docs/readme-screenshots/canvas-viewer.png"
+---
+
+Product Grid Management is a SolidStart application for mapping product ideas, UI architecture, system relationships, and planning context as a spatial graph. It combines a project registry, interactive canvas, structured node metadata, markdown notes, image attachments, and AI-assisted workflows for turning loose context into navigable product maps.
+
+- Source: [byronwall/prod-mgmt-grid](https://github.com/byronwall/prod-mgmt-grid)
+
+## Interface
+
+<div className="not-prose mt-6">
+  <img
+    src="https://raw.githubusercontent.com/byronwall/prod-mgmt-grid/main/docs/readme-screenshots/canvas-viewer.png"
+    alt="Product Grid Management spatial product map with selected node inspector"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+</div>
+
+## How it works
+
+Product Grid Management treats planning information as a graph:
+
+- Nodes represent product areas, workflows, UI pieces, notes, and implementation details.
+- Links capture hierarchy, dependencies, reuse, and related concepts.
+- The same graph can be explored as a spatial canvas, hierarchy tree, document view, or metadata grid.
+- Node context supports markdown notes, image attachments, custom metadata, and status/type fields.
+- AI workflows can add nodes, decompose source material, convert loose notes, and generate mockup images.
+
+## Highlights
+
+- Project registry with import and export
+- Pan-and-zoom canvas with focus, isolation, depth filtering, and command search
+- Dense metadata grid and reading-oriented tree/document view
+- Markdown context nodes and source-note conversion
+- Server-side OpenAI workflows with streamed progress

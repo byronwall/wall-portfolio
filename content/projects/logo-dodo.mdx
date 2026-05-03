@@ -1,0 +1,40 @@
+---
+title: "Logo Dodo"
+description: "A SolidStart app for AI-assisted logo exploration, feedback, and visual direction refinement"
+date: "2026-05-03"
+publishedAt: "2026-05-03"
+summary: "A SolidStart app for AI-assisted logo exploration, feedback, and visual direction refinement"
+tags: ["SolidStart", "SolidJS", "TypeScript", "OpenAI", "Image Generation", "Design Tools"]
+image: "https://raw.githubusercontent.com/byronwall/logododo/main/app/public/brand/logo-dodo.png"
+---
+
+Logo Dodo is a local-first logo workbench for moving from a short brand brief to generated concept boards, structured candidate feedback, and increasingly focused visual directions. The workflow is built around practical art direction: generate a broad board, mark the strongest and weakest candidates, then use that feedback to steer the next round.
+
+- Source: [byronwall/logododo](https://github.com/byronwall/logododo)
+
+## Workflow
+
+Logo Dodo turns a brand brief into a sequence of reviewable boards:
+
+- Creates `5x5`, `4x4`, `3x3`, and `2x2` logo concept boards.
+- Detects candidate bounds so individual marks can be reviewed apart from the full board.
+- Captures likes, loves, rejections, tags, notes, and additional reviewer direction.
+- Synthesizes feedback into the next creative territory for iterative generation.
+- Exports a Markdown creative summary with the brief, board history, selected notes, prompts, and run metadata.
+
+## How it works
+
+The app uses SolidStart with server-side OpenAI calls:
+
+- Text models plan visual territories and refinement directions.
+- Image generation produces PNG board assets saved into the local app workspace.
+- Candidate previews are extracted as a review convenience layer.
+- Project history and feedback are persisted locally so each board has durable context.
+
+## Highlights
+
+- Structured brand briefs with include and avoid guidance
+- Iterative board generation from user feedback
+- Candidate-level review and tagging
+- Local project history with Markdown handoff export
+- Docker Compose setup with persistent data and generated asset volumes

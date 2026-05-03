@@ -1,0 +1,32 @@
+---
+title: "Family Recipes"
+description: "A modern recipe, meal-planning, and shopping-list app with auth, images, and optional Kroger integration"
+date: "2026-05-03"
+publishedAt: "2026-05-03"
+summary: "A modern recipe, meal-planning, and shopping-list app with auth, images, and optional Kroger integration"
+tags: ["Next.js", "React", "TypeScript", "tRPC", "Prisma", "PostgreSQL"]
+image: ""
+---
+
+Family Recipes is a Next.js app for creating and managing recipes, planning meals, and maintaining a shopping list. It includes grouped ingredients and step groups, recipe scheduling, image uploads, authentication, and optional Kroger cart integration.
+
+- Source: [byronwall/recipes-modern](https://github.com/byronwall/recipes-modern)
+
+## Features
+
+The app covers the practical loops around home cooking:
+
+- Create, view, edit, and delete recipes with grouped ingredients and step groups.
+- Schedule recipes on a meal-planning calendar.
+- Add recipes or loose items to a shopping list and mark items as bought.
+- Upload recipe images through an S3-compatible object store.
+- Authenticate users with NextAuth credentials.
+- Optionally connect Kroger OAuth for product search and add-to-cart flows.
+
+## Highlights
+
+- Next.js App Router with React 18
+- tRPC and Zod for typed API surfaces
+- Prisma with PostgreSQL persistence
+- S3-compatible media storage with MinIO local setup
+- Docker Compose deployment path for Coolify
