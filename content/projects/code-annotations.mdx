@@ -1,0 +1,35 @@
+---
+title: "Code Annotations"
+description: "A VS Code extension for capturing code selections as markdown annotations for AI-assisted implementation work"
+date: "2026-05-19"
+publishedAt: "2026-05-19"
+summary: "A VS Code extension for capturing code selections as markdown annotations for AI-assisted implementation work"
+tags: ["VS Code", "TypeScript", "Markdown", "AI Tools", "Developer Tools"]
+image: "https://raw.githubusercontent.com/byronwall/vsc-code-annotations/main/assets/icon.png"
+---
+
+Code Annotations is a VS Code extension for capturing selected code, whole-file notes, and follow-up context into workspace-local markdown. It turns review notes, implementation ideas, questions, and issues into a human-readable backlog that can also be handed to an AI agent.
+
+- Source: [byronwall/vsc-code-annotations](https://github.com/byronwall/vsc-code-annotations)
+
+## Workflow
+
+Code Annotations is designed for implementation sessions where useful context appears while reading code:
+
+- Capture the current editor selection as a typed annotation.
+- Create whole-file annotations when the note applies to an entire source file.
+- Store annotations in a workspace-relative markdown file instead of global extension storage.
+- Review saved notes from an activity-bar sidebar with flat or file-grouped views.
+- Reopen the best current source match from each saved code reference.
+- Repair stale references when code moves.
+- Surface annotation code lenses and hovers directly in annotated source files.
+- Create single or batched annotations through VS Code language model tools.
+
+## Highlights
+
+- Markdown-first persistence that stays readable in source control
+- Stable annotation blocks with path, line range, comment, type, and code snippet
+- Sidebar navigation for active annotation lists and grouped source references
+- Inline editor code lenses for annotated files
+- Command palette, context menu, keyboard shortcut, and model-tool entry points
+- Prototype-friendly architecture with extension-host-only TypeScript modules
