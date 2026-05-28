@@ -1,0 +1,58 @@
+---
+title: "Alt Image Zoom Modal"
+description: "A Chrome extension for inspecting, saving, and organizing page images with a fast pan-and-zoom viewer"
+date: "2026-05-27"
+publishedAt: "2026-05-27"
+summary: "A Chrome extension for inspecting, saving, and organizing page images with a fast pan-and-zoom viewer"
+tags: ["Chrome Extension", "JavaScript", "Image Tools", "IndexedDB", "Productivity"]
+image: "/images/projects/chrome-image-modal/modal.png"
+---
+
+Alt Image Zoom Modal is an unpacked Chrome extension for working with images directly from any webpage. It adds a lightweight inspection layer on top of the browser: alt-click an image, open it in a modal, zoom in, pan around, move through nearby page images, and save the ones worth keeping.
+
+- Source: [byronwall/chrome-image-modal](https://github.com/byronwall/chrome-image-modal)
+
+## Interface
+
+<div className="not-prose mt-6">
+  <img
+    src="/images/projects/chrome-image-modal/modal.png"
+    alt="Alt Image Zoom Modal showing a page image in a pan and zoom viewer"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+</div>
+
+## How it works
+
+The extension collects page images and videos into a thumbnail carousel, then presents the active image in a focused viewer with fit-to-stage sizing, wheel zoom, button zoom, drag panning, double-click reset, and keyboard navigation. A grid view makes it quick to jump between candidates without returning to the source page.
+
+The saving workflow is built for repeated image review:
+
+- Save the active image into extension-owned folders.
+- Bulk-select page images from a thumbnail grid.
+- Download one image directly or multiple images as a ZIP.
+- Store image bytes in IndexedDB so saved images remain available after leaving the original page.
+- De-dupe saved images within a folder using a SHA-256 content hash.
+- Open saved folders in a full-tab viewer with the same pan-and-zoom interaction.
+
+## Bulk save
+
+<div className="not-prose mt-6">
+  <img
+    src="/images/projects/chrome-image-modal/bulk-save.png"
+    alt="Bulk image save grid for selecting page images"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+</div>
+
+## Highlights
+
+- Alt-click page images to open the zoom modal
+- `Cmd+Shift+P` shortcut for opening the best available page image
+- Previous and next navigation with buttons, thumbnails, and arrow keys
+- Copy, download, save, and jump-to-source actions
+- Folder browser for saved image sets
+- Full-tab folder viewer for reviewing saved images
+- No build step and no external dependencies

@@ -1,0 +1,32 @@
+---
+title: Why I made a pan-and-zoom viewer for webpage images
+publishedAt: 2026-05-27
+summary: "I wanted a faster way to inspect ChatGPT image generations, so I built a Chrome extension for browsing page images with pan, zoom, grids, and saved folders."
+image: "/images/posts/chatgpt-image-pan-zoom/modal.png"
+---
+
+I kept running into the same small frustration on the new ChatGPT image generation page: the images were good enough that I wanted to inspect them, compare them, and move around inside them quickly, but the page did not give me the kind of viewer I wanted.
+
+For generated images, the difference between "I can see it" and "I can inspect it" matters. I want to zoom into details, pan around without losing my place, flip through nearby images, and pull the useful ones into a saved set. That is especially true when I am using image generation as part of an interface design workflow, because tiny visual decisions can change whether an idea is useful or just superficially interesting.
+
+I have been adding pan-and-zoom interfaces anywhere I work with images: product grids, visual notes, screenshot-heavy tools, image review screens. Once an interface has enough images, a plain thumbnail or browser tab stops being enough. The valuable interaction is the fast loop: open, inspect, compare, save, move on.
+
+So I built a Chrome extension around that loop.
+
+<div className="not-prose my-6">
+  <img
+    src="/images/posts/chatgpt-image-pan-zoom/modal.png"
+    alt="A webpage image opened in the Alt Image Zoom Modal pan and zoom viewer"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+</div>
+
+The extension lets me alt-click an image on a page and open it in a modal with wheel zoom, drag panning, reset, keyboard navigation, and nearby image thumbnails. If there are many images on the page, I can switch to a grid, bulk-select the images I care about, save them into extension folders, or download them as a ZIP.
+
+That turns the image generation page from a feed into a workspace. I can stay in the browser, inspect the output at the level of detail that matters, collect the images worth keeping, and come back to them later in a full-tab folder viewer.
+
+The bigger lesson is that image-heavy workflows need first-class image navigation. Pan and zoom are not flashy features; they are basic affordances once images become source material instead of decoration.
+
+- Project: [Alt Image Zoom Modal](/projects/chrome-image-modal)
+- Source: [byronwall/chrome-image-modal](https://github.com/byronwall/chrome-image-modal)
