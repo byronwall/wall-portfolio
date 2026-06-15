@@ -1,0 +1,41 @@
+---
+title: "Data Viz Copilot Usage"
+description: "An interactive viewer for Copilot and Codex coding-session token usage"
+date: "2026-06-15"
+publishedAt: "2026-06-15"
+summary: "An interactive viewer for Copilot and Codex coding-session token usage"
+tags: ["Python", "Flask", "JavaScript", "Data Visualization", "Developer Tools", "Codex"]
+image: "https://raw.githubusercontent.com/byronwall/data-viz-copilot-usage/main/docs/img/small-multiples.png"
+---
+
+Data Viz Copilot Usage is a local web tool for understanding how VS Code Copilot and Codex coding sessions spend tokens. It reads Copilot debug logs and Codex rollout logs, then turns each session into sortable small multiples, rollups, calendars, and detailed per-turn traces.
+
+- Source: [byronwall/data-viz-copilot-usage](https://github.com/byronwall/data-viz-copilot-usage)
+
+## Interface
+
+<div className="not-prose mt-6">
+  <img
+    src="https://raw.githubusercontent.com/byronwall/data-viz-copilot-usage/main/docs/img/small-multiples.png"
+    alt="Data Viz Copilot Usage small-multiple charts showing cumulative coding-session token usage"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+</div>
+
+## How it works
+
+The app runs as a Flask-backed local viewer with a browser-rendered SVG interface:
+
+- **Copilot parsing**: Finds VS Code Copilot debug logs under `workspaceStorage`, reads each `main.jsonl`, and folds in sibling child-session logs such as sub-agent and title-generation runs.
+- **Codex parsing**: Reads Codex session JSONL files plus `state_5.sqlite` thread metadata to recover thread titles, source information, and sub-agent parentage.
+- **Session model**: Converts raw log events into per-turn token usage, cache-hit rates, request counts, model and reasoning metadata, costs when available, and tool activity.
+- **Interactive views**: Renders small multiples, a sortable table rollup, a usage calendar, and a detail modal for drilling into every LLM call and preceding tool invocation.
+
+## Highlights
+
+- One-command local usage with `uv run app.py`
+- Shared-scale small multiples for comparing heavy sessions at a glance
+- Click-through detail view with per-turn token, cache, model, reasoning, and tool data
+- Sortable table mode for model, cost, token, cache, request, and duration rollups
+- GitHub-style usage calendar for daily Copilot AIC or Codex input-token totals
