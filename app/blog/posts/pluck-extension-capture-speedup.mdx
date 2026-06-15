@@ -1,0 +1,84 @@
+---
+title: Speeding up Pluck's full-page Chrome extension capture loop
+publishedAt: 2026-06-15
+summary: "Notes from optimizing Pluck's real Chrome extension full-page capture path from slow scroll-settle loops to sub-four-second captures on recent sites."
+---
+
+Pluck captures web pages into a local design library: screenshot segments, DOM, CSS, computed styles, sections, inspectable nodes, and enough metadata to make the capture useful later. That fidelity is the point. A fast screenshot alone is not enough if the viewer loses the structure of the page.
+
+The capture path had become too slow. The original baseline for a full-page capture of Devin was `36,970ms` in the extension, while the local server work was only `260ms`. That made the extension loop the real problem.
+
+I used a `/goal` process to keep the optimization honest: one change at a time, real unpacked Chrome extension runs through the toolbar popup, fresh manifests after every experiment, and no credit for server-only timing or API-only tests.
+
+## First target: the Devin baseline
+
+The first pass found the obvious fixed-wait problem. The old scroll-stitch path paid repeated settle delays for preload, scroll, freeze, and post-freeze work. Reducing the safe fallback settle delay helped, but the real win was moving successful full-page captures to Chrome's debugger screenshot path with `Page.captureScreenshot` and `captureBeyondViewport`.
+
+| Run | Capture id | Change | Extension total | Speedup | Segments | Sections | Nodes | Total bytes | Verdict |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| Baseline | `cap_d94670a9-c285-4f7d-8f09-12d04462601e` | Original fixed `850ms` settle tail | `36,970ms` | `1.00x` | `13` | `24` | `151` | `6,989,423` | Known-good reference |
+| Experiment 1 | `cap_14b79991-9b74-4a8a-8dd8-b507d2c27143` | Full-page settle tail reduced to `200ms`; same scroll-stitch structure | `10,930ms` | `3.38x` | `13` | `24` | `151` | `6,908,103` | Kept as fallback improvement |
+| Experiment 4 | `cap_63a906cd-d96f-423b-ae8a-b8b255d72675` | Debugger segmented capture first; scroll-stitch fallback; `50ms` debugger settle | `3,236ms` | `11.42x` | `13` | `24` | `150` | `6,815,180` | Fast, needed fidelity follow-up |
+| Experiment 5 | `cap_2589ffe3-5e3a-4d06-a3ab-293327a8aae8` | Debugger capture with bottom/top paint primer | `3,167ms` | `11.67x` | `13` | `24` | `146` | `6,465,569` | Footer coverage verified, scroll restore still needed |
+| Experiment 6 | `cap_c7029dbc-75b2-4d50-87e5-1ce4cff5e109` | Debugger-first capture with paint primer, original-scroll restoration, `50ms` debugger settle, and `200ms` fallback settle | `3,154ms` | `11.72x` | `13` | `24` | `146` | `6,436,672` | Kept |
+
+The important part was not just getting a 10x number. The accepted run still had screenshot segments, DOM snapshot, style snapshot, CSS snapshot, sections, inspectable nodes, and a complete lower-page capture. The debugger path also kept the scroll-stitch implementation as a fallback.
+
+## Fresh batch: 10 newer sites
+
+After that first win, I ran a fresh batch of recent SaaS and developer-tool sites. The goal changed from "prove 10x on one capture" to "make the slowest real captures fast enough to use every day."
+
+The newest 10 captures made the next bottleneck clear:
+
+| Rank | Capture id | URL | Extension total | Segments | Sections | Nodes | Total bytes | Health |
+| ---: | --- | --- | ---: | ---: | ---: | ---: | ---: | --- |
+| 1 | `cap_b89b2a5a-e8ff-402f-9a72-8f87e83147e4` | `https://railway.com/` | `19,761ms` | `10` | `11` | `115` | `13,451,789` | none |
+| 2 | `cap_496d966c-c72d-40d9-aa77-0555cfdecf59` | `https://neon.com/` | `19,750ms` | `10` | `13` | `112` | `16,344,048` | none |
+| 3 | `cap_9c0a6abc-489b-4644-b19d-8db77356a7ef` | `https://firebase.google.com/` | `18,679ms` | `10` | `21` | `162` | `6,299,068` | none |
+| 4 | `cap_82e6c1d9-b8b9-45fb-8acb-f1d6b2f7a89e` | `https://render.com/` | `17,469ms` | `10` | `3` | `158` | `5,892,569` | none |
+| 5 | `cap_c0104a8a-e9f3-4562-aaee-4dbe2d6829aa` | `https://workos.com/` | `17,414ms` | `10` | `18` | `137` | `7,736,947` | none |
+| 6 | `cap_e03430d0-5af6-43a3-a20e-0cb89582d475` | `https://www.svix.com/` | `17,325ms` | `10` | `2` | `240` | `7,287,661` | none |
+| 7 | `cap_ab873492-ab53-4dc2-a9b0-cd1e80b10492` | `https://www.inngest.com/` | `8,842ms` | `10` | `16` | `143` | `28,911,244` | none |
+| 8 | `cap_c651f91d-4eab-439d-a846-4313332f46ac` | `https://fly.io/` | `4,287ms` | `10` | `14` | `100` | `11,411,887` | none |
+| 9 | `cap_106ece03-cc09-416d-aa5b-8a704d0063be` | `https://trigger.dev/` | `3,688ms` | `10` | `20` | `232` | `8,056,285` | none |
+| 10 | `cap_22f337d9-68b9-4e63-8487-e65b495a605c` | `https://planetscale.com/` | `1,688ms` | `9` | `4` | `95` | `2,515,031` | none |
+
+The three slowest captures all spent about `12.7s` in `debuggerSegmentSettle`. That was repeated content-script settling across 10 debugger segments, including visible-image waiting, even though full DOM, CSS, style, and font capture still happened after screenshots.
+
+So the second pass narrowed the segment loop:
+
+- Per-segment debugger settle uses a short frame delay and skips font/image waits.
+- Debugger screenshots capture 4 viewports per segment instead of one viewport per segment.
+- The bottom paint primer still waits for visible images, but only for `150ms`.
+- The top reset uses frame-only settle.
+- Scroll-stitch remains as the fallback path with the safer `200ms` settle.
+
+## Getting the three slowest under four seconds
+
+I tested the changes through the real extension, not by importing capture functions directly. Railway was the tuning target because it was the slowest of the fresh batch.
+
+| Run | Capture id | URL | Change | Extension total | Speedup vs batch capture | Segments | Sections | Nodes | Total bytes | Verdict |
+| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| Railway E1 | `cap_f23635bc-0ad4-42c6-8f4c-fe15ce425c65` | `https://railway.com/` | Debugger segment settle skips font/image waits, still one viewport per segment; manual run was uncapped full page | `11,119ms` | n/a | `17` | `11` | `115` | `17,759,139` | Informational only; proved segment settle dropped from `12,698ms` to `1,163ms` |
+| Railway E2 | `cap_3c553e1b-9e1b-40da-a5da-9092c33f4ffe` | `https://railway.com/` | 2-viewport debugger chunks; capped to 10 viewports | `4,768ms` | `4.14x` | `5` | `11` | `118` | `13,450,484` | Improved but still above target |
+| Railway E3 | `cap_0cb639d0-888d-4db0-a6e5-d20e574bf7c5` | `https://railway.com/` | 3-viewport debugger chunks; capped to 10 viewports | `4,373ms` | `4.52x` | `4` | `11` | `117` | `14,156,539` | Improved; viewer top and inspectable metadata intact |
+| Railway E4 | `cap_ea6af70d-55d2-4ee8-80f8-bacdcd636d1e` | `https://railway.com/` | 4-viewport debugger chunks; capped to 10 viewports | `4,091ms` | `4.83x` | `3` | `11` | `117` | `13,808,178` | Nearly target |
+| Railway kept | `cap_d0d14ff9-8ec4-4a6f-8ca3-04e56beb5c8a` | `https://railway.com/` | 4-viewport chunks plus `150ms` primer image wait | `3,854ms` | `5.13x` | `3` | `11` | `117` | `13,898,321` | Kept; below target, no health warnings |
+| Neon kept | `cap_71b30498-566d-4bbb-83b2-01431e5ea734` | `https://neon.com/` | Same kept settings | `3,444ms` | `5.73x` | `3` | `13` | `112` | `16,543,882` | Kept; below target, no health warnings |
+| Firebase kept | `cap_654bd6b8-34f4-4ca6-a4a1-12dc026d32c0` | `https://firebase.google.com/` | Same kept settings | `2,556ms` | `7.31x` | `3` | `21` | `162` | `6,930,094` | Kept; below target, no health warnings |
+
+That put the three slowest fresh captures below four seconds while preserving the fidelity gates that mattered:
+
+| Site | Batch | Final | Speedup | Segments | Fidelity gate |
+| --- | ---: | ---: | ---: | ---: | --- |
+| Railway | `19,761ms` | `3,854ms` | `5.13x` | `10 -> 3` | no health warnings; sections and nodes preserved |
+| Neon | `19,750ms` | `3,444ms` | `5.73x` | `10 -> 3` | no health warnings; sections and nodes preserved |
+| Firebase | `18,679ms` | `2,556ms` | `7.31x` | `10 -> 3` | no health warnings; sections and nodes preserved |
+
+## What made the process work
+
+The useful discipline was treating speed as a measured product behavior, not a code-path assumption. Every accepted change needed a saved manifest from the real Chrome extension. The manifest had to show `captureTimings.extension.totalMs`, screenshot segments, capture stats, and no capture-health warnings. The viewer also had to open the expected capture rather than a mismatched page or server-only artifact.
+
+The second useful constraint was keeping fidelity explicit. For Pluck, a page capture is not just pixels. It is the screenshot plus DOM, CSS, styles, sections, inspectable nodes, and enough health metadata to know whether the capture is trustworthy.
+
+The result was not a generic "make waits shorter" patch. The final change moved waiting out of the repeated debugger segment loop while keeping the one-time collection and fallback paths that preserve capture fidelity.
