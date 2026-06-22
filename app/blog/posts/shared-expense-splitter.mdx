@@ -1,0 +1,25 @@
+---
+title: A small shared expense splitter for family trips
+publishedAt: 2026-06-22
+summary: "A quick static browser tool for importing shared expenses, tracking payments, and turning the final balance into a simple settlement plan."
+image: "https://raw.githubusercontent.com/byronwall/expense-splitter/main/assets/demo-screenshot.jpg"
+---
+
+I put together a small browser tool for one of those practical bookkeeping jobs that is easy to delay: splitting shared trip expenses across a few families.
+
+The app keeps the workflow intentionally direct. Add families, set the split weights, enter expenses and payments, and the top of the page turns that into a reconciliation statement. The settlement section tries to reduce the final payback plan to the fewest checks, so the answer is not just "who is up or down" but "who should pay whom."
+
+<div className="not-prose my-6">
+  <img
+    src="https://raw.githubusercontent.com/byronwall/expense-splitter/main/assets/demo-screenshot.jpg"
+    alt="Shared Expense Splitter showing family balances and least-checks settlement"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+</div>
+
+There are a few small conveniences that matter for this kind of tool: CSV import for statement rows, JSON import/export for backups, weighted splits for uneven group sizes, a searchable ledger, and a copyable report view.
+
+It is just static HTML, CSS, and JavaScript. The data stays in `localStorage`, which is enough for a short-lived reconciliation task, and the JSON export gives it a simple escape hatch.
+
+Code: [byronwall/expense-splitter](https://github.com/byronwall/expense-splitter)
