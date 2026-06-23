@@ -1,0 +1,43 @@
+---
+title: "TSX Data Flow"
+description: "A static render-path data-flow analyzer for TypeScript and TSX UI code"
+date: "2026-06-23"
+publishedAt: "2026-06-23"
+summary: "A static render-path data-flow analyzer for TypeScript and TSX UI code"
+tags: ["TypeScript", "TSX", "SolidJS", "Static Analysis", "Developer Tools", "CLI"]
+image: "/images/projects/tsx-data-flow/thumbnail.svg"
+---
+
+TSX Data Flow is a CLI analyzer for finding high-leverage cleanup work in TypeScript and TSX UI code. It traces values from source expressions to JSX render sinks, then turns the graph into ranked work packets for prop relay, fan-out and fan-in pressure, repeated object wrapping, broad prop bundles, and defensive checks that TypeScript already proves unnecessary.
+
+- Try it: `npx tsx-data-flow --help`
+- Source: [byronwall/tsx-data-flow](https://github.com/byronwall/tsx-data-flow)
+
+## Interface
+
+<div className="not-prose mt-6">
+  <img
+    src="/images/projects/tsx-data-flow/thumbnail.svg"
+    alt="TSX Data Flow render-path analyzer showing sources, transformations, and JSX sinks"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+</div>
+
+## How it works
+
+The analyzer uses the TypeScript compiler API directly, so it can combine syntax tracing with type information from the target project:
+
+- Builds a typed graph from source values, aliases, object packs, helper calls, fallbacks, conditionals, Solid accessors, and JSX render sinks.
+- Follows first-party helper calls across module boundaries while treating hook and context accessors as intentional feature boundaries.
+- Scores each render path by depth, representation churn, defensive operations, impossible defenses, relay pressure, and downstream sink count.
+- Projects the same graph into focused reports such as work packets, findings, prop relay, fan-out, fan-in, defensive ledger, repair map, path gallery, hotspots, and JSON dossier output.
+
+## Highlights
+
+- One-command CLI for advisory render-path analysis
+- Solid and SolidStart-aware sink and accessor handling
+- Type-backed detection of unreachable nullish fallbacks and optional reads
+- Ranked cleanup packets with representative paths, candidate edits, and risk queues
+- Baseline comparison and regression mode for keeping architectural drift visible
+- Installable agent skill for turning analyzer output into bounded refactoring work
