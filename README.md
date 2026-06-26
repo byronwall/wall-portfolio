@@ -23,6 +23,8 @@ This site is built with:
 
 ## Local Development
 
+This project uses pnpm 11.9.0 via Corepack.
+
 Run the development server:
 
 ```bash
