@@ -6,13 +6,13 @@ nixPkgs = ["nodejs_22"]
 
 [phases.install]
 cmds = [
-  "npm install -g pnpm@11.9.0",
-  "pnpm --version",
-  "pnpm i --frozen-lockfile"
+  "npm install -g pnpm@11.9.0 --prefix /app/.npm-global",
+  "/app/.npm-global/bin/pnpm --version",
+  "/app/.npm-global/bin/pnpm i --frozen-lockfile"
 ]
 
 [phases.build]
-cmds = ["pnpm run build"]
+cmds = ["/app/.npm-global/bin/pnpm run build"]
 
 [start]
-cmd = "pnpm run start"
+cmd = "/app/.npm-global/bin/pnpm run start"
