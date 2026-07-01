@@ -1,6 +1,9 @@
 {
   "private": true,
   "packageManager": "pnpm@11.9.0",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "next dev --port 3010",
     "build": "next build",

@@ -1,6 +1,10 @@
 # syntax=docker.io/docker/dockerfile:1
 
-FROM node:18-alpine AS base
+FROM node:22-alpine AS base
+
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable && corepack prepare pnpm@11.9.0 --activate
 
 # Install dependencies only when needed
 FROM base AS deps
@@ -9,11 +13,11 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Install dependencies based on the preferred package manager
-COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* .npmrc* ./
+COPY package.json pnpm-workspace.yaml yarn.lock* package-lock.json* pnpm-lock.yaml* .npmrc* ./
 RUN \
     if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
     elif [ -f package-lock.json ]; then npm ci; \
-    elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile; \
+    elif [ -f pnpm-lock.yaml ]; then pnpm i --frozen-lockfile; \
     else echo "Lockfile not found." && exit 1; \
     fi
 
@@ -32,7 +36,7 @@ COPY . .
 RUN \
     if [ -f yarn.lock ]; then yarn run build; \
     elif [ -f package-lock.json ]; then npm run build; \
-    elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm run build; \
+    elif [ -f pnpm-lock.yaml ]; then pnpm run build; \
     else echo "Lockfile not found." && exit 1; \
     fi
 
