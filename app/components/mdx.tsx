@@ -3,6 +3,7 @@ import Image from 'next/image'
 import { MDXRemote } from 'next-mdx-remote/rsc'
 import { highlight } from 'sugar-high'
 import React from 'react'
+import remarkGfm from 'remark-gfm'
 
 function Table({ data }) {
   let headers = data.headers.map((header, index) => (
@@ -17,12 +18,22 @@ function Table({ data }) {
   ))
 
   return (
-    <table>
-      <thead>
-        <tr>{headers}</tr>
-      </thead>
-      <tbody>{rows}</tbody>
-    </table>
+    <div className="mdx-table-scroll">
+      <table>
+        <thead>
+          <tr>{headers}</tr>
+        </thead>
+        <tbody>{rows}</tbody>
+      </table>
+    </div>
+  )
+}
+
+function MarkdownTable(props) {
+  return (
+    <div className="mdx-table-scroll">
+      <table {...props} />
+    </div>
   )
 }
 
@@ -121,6 +132,7 @@ let components = {
   Image: RoundedImage,
   a: CustomLink,
   code: Code,
+  table: MarkdownTable,
   Table,
 }
 
@@ -128,6 +140,16 @@ export function CustomMDX(props) {
   return (
     <MDXRemote
       {...props}
+      options={{
+        ...(props.options || {}),
+        mdxOptions: {
+          ...(props.options?.mdxOptions || {}),
+          remarkPlugins: [
+            remarkGfm,
+            ...(props.options?.mdxOptions?.remarkPlugins || []),
+          ],
+        },
+      }}
       components={{ ...components, ...(props.components || {}) }}
     />
   )

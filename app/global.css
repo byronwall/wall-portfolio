@@ -170,6 +170,54 @@ a.project-card-link:hover {
   @apply list-decimal pl-6;
 }
 
+.prose .mdx-table-scroll {
+  @apply my-6 w-full overflow-x-auto rounded-lg border border-neutral-200 dark:border-neutral-800;
+}
+
+.prose .mdx-table-scroll table {
+  @apply w-full min-w-full border-collapse text-sm;
+}
+
+.prose .mdx-table-scroll thead {
+  @apply bg-neutral-50 dark:bg-neutral-900;
+}
+
+.prose .mdx-table-scroll th {
+  @apply border-b border-neutral-200 px-3 py-2 text-left font-medium text-neutral-900 dark:border-neutral-800 dark:text-neutral-100;
+}
+
+.prose .mdx-table-scroll td {
+  @apply border-b border-neutral-200 px-3 py-2 align-top text-neutral-800 dark:border-neutral-800 dark:text-neutral-200;
+}
+
+.prose .mdx-table-scroll tbody tr:last-child td {
+  @apply border-b-0;
+}
+
+.prose .mdx-table-scroll tbody tr:nth-child(even) {
+  @apply bg-neutral-50/60 dark:bg-neutral-900/45;
+}
+
+.prose .mdx-table-scroll th,
+.prose .mdx-table-scroll td {
+  min-width: 8rem;
+  max-width: 26rem;
+}
+
+.prose .mdx-table-scroll td[align='right'],
+.prose .mdx-table-scroll th[align='right'] {
+  @apply text-right;
+}
+
+.prose .mdx-table-scroll td[align='center'],
+.prose .mdx-table-scroll th[align='center'] {
+  @apply text-center;
+}
+
+.prose .mdx-table-scroll code {
+  white-space: nowrap;
+}
+
 .prose > :first-child {
   /* Override removing top margin, causing layout shift */
   margin-top: 1.25em !important;
@@ -191,13 +239,6 @@ input[type='email'] {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
-}
-
-table {
-  display: block;
-  max-width: fit-content;
-  overflow-x: auto;
-  white-space: nowrap;
 }
 
 .title {
