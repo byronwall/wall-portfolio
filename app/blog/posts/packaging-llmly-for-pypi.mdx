@@ -1,0 +1,157 @@
+---
+title: Packaging llmly for PyPI with a publish script
+publishedAt: 2026-07-02
+summary: "What it took to turn a local Flask usage viewer into a PyPI package, and why a small publish script makes versioning and token-based uploads much less error-prone."
+---
+
+`llmly` started as a local Flask app: run `uv run app.py`, open a browser, and inspect Copilot, Codex, and Claude coding-session usage. That is fine for a checkout. It is not enough for the command I actually wanted:
+
+```bash
+uvx llmly
+```
+
+Getting there required a few packaging moves that are easy to underestimate. A PyPI wheel has to carry the Python code, the Flask templates, the CSS, and the browser JavaScript modules. The console script has to start the server from an installed package, not from a repo folder. The app also needs to open the browser and pick a usable port so the first run feels like a tool, not a development server exercise.
+
+The source is now [byronwall/llmly](https://github.com/byronwall/llmly), and the publishing helper lives at [`publish-llmly.sh`](https://github.com/byronwall/llmly/blob/main/publish-llmly.sh).
+
+## The package shape
+
+The important change was making `llmly/` the installable package boundary:
+
+```text
+llmly/
+  app.py
+  analyzer/
+  static/
+  templates/
+```
+
+The root-level `app.py` and `analyzer/` remain as compatibility shims for local tests and habits, but the wheel contains the real runtime under `llmly/`.
+
+The `pyproject.toml` needs to say three things clearly:
+
+```toml
+[project]
+name = "llmly"
+
+[project.scripts]
+llmly = "llmly.app:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["llmly"]
+```
+
+That is the difference between "this repo can run" and "this package can be installed somewhere else and still find its templates and static files."
+
+## The publish script
+
+I wanted publishing to be boring. The script loads credentials, refuses to publish the wrong package name, bumps the patch version, runs checks, builds, and uploads.
+
+The environment loading is intentionally simple:
+
+```sh
+if [ -f ".env" ]; then
+  echo "==> Loading environment from .env"
+  set -a
+  . ./.env
+  set +a
+fi
+```
+
+The `.env` file is ignored by git and contains the upload token:
+
+```sh
+PYPI_TOKEN=pypi-...
+TEST_PYPI_TOKEN=pypi-...
+```
+
+That keeps the token out of the command line history and out of the repository. It is still a local secret, so it belongs in `.gitignore`, not in an example config that might get copied into a commit.
+
+The script also guards against publishing after a bad merge or partial packaging change:
+
+```sh
+PROJECT_NAME_LINE="$(grep '^name = "' "$PYPROJECT_FILE" || true)"
+PROJECT_NAME="$(printf '%s\n' "$PROJECT_NAME_LINE" | sed -E 's/^name = "([^"]+)".*/\1/')"
+if [ "$PROJECT_NAME" != "llmly" ]; then
+  echo "Error: pyproject.toml project name is '$PROJECT_NAME', expected 'llmly'." >&2
+  echo "Refusing to publish so the wrong package name is not uploaded." >&2
+  exit 1
+fi
+```
+
+That check already paid for itself. After a merge hiccup, the package name had reverted to the old repo name. The script stopped before it could upload the wrong artifact.
+
+## Versioning should not be a separate chore
+
+PyPI will not let you overwrite a file for a version that already exists. That is good, but it means every publish needs a version bump. The script makes the patch bump part of the publishing path:
+
+```sh
+CURRENT_VERSION="$(printf '%s\n' "$CURRENT_VERSION_LINE" | sed -E 's/^version = "([^"]+)".*/\1/')"
+
+MAJOR="$(printf '%s' "$CURRENT_VERSION" | cut -d. -f1)"
+MINOR="$(printf '%s' "$CURRENT_VERSION" | cut -d. -f2)"
+PATCH="$(printf '%s' "$CURRENT_VERSION" | cut -d. -f3)"
+PATCH=$((PATCH + 1))
+NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
+```
+
+Then it writes that version back to `pyproject.toml` and `llmly/__init__.py`. This is not a full release-management system. It is enough structure for a small tool where the common path is "ship the next patch."
+
+## Checks before upload
+
+The other useful part is that publishing cannot skip validation by accident:
+
+```sh
+uv run python -m py_compile app.py analyzer/__init__.py llmly/app.py llmly/__init__.py llmly/__main__.py llmly/analyzer/*.py tests/test_analyzer.py
+uv run python -m pytest
+
+for js_file in llmly/static/js/*.mjs; do
+  node --check "$js_file"
+done
+```
+
+After that, the script clears old distribution artifacts and rebuilds:
+
+```sh
+mkdir -p dist
+rm -f dist/*
+uv build
+```
+
+Clearing old files matters because `uv publish` defaults to `dist/*`. If stale wheels are still there, they can become part of the upload attempt.
+
+## Uploading with the token
+
+The final publish step stays small:
+
+```sh
+if [ -n "$PUBLISH_URL" ]; then
+  uv publish --publish-url "$PUBLISH_URL" --check-url "$CHECK_URL" --token "$TOKEN"
+else
+  uv publish --check-url "$CHECK_URL" --token "$TOKEN"
+fi
+```
+
+The token comes from `PYPI_TOKEN` or `TEST_PYPI_TOKEN`, depending on whether the script is publishing to production PyPI or TestPyPI. Website login is separate from package upload credentials; for local publishing, an API token is the right primitive.
+
+## Why this is worth scripting
+
+The script is not long, but it removes a surprising number of sharp edges:
+
+- publishing the old package name after a merge
+- forgetting to bump the version
+- uploading stale files from `dist/`
+- skipping tests because the publish command is separate
+- pasting tokens into a terminal command
+- mixing TestPyPI and production URLs
+
+That is the useful threshold for project automation. It does not need to be clever. It needs to make the correct path shorter than the risky one.
+
+For `llmly`, the result is the workflow I wanted:
+
+```bash
+./publish-llmly.sh
+uvx llmly
+```
+
+One command publishes the next patch. One command runs the installed app.
