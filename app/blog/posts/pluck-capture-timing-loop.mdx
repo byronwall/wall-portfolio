@@ -1,0 +1,150 @@
+---
+title: Making Pluck capture faster by making the timings harder to ignore
+publishedAt: 2026-07-02
+summary: "I optimized Pluck's Chrome extension capture loop by adding detailed timing traces and a repeatable diagnostic batch that made every speed experiment measurable."
+---
+
+Pluck's Chrome extension captures a page as more than a screenshot. It saves screenshot segments, DOM, CSS, computed styles, sections, inspectable nodes, source links, and enough metadata to inspect the page later inside the local library.
+
+That fidelity makes the capture useful, but it also makes performance bugs hard to reason about. A full-page capture can be slow because of Chrome debugger screenshots, scroll settling, lazy image waits, sticky UI suppression, DOM serialization, CSS collection, server save time, or payload conversion. Looking at a single total number was not enough.
+
+The breakthrough was making the capture loop more measurable and more repeatable. I added richer timing traces to the extension, then added a diagnostic batch helper so I could run the same small set of pages over and over after each change.
+
+## The diagnostic loop
+
+The extension popup now has a diagnostic batch mode. Instead of manually choosing a page, saving it, hunting for the new manifest, and hoping I remembered the exact conditions, the popup can run a server-managed list of capture candidates through the same real extension pipeline.
+
+For this pass I kept the diagnostic set intentionally small:
+
+| Site | Why it mattered |
+| --- | --- |
+| Warby Parker collections | Tall product grid with repeated surfaces and many segments |
+| Brooklinen product page | Commerce PDP with sticky UI, lazy media, and slow screenshot segments |
+| Patagonia home | Lazy carousel and placeholder-image regression guard |
+| Adidas US | Motion-heavy video/media-frame regression guard |
+
+That structure changed the work. Each iteration had the same shape:
+
+1. Reload the unpacked extension.
+2. Run the diagnostic batch from the popup.
+3. Read the newest four saved manifests.
+4. Compare extension totals, event groups, slow events, tile summaries, and fidelity stats.
+5. Make one narrow change.
+6. Repeat.
+
+It was not glamorous, but it kept the loop honest. A change only counted if it improved fresh captures from the real Chrome extension path.
+
+## The first timing layer
+
+The manifest already had a top-level extension total, but the total did not say where time went. I added a structured extension trace with:
+
+- `events`: named timing events with duration and detail fields
+- `summary`: aggregate duration by event name
+- `tiles`: per-segment metadata for debugger screenshot chunks
+- `diagnostics.slowEvents`: the slowest trace events
+- `diagnostics.eventGroups`: grouped totals for prime, warm, segment, page facts, upload, and related phases
+- `diagnostics.tileSummary`: segment counts, screenshot modes, settle decisions, and chunk reasons
+- repeated-surface counters and warm-media counters
+
+That immediately changed the debugging question from "why is Brooklinen slow?" to "why is `debuggerPrimePrepareCurrentZoom` spending most of its time inside `prepareFullPagePersistentNoiseMs`?"
+
+The difference matters. The first question invites guessing. The second points to code.
+
+## Finding the bad loop
+
+Brooklinen was the clearest example. One run took `39.4s`, and the trace showed this inside the prime step:
+
+| Timing field | Brooklinen before |
+| --- | ---: |
+| `debuggerPrimePrepareCurrentZoom` | `10,790ms` |
+| `prepareFullPagePersistentNoiseMs` | `10,539ms` |
+
+That was not screenshot capture, upload, page facts, or server save. It was the cleanup pass that hides persistent cookie/privacy launchers before capture.
+
+The code was doing broad DOM queries, walking ancestors, and repeatedly recomputing labels and descendant control checks for the same elements. On a large commerce DOM, that became an accidental multiplier.
+
+The fix was small because the timing was specific: cache persistent capture-noise labels and control checks within a cleanup pass, then persist substep timings for query, target, filter, and apply.
+
+The next diagnostic run made the result obvious:
+
+| Site | Persistent-noise prep before | After |
+| --- | ---: | ---: |
+| Brooklinen | `10,539ms` | `143ms` |
+| Adidas | `2,633ms` | `65ms` |
+| Patagonia | `1,235ms` | `32ms` |
+| Warby Parker | `199ms` | `19ms` |
+
+That is the kind of optimization I trust: the metric names the culprit, the patch changes only that culprit, and the same diagnostic set confirms the effect.
+
+## Adding the next timing layer
+
+After the persistent-noise fix, Patagonia still had occasional slow segment-settle events and Adidas still felt slower than it should. The existing event trace said which high-level event was slow, but not which substep inside viewport settling was slow.
+
+So I added another layer of timing inside `waitForViewportSettle`:
+
+- first and second animation frames
+- transient commerce suppression
+- visible image preparation
+- visible video preparation
+- initial and post-prepare risk scans
+- font waits
+- visible image waits
+- background image waits
+- video waits
+- combined resource waits
+- settle delay
+- final animation frame
+
+Those fields were copied into the warm and segment settle trace events. That made it possible to distinguish real resource work from intentional delay.
+
+For Patagonia, one slow warm settle still showed real resource waiting:
+
+| Field | Time |
+| --- | ---: |
+| warm settle total | `1,685ms` |
+| resource waits | `1,004ms` |
+| visible image wait | `1,008ms` |
+| deliberate delay | `651ms` |
+
+That is a different kind of problem. It was not a broken loop; it was image loading work.
+
+For Adidas, the data looked different. Segment settle had become a repeated `~207ms` paint-only wait after the final change, with no image, background, or video resource waits:
+
+| Field | Typical Adidas segment |
+| --- | ---: |
+| segment settle total | `207ms` |
+| resource waits | `0ms` |
+| visible image waits | `0ms` |
+| background image waits | `0ms` |
+| settle delay | `~182ms` |
+
+Before that final tweak, the same kind of segment had often paid the robust `~650ms` delay because active motion was treated as a resource-settle condition. The finer timing showed that the page needed paint stability, not image or video loading. So active motion with no pending resource evidence moved to the existing paint-only post-scroll settle path.
+
+Adidas improved from `20.8s` to `15.7s`.
+
+## The final shape of the numbers
+
+By the end of this pass, the original obvious bad loop was gone. The freshest diagnostic batch looked like this:
+
+| Site | Final extension total | Segments | Current read |
+| --- | ---: | ---: | --- |
+| Adidas | `15.7s` | `10` | Improved after active-motion settle moved to paint-only |
+| Patagonia | `11.2s` | `5` | Mostly healthy; one warm image/resource wait remains real work |
+| Brooklinen | `26.9s` | `14` | Persistent cleanup fixed; screenshot capture and page facts dominate |
+| Warby Parker | `19.3s` | `20` | Segment count, repeated settle/refresh work, and blob conversion dominate |
+
+The point is not that every page became instant. It is that the remaining costs became legible. Brooklinen was no longer "mysteriously slow"; it was spending time in screenshot capture, page facts, and segment refresh. Warby was no longer blocked on one broken prep step; it had 20 segments. Patagonia still had one real image wait.
+
+That is a much better stopping point.
+
+## What made this work
+
+The useful part was not a clever performance trick. It was the structure around the trick.
+
+The diagnostic batch helper made every change easy to test against the same four pages. The timing trace made every run explain itself. The substep timings prevented broad fixes when the problem was narrow. And the saved manifests gave me a durable record of both speed and fidelity: segment counts, section counts, node counts, bytes, slow events, and capture warnings.
+
+Without that structure, I would have been tempted to keep shortening waits until the numbers looked good. That is dangerous in a capture tool, because speed can hide fidelity loss. With the diagnostics in place, the better question became: which wait is actually buying us something, and which one is just inertia?
+
+That is the difference between making a capture faster and making it fragile.
+
+- Related post: [Speeding up Pluck's full-page Chrome extension capture loop](/blog/pluck-extension-capture-speedup)
