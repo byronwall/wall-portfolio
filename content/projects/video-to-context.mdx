@@ -1,0 +1,38 @@
+---
+title: "Video to Context"
+description: "A local CLI that turns recordings, voiceovers, and voice memos into transcript-first context packages"
+date: "2026-07-02"
+publishedAt: "2026-07-02"
+summary: "A local CLI that turns recordings, voiceovers, and voice memos into transcript-first context packages"
+tags: ["Node.js", "CLI", "FFmpeg", "Whisper", "Local AI"]
+---
+
+Video to Context is a local command-line tool for turning screen recordings, voiceovers, and voice memos into reusable context packages. It extracts local audio with FFmpeg, transcribes it with whisper.cpp, and writes a small bundle that can be read by a person or handed to an AI system for later analysis.
+
+- Source: [byronwall/video-to-context](https://github.com/byronwall/video-to-context)
+- Voice memo preset: `v2c --voice-memos`
+
+## How it works
+
+The CLI accepts a single media file or a folder of recordings. For videos, it can extract screenshots, create a contact sheet, transcribe the audio track, and produce an HTML report that interleaves visuals and narration. For audio-only files, it skips the visual pipeline and focuses on the transcript, timeline, and source lineage.
+
+Voice memos get a dedicated preset:
+
+```bash
+v2c --voice-memos
+```
+
+That flag auto-detects the likely Apple Voice Memos folder, writes to `~/.v2c-voice-memos`, avoids copying private source audio by default, skips screenshot work, opens the finished report, and uses a manifest so identical reruns do not transcribe the same files again.
+
+## Highlights
+
+- Local-first processing with FFmpeg and whisper.cpp
+- Supports both screen recordings and audio-only memos
+- Directory mode combines many files into one timeline with source lineage
+- Idempotent output folder with `.v2c-manifest.json`
+- One-command voice memo workflow through `--voice-memos`
+- HTML and markdown outputs designed for later human or AI review
+
+## Why I use it
+
+Voice memos are a fast way to capture design notes, implementation thoughts, and narration that would otherwise stay trapped in an app. Screen-recording voiceovers are similarly useful, but only after the audio becomes searchable. Video to Context turns those recordings into a durable text artifact without uploading them or splitting the workflow across separate tools.
