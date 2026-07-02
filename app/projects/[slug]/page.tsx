@@ -4,6 +4,10 @@ import { baseUrl } from "app/sitemap";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+type ProjectPageProps = {
+  params: Promise<{ slug: string }>;
+};
+
 export async function generateStaticParams() {
   const projects = getProjects();
   return projects.map((project) => ({
@@ -11,8 +15,9 @@ export async function generateStaticParams() {
   }));
 }
 
-export function generateMetadata({ params }) {
-  let post = getProjects().find((post) => post.slug === params.slug);
+export async function generateMetadata({ params }: ProjectPageProps) {
+  const { slug } = await params;
+  let post = getProjects().find((post) => post.slug === slug);
   if (!post) {
     return;
   }
@@ -53,10 +58,9 @@ export function generateMetadata({ params }) {
 
 export default async function ProjectPage({
   params,
-}: {
-  params: { slug: string };
-}) {
-  const project = getProjects().find((project) => project.slug === params.slug);
+}: ProjectPageProps) {
+  const { slug } = await params;
+  const project = getProjects().find((project) => project.slug === slug);
 
   if (!project) {
     return notFound();
