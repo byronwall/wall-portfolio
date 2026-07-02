@@ -1,0 +1,137 @@
+---
+title: Turning voice memos into Codex-ready analysis
+publishedAt: 2026-07-02
+summary: "How I pushed Video to Context from transcription toward a Codex-backed analysis pipeline while keeping the CLI aimed at one command that just works."
+---
+
+The first useful version of Video to Context made recordings digestible. It could take a screen recording or audio file, extract a transcript, preserve source lineage, and write an HTML report. That was enough when the question was "what did I say in this recording?"
+
+The next question is harder: "what should happen because of what I said?"
+
+That is where voice memos get interesting. A memo is rarely just a transcript. It can contain a task, a design opinion, a future blog seed, a project routing hint, a quote worth keeping, and a handful of half-formed follow-up questions. Reading the whole transcript every time is too much friction. The CLI needed to turn a recording into stable intermediate artifacts that another tool, or Codex, could work with.
+
+## The shape of the pipeline
+
+The target pipeline is:
+
+```text
+media -> transcript -> segments -> structured analysis -> review artifacts
+```
+
+The transcription layer already existed. The new work added an `analysis/` folder beside the transcript:
+
+```text
+analysis/
+  segments.json
+  segment-analysis.jsonl
+  session-digest.md
+  tasks.jsonl
+  claims.jsonl
+  quotes.jsonl
+  blog-seeds.md
+  review-inbox.jsonl
+```
+
+The first pass is local and deterministic. It reads `transcript/transcript.json`, groups timestamped whisper segments into larger topic segments, keeps the raw text, and writes a digest. It is intentionally simple: source-file boundaries, long pauses, max segment length, and a few spoken transition cues.
+
+That gives the rest of the pipeline a stable unit of work. Codex does not need to browse a giant folder and decide what matters. The CLI can hand it bounded segment packets with a schema and ask for one JSON object per segment.
+
+## Codex as the first model runner
+
+I did not want to start by building a model-provider abstraction. The fastest useful path was Codex-first:
+
+1. The CLI writes `analysis/codex/manifest.json`.
+2. It writes `instructions.md`, `expected-output-schema.json`, and `segment-packets/*.md`.
+3. Codex processes those packets and writes `results/segment-analysis.jsonl`.
+4. The CLI validates that JSONL before installing it as `analysis/segment-analysis.jsonl`.
+5. Reducers derive task, claim, quote, blog seed, and review inbox files.
+
+That division is useful. Codex gets the language-heavy extraction work. The CLI keeps the filesystem contract, validation, caching, and derivation logic.
+
+The segment analysis schema is deliberately boring. Each record keeps the `segmentId`, timestamps, source files, prompt version, and arrays for claims, opinions, experience, tasks, blog seeds, tweet candidates, quote candidates, voice markers, follow-up questions, and sensitive flags. Every extracted item should have a short source excerpt.
+
+The boringness is the point. Once the output is stable JSONL, the next steps do not need to reread the whole transcript.
+
+## The CLI problem
+
+The early commands were necessarily explicit:
+
+```bash
+v2c analyze <package> --prepare-codex
+v2c analyze <package> --import-codex --from results/segment-analysis.jsonl --derive
+```
+
+Those are fine as scaffolding, but they are not the product.
+
+The real everyday command should be:
+
+```bash
+v2c voice-memos
+```
+
+That command needs to find new Apple Voice Memos, skip packages that are already complete, continue partial packages, run the stages that are available, and say exactly what is blocked. If a package is waiting on Codex, the output should say that. If Codex wrote results but they still need validation, the CLI should import them. If validated analysis exists but derived artifacts do not, the CLI should derive them.
+
+The important design shift was adding stage awareness. A package is not simply "processed" because it has a transcript. It can be:
+
+```text
+new
+transcribed
+segments_ready
+waiting_for_codex
+codex_ready_to_import
+analysis_ready
+derived
+```
+
+That stage model prevents the most frustrating failure mode: a command that exits successfully while quietly leaving the thing the user actually wanted undone.
+
+## Debugging the rough edges
+
+This work exposed a few sharp edges that only appear when the CLI tries to become the whole workflow.
+
+One version treated `transcript.json` plus `segments.json` as "already ready," even though most packages were still waiting for Codex. That made `v2c voice-memos` look successful while doing no model analysis.
+
+Another version passed the wrong flag to `codex exec`. The Codex CLI rejected it before doing any work. That pushed the logging requirement higher: repeated model failures should collapse into a clear package status and a concrete retry command, not a wall of repeated help output.
+
+The next bug was model naming. The prepared manifests had `gpt-5-mini`, but the ChatGPT-backed Codex CLI exposes `gpt-5.4-mini`. The fix was to make `gpt-5.4-mini` the default model for this extraction pass and keep `--codex-model` as an explicit override.
+
+Each of those bugs pointed at the same product requirement: the pipeline has to explain itself. It should say which package is complete, which one advanced, which one is waiting, and why.
+
+## What "just works" means here
+
+For this tool, "just works" does not mean hiding every intermediate artifact. The files are the product. I want `segments.json`, `segment-analysis.jsonl`, `tasks.jsonl`, and `review-inbox.jsonl` because they make the workflow inspectable and recoverable.
+
+The simplification belongs in the command surface:
+
+```bash
+v2c voice-memos
+```
+
+That command can still create all the plain files. It can still use Codex. It can still validate and derive. But the user should not need to remember the sequence of internal stages.
+
+The advanced commands should remain available for repair and development:
+
+```bash
+v2c analyze <package> --prepare-codex
+v2c analyze <package> --prepare-codex --run-codex --derive
+v2c analyze <package> --import-codex --derive
+```
+
+They are useful escape hatches. They should not be the happy path.
+
+## The current direction
+
+The useful version of this is not a transcript generator with an optional AI step. It is a local capture and review pipeline for spoken work:
+
+- new voice memo arrives
+- `v2c voice-memos` processes it
+- Codex extracts structured candidates
+- the CLI validates and derives review files
+- later tools can route, approve, promote, or draft from those files
+
+That keeps the system grounded. Voice memos become candidates, not silent repo changes or automatically published posts. The CLI does the repeatable work. Codex does the language extraction. Human review remains part of the product.
+
+That is the balance I want: a single command for the daily workflow, plain files for inspection, and enough logging that the next action is never a mystery.
+
+- Related post: [Adding voice memo support to Video to Context](/blog/voice-memos-video-to-context)
+- Project: [Video to Context](/projects/video-to-context)
