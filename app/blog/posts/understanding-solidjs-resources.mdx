@@ -1,0 +1,96 @@
+---
+title: Understanding SolidJS resources
+publishedAt: 2026-07-03
+summary: "An interactive guide to how SolidJS resources interact with Suspense, resource.latest, derived accessors, and memoized reads."
+---
+
+Solid resources look simple at the call site: `const [resource] = createResource(source, fetcher)`, then read `resource()` somewhere in the tree. The tricky part is that the read is not just a value lookup. It participates in Suspense.
+
+That means the location of the read matters. A Suspense boundary can only catch resource reads it can see. If a nearer boundary is not present, a higher boundary can become responsible for the loading state. In a SolidStart app, that can mean a top-level boundary flashes more of the application than intended.
+
+The explorer below simulates the cases I care about most. Each tab remounts the simulated component so you can see first-load behavior again when the mode changes. The left side explains what to look for, and the right side lets you click `Change source`, `Call refetch()`, and `Force re-mount` to watch which reads keep stale data visible and which ones fall back.
+
+<SolidResourceExplorer />
+
+## Rules I use
+
+Wrap the part of the UI that reads `resource()` in a Suspense boundary close to the read. If the boundary is too high, it can own a much larger loading state than you meant.
+
+Passing a resource accessor through props is fine. The important boundary is still wherever the child actually calls `resource()`, not where the parent created it.
+
+Treat any plain function that calls `resource()` as if it were the resource itself. This is the surprising case: `const doubled = () => resource() * 2` still carries the async read into whichever render path calls `doubled()`.
+
+Use `resource.latest` when stale data is better than falling back during refreshes. It can still suspend before the first value exists, because there is no latest value yet.
+
+Use `createMemo()` when you want to isolate derived work from the Suspense behavior of a render-time `resource()` read. You still need to handle `undefined` or a default value, but reading the memo is a synchronous read from the component's point of view.
+
+## Minimal example
+
+This is the compact version that exposes the moving parts:
+
+```tsx
+import {
+  Suspense,
+  createEffect,
+  createMemo,
+  createResource,
+  createSignal,
+} from "solid-js";
+
+async function getData() {
+  await new Promise((resolve) => setTimeout(resolve, 5_000));
+  return 1;
+}
+
+function Counter() {
+  const [trigger, setTrigger] = createSignal(1);
+
+  const [resource, { refetch }] = createResource(trigger, async () => {
+    return getData();
+  });
+
+  createEffect(() => {
+    console.log("resource value", resource(), resource.state);
+  });
+
+  const dependsOnResource = () =>
+    resource() === undefined ? 0 : resource()! * 2;
+
+  const dependsOnResourceMemo = createMemo(() =>
+    resource() === undefined ? 0 : resource()! * 2,
+  );
+
+  return (
+    <div>
+      <button onClick={() => setTrigger((value) => value + 1)}>
+        trigger update {trigger()}
+      </button>
+      <button onClick={refetch}>trigger refetch()</button>
+
+      <Suspense fallback={<span>loading accessor</span>}>
+        <pre>loaded accessor: {resource()}</pre>
+      </Suspense>
+
+      <Suspense fallback={<span>loading latest</span>}>
+        <pre>loaded latest: {resource.latest}</pre>
+      </Suspense>
+
+      <Suspense fallback={<span>loading depends</span>}>
+        <pre>depends: {dependsOnResource()}</pre>
+      </Suspense>
+
+      <Suspense fallback={<span>loading depends memo</span>}>
+        <pre>depends memo: {dependsOnResourceMemo()}</pre>
+      </Suspense>
+    </div>
+  );
+}
+```
+
+The important observation is that `dependsOnResource()` behaves like the bare `resource()` read, because it calls the resource accessor inside. The `createMemo()` version changes where that read happens, so rendering `dependsOnResourceMemo()` does not act like rendering the resource accessor directly.
+
+## SolidStart consequence
+
+SolidStart commonly has a high-level Suspense boundary in the application tree. That boundary is useful, but it also means uncaptured resource reads can bubble up farther than expected.
+
+My default posture is now simple: when a component reads a resource, give that read a local Suspense boundary unless I intentionally want a parent layout to fall back. When derived values sit between the resource and the render tree, I check whether they are plain accessors or memoized values. Plain accessors can carry the resource behavior a long way.
