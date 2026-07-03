@@ -68,7 +68,10 @@ export function ProjectCards() {
                   </p>
                   <div className="flex flex-wrap gap-2 mt-4">
                     {project.tags?.map((tag) => (
-                      <span className="bg-gray-200 dark:bg-gray-800 px-2 py-1 rounded text-sm">
+                      <span
+                        key={tag}
+                        className="bg-gray-200 dark:bg-gray-800 px-2 py-1 rounded text-sm"
+                      >
                         {tag}
                       </span>
                     ))}
