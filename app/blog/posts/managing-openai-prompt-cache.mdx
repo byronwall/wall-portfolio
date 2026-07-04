@@ -1,0 +1,276 @@
+---
+title: Managing the prompt cache on OpenAI endpoints
+publishedAt: 2026-07-04
+summary: "How Video to Context structures repeated OpenAI Responses API calls so long transcript context can hit the prompt cache, report cached tokens, and make cost visible."
+---
+
+The voice memo analysis pipeline in Video to Context has a very cache-shaped workload. One transcript turns into a series of model calls: plan the semantic sections, extract claims, extract tasks, extract quotes, extract follow-up questions, and so on. Each call needs the same long transcript, but each call asks for a different slice of work.
+
+That is exactly the situation where prompt caching matters. The expensive part is not the short task instruction at the end. The expensive part is sending the same transcript over and over.
+
+OpenAI prompt caching is automatic on supported models, but it is not magic. The API can only reuse an exact matching prefix. So the work was to make the beginning of every request stable, put the variable task at the end, use a consistent `prompt_cache_key`, and then log enough usage data to see whether the cache is actually helping.
+
+<div className="not-prose my-6 rounded-lg border border-neutral-200 bg-neutral-50 p-4 text-sm dark:border-neutral-800 dark:bg-neutral-950">
+  <div className="mb-3 font-semibold text-neutral-900 dark:text-neutral-100">The cache-friendly request shape</div>
+  <div className="grid gap-2 md:grid-cols-[1fr_auto_1fr_auto_1fr] md:items-center">
+    <div className="rounded-md border border-neutral-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-900">
+      <div className="text-xs uppercase text-neutral-500">Stable prefix</div>
+      <div className="mt-1 font-mono text-xs">developer instructions</div>
+      <div className="font-mono text-xs">full transcript</div>
+    </div>
+    <div className="hidden text-neutral-400 md:block">+</div>
+    <div className="rounded-md border border-neutral-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-900">
+      <div className="text-xs uppercase text-neutral-500">Variable suffix</div>
+      <div className="mt-1 font-mono text-xs">extract tasks</div>
+      <div className="font-mono text-xs">extract quotes</div>
+    </div>
+    <div className="hidden text-neutral-400 md:block">=</div>
+    <div className="rounded-md border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-900 dark:bg-emerald-950">
+      <div className="text-xs uppercase text-emerald-700 dark:text-emerald-300">What gets measured</div>
+      <div className="mt-1 font-mono text-xs">cached_tokens</div>
+      <div className="font-mono text-xs">cached input cost</div>
+    </div>
+  </div>
+</div>
+
+## The rule from the docs
+
+The important rule is simple: cache hits are possible for exact prefix matches. Static content belongs at the start of the request. Dynamic content belongs at the end.
+
+For this pipeline, the static content is:
+
+- the shared developer instructions
+- the full timestamped transcript
+- the structured output shape, when it is the same kind of call
+
+The dynamic content is:
+
+- the specific extraction target, such as `tasks`, `claims`, or `quoteCandidates`
+- the current semantic section list
+- the package path or other run-specific notes
+
+The docs also say caching starts at 1024 prompt tokens and reports `cached_tokens` in usage. That reporting matters because otherwise cache work is mostly invisible. A request can look successful while still missing the cache on every call.
+
+## Make the prefix boring
+
+The implementation funnels every OpenAI call through one input builder:
+
+```js
+function cachedTranscriptInput(transcript, taskLines) {
+  return [
+    {
+      role: "developer",
+      content: SHARED_TRANSCRIPT_INSTRUCTIONS,
+    },
+    {
+      role: "user",
+      content: transcriptPrefix(transcript),
+    },
+    {
+      role: "user",
+      content: taskLines.join("\n"),
+    },
+  ];
+}
+```
+
+That is the whole trick. The transcript is not interpolated into each task prompt in a slightly different way. It is always the same second message. The task-specific instructions are pushed into the last message.
+
+This makes the repeated calls look like this:
+
+```text
+call 1
+  developer: shared transcript instructions
+  user:      full transcript
+  user:      task: plan semantic sections
+
+call 2
+  developer: shared transcript instructions
+  user:      full transcript
+  user:      task: extract claims
+
+call 3
+  developer: shared transcript instructions
+  user:      full transcript
+  user:      task: extract tasks
+```
+
+The first two messages are the cacheable prefix. The last message is the thing that changes.
+
+## Give related calls the same routing hint
+
+The code also creates a deterministic cache key for the transcript:
+
+```js
+function promptCacheKeyForTranscript(model, transcript) {
+  const hash = crypto
+    .createHash("sha256")
+    .update(
+      JSON.stringify({
+        promptVersion: LLM_PROMPT_VERSION,
+        model,
+        source: transcript.source,
+        start: transcript.start,
+        end: transcript.end,
+        body: transcript.body,
+      }),
+    )
+    .digest("hex")
+    .slice(0, 32);
+  return `v2c-transcript-${hash}`;
+}
+```
+
+That key gets sent on every Responses API call:
+
+```js
+const response = await client.responses.create({
+  model,
+  input,
+  prompt_cache_key: promptCacheKey,
+  text: {
+    format: {
+      type: "json_schema",
+      name: schemaName,
+      strict: true,
+      schema,
+    },
+  },
+});
+```
+
+The key is not a manual cache handle. It is a routing hint. The API still decides whether there is a matching prefix to reuse, but the key helps related requests land where that prefix is more likely to be warm.
+
+The hash includes the prompt version, model, transcript source, time range, and body. That is intentional. If the transcript changes, the prompt version changes, or the model changes, the key changes too. A stale cache hit would be worse than a cache miss.
+
+## Warm before parallel work
+
+There is one more practical detail. The extractor can run several fields in parallel, but the first request for a transcript is the one that warms the prefix cache.
+
+So the pipeline runs one extraction field first:
+
+```js
+const [cacheWarmupField, ...parallelFields] = ITEM_FIELDS;
+
+if (cacheWarmupField) {
+  await runExtraction(cacheWarmupField);
+}
+
+if (parallelFields.length) {
+  await mapWithConcurrency(parallelFields, extractionConcurrency, runExtraction);
+}
+```
+
+This is not complicated, but it changes the shape of the workload. Instead of sending nine cold requests at once, the pipeline gives the cache one request to learn the long prefix, then fans out the remaining work.
+
+That also keeps the behavior easy to reason about:
+
+```text
+1. plan sections
+2. run one extraction call to warm the transcript prefix
+3. run the remaining extraction calls with limited concurrency
+4. aggregate usage and cost
+```
+
+## Count cached tokens separately
+
+The other half of managing cache is making it visible. Every model response goes through usage normalization:
+
+```js
+function normalizeUsage(usage) {
+  const inputTokens = numberOrZero(usage?.input_tokens);
+  const cachedInputTokens = numberOrZero(usage?.input_tokens_details?.cached_tokens);
+  const outputTokens = numberOrZero(usage?.output_tokens);
+
+  return {
+    inputTokens,
+    cachedInputTokens,
+    outputTokens,
+    totalTokens: numberOrZero(usage?.total_tokens) || inputTokens + outputTokens,
+  };
+}
+```
+
+Then the CLI prints both the total input and the cached share:
+
+```text
+extract tasks done: 18 item(s)
+(tokens in=42,180 cached=36,864 (87%) uncached=5,316 out=2,041 total=44,221 cost=$0.04)
+```
+
+That line is the feedback loop. If cached tokens stay near zero, the prompt shape is wrong, the prefix is changing, the calls are too short, or the workload is not close enough in time to benefit.
+
+## Price cached input differently
+
+The cost estimator treats input tokens as two buckets:
+
+```js
+const cachedInputTokens = pricing.cachedInput === null ? 0 : usage.cachedInputTokens;
+const uncachedInputTokens = Math.max(usage.inputTokens - cachedInputTokens, 0);
+
+const cachedInputCost =
+  pricing.cachedInput === null ? 0 : (cachedInputTokens / 1_000_000) * pricing.cachedInput;
+
+const uncachedInputCost = (uncachedInputTokens / 1_000_000) * pricing.input;
+const outputCost = (usage.outputTokens / 1_000_000) * pricing.output;
+```
+
+That gets persisted into `analysis/transcript-summary.json`:
+
+```json
+{
+  "usage": {
+    "inputTokens": 382104,
+    "cachedInputTokens": 301248,
+    "uncachedInputTokens": 80856,
+    "cachedInputRatio": 0.7884,
+    "estimatedCostUsd": 0.31,
+    "estimatedCostBreakdownUsd": {
+      "uncachedInput": 0.06,
+      "cachedInput": 0.02,
+      "output": 0.23
+    }
+  }
+}
+```
+
+The exact numbers vary by transcript, model, and extraction output. The durable part is the shape: cached input is tracked separately from uncached input and output.
+
+## What changed in the pipeline
+
+Before this pass, the LLM analysis path could run a long transcript through many OpenAI calls, but it did not make cache behavior obvious. After this pass, the pipeline has a cache-aware request shape and an accounting trail.
+
+The summary:
+
+- repeated transcript context is always at the beginning of the request
+- task-specific instructions are always at the end
+- related calls share a transcript-derived `prompt_cache_key`
+- one extraction call warms the cache before parallel fan-out
+- every call logs `cached_tokens`, uncached input, output, total tokens, and estimated cost
+- the final transcript summary stores usage, cached token ratio, cost breakdown, model, provider, and pricing source metadata
+
+That is enough to manage the cache without pretending to control it. The API owns the cache. The application owns the prompt shape, routing hint, concurrency pattern, and observability.
+
+## The checklist I would reuse
+
+For any OpenAI endpoint flow with repeated context:
+
+1. Put stable instructions, examples, tools, schemas, images, and long context first.
+2. Put user-specific or task-specific content last.
+3. Keep formatting byte-for-byte boring across requests.
+4. Use `prompt_cache_key` when many calls share the same long prefix.
+5. Avoid unlimited parallel cold starts; warm the prefix before fan-out when the workload allows it.
+6. Log `cached_tokens`, cache ratio, and latency or cost next to each call.
+7. Store aggregate usage where future debugging can find it.
+
+Prompt caching is one of those features that works best when the application is disciplined in boring ways. Stable prefix. Clear suffix. Same key. Measured results.
+
+Source: [byronwall/video-to-context](https://github.com/byronwall/video-to-context)
+
+OpenAI docs used while writing this: [Prompt caching](https://developers.openai.com/api/docs/guides/prompt-caching) and [Prompt engineering: save on cost and latency with prompt caching](https://developers.openai.com/api/docs/guides/prompt-engineering#save-on-cost-and-latency-with-prompt-caching).
+
+Related:
+
+- [Building a review UI for LLM-processed voice memos](/blog/video-to-context-review-ui-llm-transcripts)
+- [Turning voice memos into Codex-ready analysis](/blog/video-to-context-codex-analysis-cli)
+- [Video to Context project page](/projects/video-to-context)
