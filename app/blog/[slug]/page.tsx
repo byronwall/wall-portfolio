@@ -7,6 +7,12 @@ type BlogPageProps = {
   params: Promise<{ slug: string }>;
 };
 
+function absoluteUrl(pathOrUrl: string) {
+  return pathOrUrl.startsWith("http")
+    ? pathOrUrl
+    : `${baseUrl}${pathOrUrl.startsWith("/") ? pathOrUrl : `/${pathOrUrl}`}`;
+}
+
 export async function generateStaticParams() {
   let posts = getBlogPosts();
 
@@ -29,19 +35,23 @@ export async function generateMetadata({ params }: BlogPageProps) {
     image,
   } = post.metadata;
 
-  let ogImage = image
-    ? image
+  const canonicalUrl = `${baseUrl}/blog/${post.slug}`;
+  const ogImage = image
+    ? absoluteUrl(image)
     : `${baseUrl}/og?title=${encodeURIComponent(title)}`;
 
   return {
     title,
     description,
+    alternates: {
+      canonical: canonicalUrl,
+    },
     openGraph: {
       title,
       description,
       type: "article",
       publishedTime,
-      url: `${baseUrl}/blog/${post.slug}`,
+      url: canonicalUrl,
       images: [
         {
           url: ogImage,
@@ -79,12 +89,14 @@ export default async function Blog({ params }: BlogPageProps) {
             dateModified: post.metadata.publishedAt,
             description: post.metadata.summary,
             image: post.metadata.image
-              ? `${baseUrl}${post.metadata.image}`
-              : `/og?title=${encodeURIComponent(post.metadata.title)}`,
+              ? absoluteUrl(post.metadata.image)
+              : `${baseUrl}/og?title=${encodeURIComponent(
+                  post.metadata.title
+                )}`,
             url: `${baseUrl}/blog/${post.slug}`,
             author: {
               "@type": "Person",
-              name: "My Portfolio",
+              name: "Byron Wall",
             },
           }),
         }}

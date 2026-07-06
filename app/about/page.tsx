@@ -1,4 +1,14 @@
 import { Timeline } from "../components/Timeline";
+import { baseUrl } from "app/sitemap";
+
+export const metadata = {
+  title: "About",
+  description:
+    "About Byron Wall, a software developer focused on TypeScript, SolidJS, data visualization, engineering tools, and AI-assisted workflows.",
+  alternates: {
+    canonical: `${baseUrl}/about`,
+  },
+};
 
 export default function AboutPage() {
   const experienceItems = [

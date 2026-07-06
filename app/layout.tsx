@@ -25,6 +25,12 @@ export const metadata: Metadata = {
     locale: "en_US",
     type: "website",
   },
+  alternates: {
+    canonical: "/",
+    types: {
+      "application/rss+xml": `${baseUrl}/rss`,
+    },
+  },
   robots: {
     index: true,
     follow: true,

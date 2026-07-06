@@ -8,6 +8,12 @@ type ProjectPageProps = {
   params: Promise<{ slug: string }>;
 };
 
+function absoluteUrl(pathOrUrl: string) {
+  return pathOrUrl.startsWith("http")
+    ? pathOrUrl
+    : `${baseUrl}${pathOrUrl.startsWith("/") ? pathOrUrl : `/${pathOrUrl}`}`;
+}
+
 export async function generateStaticParams() {
   const projects = getProjects();
   return projects.map((project) => ({
@@ -28,19 +34,23 @@ export async function generateMetadata({ params }: ProjectPageProps) {
     summary: description,
     image,
   } = post.metadata;
-  let ogImage = image
-    ? image
+  const canonicalUrl = `${baseUrl}/projects/${post.slug}`;
+  const ogImage = image
+    ? absoluteUrl(image)
     : `${baseUrl}/og?title=${encodeURIComponent(title)}`;
 
   return {
     title,
     description,
+    alternates: {
+      canonical: canonicalUrl,
+    },
     openGraph: {
       title,
       description,
       type: "article",
       publishedTime,
-      url: `${baseUrl}/projects/${post.slug}`,
+      url: canonicalUrl,
       images: [
         {
           url: ogImage,

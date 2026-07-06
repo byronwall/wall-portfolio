@@ -1,5 +1,15 @@
 import { getProjects } from "app/blog/utils";
+import { baseUrl } from "app/sitemap";
 import Link from "next/link";
+
+export const metadata = {
+  title: "Projects",
+  description:
+    "Selected software, data visualization, developer tooling, and engineering projects by Byron Wall.",
+  alternates: {
+    canonical: `${baseUrl}/projects`,
+  },
+};
 
 export default function ProjectsPage() {
   const projects = getProjects();

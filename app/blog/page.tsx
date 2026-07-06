@@ -1,8 +1,13 @@
 import { BlogPosts } from "app/components/posts";
+import { baseUrl } from "app/sitemap";
 
 export const metadata = {
   title: "Blog",
-  description: "Read my blog.",
+  description:
+    "Technical notes from Byron Wall on software development, data analysis, SolidJS, TypeScript, AI tooling, and engineering workflows.",
+  alternates: {
+    canonical: `${baseUrl}/blog`,
+  },
 };
 
 export default function BlogPage() {

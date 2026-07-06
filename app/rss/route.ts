@@ -1,6 +1,15 @@
 import { baseUrl } from 'app/sitemap'
 import { getBlogPosts } from 'app/blog/utils'
 
+function escapeXml(value: string | undefined) {
+  return (value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
 export async function GET() {
   let allBlogs = await getBlogPosts()
 
@@ -14,9 +23,10 @@ export async function GET() {
     .map(
       (post) =>
         `<item>
-          <title>${post.metadata.title}</title>
+          <title>${escapeXml(post.metadata.title)}</title>
           <link>${baseUrl}/blog/${post.slug}</link>
-          <description>${post.metadata.summary || ''}</description>
+          <guid>${baseUrl}/blog/${post.slug}</guid>
+          <description>${escapeXml(post.metadata.summary)}</description>
           <pubDate>${new Date(
             post.metadata.publishedAt
           ).toUTCString()}</pubDate>
@@ -27,9 +37,10 @@ export async function GET() {
   const rssFeed = `<?xml version="1.0" encoding="UTF-8" ?>
   <rss version="2.0">
     <channel>
-        <title>My Portfolio</title>
+        <title>Byron Wall Blog</title>
         <link>${baseUrl}</link>
-        <description>This is my portfolio RSS feed</description>
+        <description>Technical notes from Byron Wall on software development, data analysis, AI tooling, and engineering workflows.</description>
+        <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
         ${itemsXml}
     </channel>
   </rss>`
