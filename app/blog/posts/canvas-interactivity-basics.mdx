@@ -1,0 +1,332 @@
+---
+title: Canvas interactivity basics
+publishedAt: 2026-07-08
+summary: "An interactive guide to scene models, hit testing, hover overlays, and drag-pan camera math for canvas-based interfaces."
+---
+
+Why does a canvas app feel like it has real objects when the browser only sees pixels?
+
+The trick is that the app owns a scene model. The canvas is just the place that model gets painted. Pointer events are converted back into model coordinates, hit-tested against the scene, and then redrawn.
+
+Start with the loop. Move the pointer and watch the same four parts repeat: input, coordinate transform, hit test, redraw.
+
+<CanvasWholeSystemPreview />
+
+The DOM for that preview is intentionally boring. The interactivity comes from the scene model and drawing code, not from thousands of DOM nodes:
+
+```tsx
+<div className="canvas-shell">
+  <canvas ref={baseCanvasRef} aria-label="base" />
+  <canvas ref={overlayCanvasRef} aria-label="overlay" onPointerMove={handlePointerMove} />
+</div>
+```
+
+## Start with a scene model
+
+The first step is to stop thinking of the canvas as the source of truth. It is the output device.
+
+Try this before reading the code: choose a preset point and predict which rectangle wins. The rectangle tests on the right are the actual decision the app would make.
+
+<CanvasSceneModelExplorer />
+
+For a graph-like scene, the source of truth might look like this:
+
+```ts
+type Box = {
+  id: string;
+  label: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+type Arrow = {
+  from: string;
+  to: string;
+};
+
+const scene = {
+  boxes: [
+    { id: "input", label: "Pointer event", x: 36, y: 72, width: 138, height: 72 },
+    { id: "coords", label: "screenToWorld", x: 252, y: 42, width: 152, height: 82 },
+  ],
+  arrows: [{ from: "input", to: "coords" }],
+};
+```
+
+The render function consumes that model. It can draw the whole scene from scratch because the data still exists after the pixels are painted.
+
+```ts
+function render(ctx: CanvasRenderingContext2D, scene: Scene, camera: Camera) {
+  ctx.clearRect(0, 0, width, height);
+
+  ctx.save();
+  ctx.translate(camera.x, camera.y);
+  ctx.scale(camera.scale, camera.scale);
+
+  for (const arrow of scene.arrows) drawArrow(ctx, arrow, scene);
+  for (const box of scene.boxes) drawBox(ctx, box);
+
+  ctx.restore();
+}
+```
+
+This is the first important tradeoff. You give up DOM hit testing for every item, but you gain a dense rendering surface where 1,000 or 10,000 marks do not become 10,000 DOM nodes.
+
+## Hit testing is model math
+
+A pointer event starts in screen pixels. If the scene is unpanned and unzoomed, a rectangle hit test is just bounds checking.
+
+```ts
+function hitTestBox(point: Point, box: Box) {
+  return (
+    point.x >= box.x &&
+    point.x <= box.x + box.width &&
+    point.y >= box.y &&
+    point.y <= box.y + box.height
+  );
+}
+
+function hitTest(scene: Scene, point: Point) {
+  for (let index = scene.boxes.length - 1; index >= 0; index -= 1) {
+    const box = scene.boxes[index];
+    if (hitTestBox(point, box)) return box;
+  }
+
+  return null;
+}
+```
+
+Iterating from the end gives you a simple z-order rule: later items are considered on top. For circles, check distance from center. For line segments, check distance from the pointer to the segment. For text, handles, lasso regions, or chart points, use the same idea with the geometry that matches the mark.
+
+At small sizes, a loop over the visible items is usually fine. At larger sizes, the same contract stays in place but the implementation changes: keep a quadtree, grid index, R-tree, sorted bins, or typed-array index so pointer movement does not scan every item.
+
+## The hover canvas is disposable
+
+Hover state is temporary. Selection outlines, rubber-band rectangles, resize handles, crosshairs, and tooltips change much more often than the scene itself.
+
+Previously, the scene and hover feedback were painted together. Now split them. Turn the overlay off and on; the important observation is that hover can disappear without changing the base scene.
+
+<CanvasHoverLayerExplorer />
+
+That is why many canvas tools stack layers:
+
+```tsx
+<div className="canvas-shell">
+  <canvas ref={baseCanvasRef} />
+  <canvas ref={overlayCanvasRef} onPointerMove={handlePointerMove} />
+</div>
+```
+
+The base canvas draws the expensive stable scene. The overlay canvas receives pointer events and redraws the lightweight interaction affordances.
+
+```ts
+function handlePointerMove(event: PointerEvent) {
+  const screenPoint = {
+    x: event.offsetX,
+    y: event.offsetY,
+  };
+
+  const worldPoint = screenToWorld(screenPoint, camera);
+  const hovered = hitTest(scene, worldPoint);
+
+  overlay.clearRect(0, 0, width, height);
+
+  if (hovered) {
+    drawHoverOutline(overlay, hovered, camera);
+    drawTooltip(overlay, hovered, screenPoint);
+  }
+}
+```
+
+This does not mean every app needs many canvases. It means interaction redraws should be scoped. A single canvas can still be perfectly reasonable when the full scene is cheap to repaint, or when every pointer move genuinely changes the whole view.
+
+## Drag pan is camera translation
+
+Panning is not moving every object. The objects stay in world coordinates. The camera changes how world coordinates are projected onto screen pixels.
+
+Drag the canvas below. Watch `camera.x` and `camera.y`, not the box coordinates. This is the small piece of math that makes pan feel direct.
+
+<CanvasPanMathExplorer />
+
+The camera can be as small as:
+
+```ts
+type Camera = {
+  x: number;
+  y: number;
+  scale: number;
+};
+```
+
+The two conversion functions are the heart of most canvas interaction:
+
+```ts
+function worldToScreen(point: Point, camera: Camera) {
+  return {
+    x: point.x * camera.scale + camera.x,
+    y: point.y * camera.scale + camera.y,
+  };
+}
+
+function screenToWorld(point: Point, camera: Camera) {
+  return {
+    x: (point.x - camera.x) / camera.scale,
+    y: (point.y - camera.y) / camera.scale,
+  };
+}
+```
+
+For drag panning, save the camera when the pointer goes down. During movement, add the screen-space pointer delta to the saved translation.
+
+```ts
+let drag:
+  | {
+      startX: number;
+      startY: number;
+      camera: Camera;
+    }
+  | null = null;
+
+function onPointerDown(event: PointerEvent) {
+  drag = {
+    startX: event.clientX,
+    startY: event.clientY,
+    camera: { ...camera },
+  };
+}
+
+function onPointerMove(event: PointerEvent) {
+  if (!drag) return;
+
+  camera = {
+    ...drag.camera,
+    x: drag.camera.x + event.clientX - drag.startX,
+    y: drag.camera.y + event.clientY - drag.startY,
+  };
+
+  requestRender();
+}
+```
+
+That is enough for native-feeling drag because the pointer and camera translation are both measured in screen pixels. Moving the pointer 30 pixels moves the scene 30 pixels, regardless of zoom.
+
+## Redraw strategy
+
+For a small scene, repainting the whole canvas on every interaction is often the simplest and smoothest approach. A full clear and redraw is not automatically wasteful. Canvas APIs are optimized for immediate-mode painting, and a few hundred marks are usually cheap.
+
+Incremental rendering starts to matter when the stable scene is expensive and the interaction state is tiny. The common options are:
+
+| Approach | Use it when |
+| --- | --- |
+| Full redraw | The scene is cheap enough to paint within the frame budget. |
+| Overlay canvas | The base scene is stable, but hover/selection changes often. |
+| Dirty rectangles | Changes are localized and the drawing code can safely repaint rectangular regions. |
+| Cached bitmap layer | A complex layer can be rendered once to an offscreen canvas and copied back. |
+| Spatial index | Hit testing or visible-item filtering is the bottleneck. |
+| WebGL/WebGPU | The mark count, effects, or animation exceed what 2D canvas can comfortably draw. |
+
+Dirty rectangles sound attractive, but they add bookkeeping. You need to know the previous and next bounds of everything that changed, include stroke widths and shadows, handle overlapping objects, and avoid leaving stale pixels behind. For many product interfaces, a base canvas plus overlay canvas is the better first optimization.
+
+## Scaling the same idea to charts
+
+A 10,000 point scatter chart uses the same architecture.
+
+Move around the plot below and use the same zoom control you saw earlier. The canvas draws all 10,000 points, but the hover lookup searches only nearby grid buckets.
+
+<CanvasScatterPlotExplorer />
+
+The scene model may be typed arrays instead of objects:
+
+```ts
+const xs = new Float32Array(count);
+const ys = new Float32Array(count);
+const colors = new Uint32Array(count);
+```
+
+Rendering loops over the visible points:
+
+```ts
+for (let index = 0; index < count; index += 1) {
+  const x = xs[index];
+  const y = ys[index];
+
+  if (!isVisible(x, y, camera)) continue;
+
+  const screen = worldToScreen({ x, y }, camera);
+  ctx.fillRect(screen.x - 1, screen.y - 1, 2, 2);
+}
+```
+
+Hit testing should avoid scanning all 10,000 points on every pointer move if the chart needs to feel crisp under load. A grid index is often enough: bucket points by world-space cells, convert the pointer to world coordinates, then search nearby cells for the closest point within a screen-sized tolerance.
+
+```ts
+function hitTestPoint(screenPoint: Point, camera: Camera) {
+  const worldPoint = screenToWorld(screenPoint, camera);
+  const radius = 8 / camera.scale;
+  const candidates = gridIndex.query(worldPoint, radius);
+
+  return nearestPointWithinRadius(candidates, worldPoint, radius);
+}
+```
+
+The important detail is the radius conversion. An 8 pixel hover target should stay 8 screen pixels at every zoom level, so the world-space search radius is `8 / camera.scale`.
+
+## Animating positions
+
+Animation should not change the model architecture. It adds one more input: time.
+
+In the example below, each point has two deterministic positions. At `t = 0`, the point is in a random layout. At `t = 1`, the same point is in a clustered layout. Rendering a frame means interpolating those two positions and repainting the canvas.
+
+<CanvasScatterAnimationExplorer />
+
+The slider is the whole state of the animation. The play loop only advances that slider when the browser gives us a frame:
+
+```ts
+function frame(now: number) {
+  const delta = now - previousNow;
+  previousNow = now;
+
+  time += direction * (delta / 2000);
+
+  if (time >= 1) {
+    time = 1;
+    direction = -1;
+  }
+
+  if (time <= 0) {
+    time = 0;
+    direction = 1;
+  }
+
+  requestAnimationFrame(frame);
+}
+```
+
+The draw loop stays deterministic:
+
+```ts
+for (let index = 0; index < count; index += 1) {
+  const x = randomX[index] + (clusterX[index] - randomX[index]) * time;
+  const y = randomY[index] + (clusterY[index] - randomY[index]) * time;
+
+  ctx.fillRect(x - 1, y - 1, 2, 2);
+}
+```
+
+That separation matters. A slider, a scrubber, a recorded replay, and a `requestAnimationFrame` loop can all drive the same render function. Smoothness comes from keeping animation time explicit and making each frame a pure redraw from model state.
+
+## What makes it feel smooth
+
+Smoothness usually comes from keeping each concern small:
+
+- Draw from a model, not from previous pixels.
+- Convert pointer coordinates through the same camera transform used for rendering.
+- Use pointer capture during drags so movement stays continuous.
+- Batch rendering with `requestAnimationFrame` instead of drawing multiple times per event burst.
+- Keep hover and drag feedback cheap, often on an overlay canvas.
+- Add a spatial index when hit testing becomes the hot path.
+- Cache or split layers when stable drawing becomes the hot path.
+
+The mental model stays compact: canvas is pixels, the app owns the scene, the camera maps world to screen, and interaction is geometry against the model.

@@ -5,6 +5,15 @@ import { highlight } from 'sugar-high'
 import React from 'react'
 import remarkGfm from 'remark-gfm'
 import { SolidResourceExplorer } from 'app/blog/components/solid-resource-explorer'
+import {
+  CanvasScatterAnimationExplorer,
+  CanvasHoverLayerExplorer,
+  CanvasInteractivityExplorer,
+  CanvasPanMathExplorer,
+  CanvasScatterPlotExplorer,
+  CanvasSceneModelExplorer,
+  CanvasWholeSystemPreview,
+} from 'app/blog/components/canvas-interactivity-explorer'
 
 function Table({ data }) {
   let headers = data.headers.map((header, index) => (
@@ -135,7 +144,14 @@ let components = {
   code: Code,
   table: MarkdownTable,
   Table,
+  CanvasScatterAnimationExplorer,
+  CanvasHoverLayerExplorer,
   SolidResourceExplorer,
+  CanvasInteractivityExplorer,
+  CanvasPanMathExplorer,
+  CanvasScatterPlotExplorer,
+  CanvasSceneModelExplorer,
+  CanvasWholeSystemPreview,
 }
 
 export function CustomMDX(props) {
