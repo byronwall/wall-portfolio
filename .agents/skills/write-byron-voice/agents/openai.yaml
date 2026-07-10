@@ -1,0 +1,4 @@
+interface:
+  display_name: "Write in Byron’s Voice"
+  short_description: "Draft technical prose in Byron’s voice"
+  default_prompt: "Use $write-byron-voice to draft a technical blog post grounded in my supplied source material."
