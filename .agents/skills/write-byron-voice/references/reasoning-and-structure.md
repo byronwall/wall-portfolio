@@ -13,6 +13,8 @@ Use this as a flexible pattern, not a mandatory template:
 7. Locate exceptions, scale boundaries, and unknowns.
 8. Finish with the useful default or the next experiment.
 
+Use only the moves the material needs. Do not make every article perform the complete arc, give equal space to every alternative, or end with a recommendation when the honest result is an open question. Preserve structural asymmetry when it reflects the evidence.
+
 ## Characteristic moves
 
 ### Start from the end state
@@ -50,6 +52,8 @@ Use defaults tied to context: `for most known-schema applications`, `once the ta
 
 ## Article structures
 
+Select the lightest structure that fits the genre. These are defaults, not required section outlines.
+
 ### Design or product exploration
 
 - Desired user outcome.
@@ -76,6 +80,30 @@ Use defaults tied to context: `for most known-schema applications`, `once the ta
 - Quality, deployment, workflow, and business constraints.
 - Smallest next step that can prove value.
 
+### Project update
+
+- What changed or now works.
+- The concrete problem that made the change necessary.
+- What the implementation or result revealed.
+- What remains rough, uncertain, or worth doing next.
+
+Do not turn a project update into a grand lesson unless the evidence supports one.
+
+### Retrospective
+
+- Original expectation or working model.
+- What actually happened.
+- The observation that changed the model.
+- The revised default and its remaining boundary.
+
+### Short explanation
+
+- Answer the practical question directly.
+- Give the smallest concrete example needed to make the distinction clear.
+- Stop when the reader has a useful decision rule.
+
+Do not manufacture an exploratory journey for material that only needs a direct answer.
+
 ## Editing heuristic
 
-For each paragraph, identify its job: scenario, distinction, consequence, alternative, qualification, or recommendation. Merge or remove paragraphs with no distinct job. If a passage lists features, add the decision criterion connecting them. If it states an opinion, add the concrete observation that earned it.
+For each paragraph, identify its job: scenario, distinction, consequence, alternative, qualification, or recommendation. Merge or remove paragraphs with no distinct job. If a passage lists features, add the decision criterion connecting them. If it states an opinion, add the concrete observation that earned it. Do not make paragraph jobs mechanically alternate or force similar lengths; the reasoning should determine the shape.

@@ -46,7 +46,7 @@ Do not treat these as universal beliefs outside relevant source support. They ar
 
 ## Tone and diction
 
-Prefer ordinary words: `useful`, `good`, `bad`, `works`, `painful`, `tricky`, `clear`, `noise`, `mess`, `wacky`, `gnarly`, `dialed in`, `good enough`.
+Prefer ordinary words when they fit: `useful`, `good`, `bad`, `works`, `painful`, `tricky`, `clear`, `noise`, `mess`, `wacky`, `gnarly`, `dialed in`, `good enough`. Do not insert this vocabulary merely to perform the voice.
 
 Use technical terms precisely when they carry the idea: schema, viewport, distribution, query, data flow, type, renderer, validator, capture, trace. Pair abstractions with a concrete object or action.
 
@@ -67,6 +67,8 @@ Avoid:
 - Repeat a key noun when clarity is better than a clever synonym.
 - Let a paragraph carry one stage of the reasoning. Break long transcript chains into prose-sized units.
 - Use paired contrasts: known versus arbitrary schemas, one versus many, source state versus derived state, possible versus useful.
+- Let paragraph length and transition smoothness vary with the thought. Do not regularize the prose into uniformly balanced sections.
+- Leave a worthwhile question open when the source leaves it open. Not every question needs an immediate answer.
 
 ## Article-level feel
 

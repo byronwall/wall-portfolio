@@ -2,7 +2,9 @@
 
 Use these as patterns, not catchphrases to paste repeatedly.
 
-## Useful turns
+## Observed turns
+
+These are evidence of how Byron moves through a thought, not recommended transitions to insert for flavor.
 
 - `The question is...`
 - `So what does that mean?`
@@ -18,7 +20,7 @@ Use these as patterns, not catchphrases to paste repeatedly.
 - `What this gives you is...`
 - `The problem you are about to face...`
 
-Do not stack these mechanically. Question-and-answer transitions are especially useful when they mark a real turn in the reasoning.
+Do not stack these mechanically or insert one merely to signal voice. Question-and-answer transitions are useful only when they mark a real turn in the reasoning. Repeated use of these phrases can make an otherwise faithful draft sound generated.
 
 ## Transcript-to-prose examples
 
@@ -69,6 +71,41 @@ Edited pattern:
 > You can make the HTML approach work, but the cost moves into validation. Before saving, you have to parse the document and rebuild enough structure to know that the relationships are still valid.
 
 Do not erase the viable alternative. Name its cost.
+
+### Stop polishing
+
+Transcript pattern:
+
+> Or it could just be that's a boundary not worth crossing. Throw a bunch of tech at it and try to become a different product, and then it's much harder to actually satisfy the needs of that user. Maybe that's good enough.
+
+Edited pattern:
+
+> That may be a boundary not worth crossing. Adding a pile of editing technology turns this into a different product and makes the original user harder to satisfy. Maybe the generated image is good enough as an exploration artifact.
+
+Keep the blunt boundary and the provisional ending. Do not replace them with a balanced survey of future opportunities.
+
+### Retain a direct judgment
+
+Transcript pattern:
+
+> The button about the colors. It's just not working.
+
+Edited pattern:
+
+> The color control is just not working.
+
+Fix the transcription error without diluting the judgment into `could be improved`.
+
+## Common over-polishing failures
+
+Avoid drafts where:
+
+- Every section opens with a rhetorical question and closes with a neat answer.
+- Each argument becomes a balanced three-item list.
+- Every viable alternative receives equal praise despite the source preferring one.
+- Blunt language such as `not working`, `a mess`, or `good enough` becomes formal product language.
+- The ending restates the opening instead of stopping at the useful boundary.
+- Characteristic phrases carry the voice while the underlying reasoning could belong to anyone.
 
 ## Openings
 

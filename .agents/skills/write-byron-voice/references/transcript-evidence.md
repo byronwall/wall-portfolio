@@ -4,7 +4,7 @@
 
 This voice model was derived only from plain-text voice memo transcripts under `/Users/byronwall/.v2c-voice-memos/*-context/transcript/transcript.txt` on 2026-07-09. No portfolio MDX or blog prose was read as voice evidence.
 
-The corpus contained 30 dated transcript files and about 55,700 words in those dated files. Twenty-one files had at least 600 words and supplied the primary evidence. Empty, test-only, and extremely short files were excluded. The undated root transcript was treated as a working or aggregate capture and excluded to avoid double-weighting material also present in dated memos.
+The corpus contained 29 dated transcript files and about 55,700 words in those dated files. Twenty-one files had at least 600 words and supplied the primary evidence. Empty, test-only, and extremely short files were excluded. A thirtieth, undated root transcript was treated as a working or aggregate capture and excluded to avoid double-weighting material also present in dated memos.
 
 Transcription mistakes are evidence only when a pattern recurs clearly across recordings. Obvious recognition errors are not intentional diction.
 
@@ -34,7 +34,7 @@ Transcription mistakes are evidence only when a pattern recurs clearly across re
 
 ## Recurring signals
 
-Across the dated transcripts, spoken uncertainty and exploration are frequent: `maybe` appears roughly 281 times, `probably` 137 times, and `I think` 123 times. `And so` is a common reasoning bridge (roughly 216 occurrences). These counts justify preserving qualification and causal progression, but not copying spoken frequency into polished prose.
+Across the dated transcripts, spoken uncertainty and exploration are frequent: `maybe` appears roughly 281 times, `probably` 137 times, and `I think` 123 times. `And so` is a common reasoning bridge (roughly 205 occurrences). These counts justify preserving qualification and causal progression, but not copying spoken frequency into polished prose.
 
 The openings commonly declare the topic or goal. The body then decomposes the problem, asks questions, tests examples, and revises the working model. Endings are usually provisional: a next topic, a bounded stopping point, or a statement that the current model is good enough.
 
@@ -50,3 +50,15 @@ Strong repeated evidence includes:
 - `You can at least hint, hey, this is broken. This is going to break.`
 
 Use the source IDs above to revisit the raw transcript when a stronger excerpt or topic-specific calibration is needed.
+
+## Updating the corpus
+
+When incorporating new transcripts:
+
+1. Record the update date, dated-file count, approximate word count, and newest included source ID.
+2. Identify added or removed files before changing the profile. Do not let an aggregate or duplicate transcript alter the weighting.
+3. Add a general voice rule only when it recurs across recordings or Byron explicitly confirms it. Treat a single memo as topic evidence until the pattern repeats.
+4. Check whether new evidence contradicts an existing rule. Preserve the disagreement or narrow the rule rather than averaging it away.
+5. Reserve several substantial new memos as a temporary validation set. Test whether the existing profile produces faithful edits before using those memos to revise the profile.
+
+For forward evaluation, compare drafts blind on first-person support, reasoning fidelity, excessive polish, structural predictability, and phrase imitation. Prefer direct judgment from Byron over automated vocabulary similarity.
