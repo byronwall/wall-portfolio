@@ -1,115 +1,140 @@
+import Image from "next/image";
 import Link from "next/link";
-import { ProjectCards } from "./components/project-cards";
+import { SocialIcons } from "./components/social-icons";
+import { getBlogPosts } from "./blog/utils";
+
+const featuredProjects = [
+  {
+    title: "HN Offline",
+    description:
+      "An offline-first Hacker News reader that keeps stories and comments available without a connection.",
+    href: "/projects/0-hn-offline",
+    image: "https://raw.githubusercontent.com/byronwall/hn-offline/master/docs/image.png",
+  },
+  {
+    title: "Alt Image Zoom Modal",
+    description:
+      "A Chrome extension for inspecting, saving, and organizing page images with a fast pan-and-zoom viewer.",
+    href: "/projects/chrome-image-modal",
+    image: "/images/projects/chrome-image-modal/modal.png",
+  },
+];
 
 export default function Home() {
+  const featuredPosts = getBlogPosts()
+    .filter((post) => post.metadata.featured === "true")
+    .sort((a, b) => {
+      const aDate = a.metadata.publishedAt ?? "";
+      const bDate = b.metadata.publishedAt ?? "";
+      return aDate === bDate ? (a.slug < b.slug ? -1 : 1) : aDate < bDate ? 1 : -1;
+    })
+    .slice(0, 2);
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between">
-      <div className="z-10 max-w-5xl w-full items-center justify-between text-sm">
-        <h1 className="text-4xl font-bold mb-4">Byron Wall</h1>
-        <p className="text-xl mb-4">
-          Software engineer with 14+ years of experience in Software and
-          Chemical Engineering.
-        </p>
-        <p className="text-xl mb-4">
-          Currently working as a{" "}
-          <span className="font-semibold">Full Stack Engineer</span> at{" "}
-          <a
-            href="https://relational.ai"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:underline"
-          >
-            RelationalAI
-          </a>
-          , where we're building an agentic/LLM data modeling application for
-          Snowflake databases.
-        </p>
-        <p className="text-xl">
-          My preferred stack includes TypeScript, SolidJS, and SolidStart. I
-          previously used React/SolidJS, C#, and Next.js.
-        </p>
-
-        <ProjectCards />
-
-        <section>
-          <h2 className="font-bold text-2xl mb-4">Additional Projects</h2>
-          <ul className="list-none list-inside space-y-4 mb-8 prose prose-neutral dark:prose-invert">
-            <li>
-              <Link
-                href="/projects/data-visualization"
-                className="hover:underline"
-              >
-                <strong>Data Visualization Platform</strong>
-              </Link>
-              <p className="ml-6">
-                Built a 100k+ LOC platform using C#, TypeScript, and
-                React/SolidJS for analyzing transmission testing data. Features
-                include a custom calculation DSL and interactive visualizations
-                using custom charting components (SVG + canvas).
-              </p>
-            </li>
-            <li>
-              <Link
-                href="/projects/hydraulic-schematic-tool"
-                className="hover:underline"
-              >
-                <strong>Interactive Hydraulic Schematic Tool</strong>
-              </Link>
-              <p className="ml-6">
-                Developed an Electron-based application using React/SolidJS and
-                TypeScript for hydraulic system visualization and analysis.
-                Allows for user defined schematics with complicated logic and
-                connectivity.
-              </p>
-            </li>
-            <li>
-              <Link href="/projects/runndaily" className="hover:underline">
-                <strong>runnDAILY.com [2009]</strong>
-              </Link>
-              <p className="ml-6">
-                Co-founded and developed a fitness mapping website using PHP,
-                MySQL, and JavaScript.
-              </p>
-            </li>
-          </ul>
-        </section>
-
-        <h2 className="font-bold text-2xl mb-4">Skills</h2>
-        <div className="grid grid-cols-2 gap-4 mb-8">
-          <div>
-            <h3 className="font-semibold mb-2">Expert</h3>
-            <ul className="list-disc list-inside">
-              <li>TypeScript/JavaScript</li>
-              <li>React/SolidJS</li>
-              <li>Excel/VBA</li>
-              <li>Data Analysis</li>
-              <li>Data Visualization</li>
-              <li>Statistics</li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-semibold mb-2">Proficient</h3>
-            <ul className="list-disc list-inside">
-              <li>Next.js</li>
-              <li>C#</li>
-              <li>Node.js</li>
-              <li>Python</li>
-              <li>Git</li>
-              <li>SQLite</li>
-              <li>PostgreSQL</li>
-              <li>Docker</li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="prose prose-neutral dark:prose-invert">
-          <p>
-            Check out my <Link href="/projects">projects</Link>,{" "}
-            <Link href="/blog">read my blog</Link> or{" "}
-            <a href="mailto:byron@byroni.us">get in touch</a>.
+    <main className="home-page">
+      <section className="home-hero">
+        <div className="home-intro">
+          <h1>Byron Wall</h1>
+          <p className="home-lede">
+            Software engineer with more than 14 years of experience building
+            real-world web applications and data products.
           </p>
+          <p>
+            I build full-stack applications, data tools, and developer tooling.
+            I’m currently a <strong>Full Stack Engineer</strong> at{" "}
+            <a href="https://relational.ai" target="_blank" rel="noreferrer">
+              RelationalAI
+            </a>
+            , working on an agentic and LLM-driven data modeling application for
+            Snowflake.
+          </p>
+          <p>
+            I prefer TypeScript, SolidJS, and SolidStart, and care about clean
+            code, thoughtful interfaces, and measurable impact.
+          </p>
+
+          <div className="home-actions">
+            <Link className="button button-primary" href="/projects">
+              View projects
+            </Link>
+            <Link className="button button-secondary" href="/blog">
+              Read the blog
+            </Link>
+          </div>
+
+          <div className="home-socials" aria-label="Social links">
+            <a href="https://github.com/byronwall" target="_blank" rel="noreferrer" aria-label="GitHub">
+              <SocialIcons.GitHub />
+            </a>
+            <a href="https://www.linkedin.com/in/byronwall/" target="_blank" rel="noreferrer" aria-label="LinkedIn">
+              <SocialIcons.LinkedIn />
+            </a>
+            <a href="mailto:byron@byroni.us" aria-label="Email Byron">
+              <SocialIcons.Email />
+            </a>
+          </div>
         </div>
-      </div>
+
+        <div className="home-portrait-wrap">
+          <Image
+            src="/byron-wall-headshot.webp"
+            alt="Byron Wall"
+            width={400}
+            height={400}
+            className="home-portrait"
+            priority
+          />
+        </div>
+      </section>
+
+      <section className="featured-work" aria-labelledby="featured-projects-heading">
+        <Link className="section-heading-link" href="/projects">
+          <span className="section-label" id="featured-projects-heading">Projects</span>
+          <span aria-hidden="true">→</span>
+        </Link>
+        <div className="content-preview-grid">
+          {featuredProjects.map((project) => (
+            <Link className="content-preview-card" href={project.href} key={project.title}>
+              <img
+                src={project.image}
+                alt=""
+                className="content-preview-image"
+                loading="lazy"
+              />
+              <div className="content-preview-copy">
+                <h2>{project.title}</h2>
+                <p>{project.description}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="featured-blog" aria-labelledby="featured-posts-heading">
+        <Link className="section-heading-link" href="/blog">
+          <span className="section-label" id="featured-posts-heading">Blog posts</span>
+          <span aria-hidden="true">→</span>
+        </Link>
+        <div className="content-preview-grid">
+          {featuredPosts.map((post) => (
+            <Link className="content-preview-card" href={`/blog/${post.slug}`} key={post.slug}>
+              {post.thumbnail && (
+                <Image
+                  src={post.thumbnail}
+                  alt=""
+                  width={400}
+                  height={400}
+                  className="content-preview-image"
+                />
+              )}
+              <div className="content-preview-copy">
+                <h2>{post.metadata.title}</h2>
+                <p>{post.metadata.summary}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
     </main>
   );
 }

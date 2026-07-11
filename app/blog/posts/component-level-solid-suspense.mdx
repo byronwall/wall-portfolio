@@ -3,6 +3,7 @@ title: Breaking top-level Suspense into component-level Suspense
 publishedAt: 2026-07-03
 summary: "How a SolidJS loading state got smoother by keeping the page shell mounted and moving resource reads behind local Suspense boundaries."
 image: "/images/posts/component-level-solid-suspense/after-loaded.png"
+featured: true
 ---
 
 The first version of the voice memo review UI had a reasonable loading state and a bad product feel. While the local library scan was running, the page rendered the masthead and then one giant empty loading card. When the data arrived, the real interface appeared all at once: memo list, transcript pane, audio, selected evidence, and related snippets.

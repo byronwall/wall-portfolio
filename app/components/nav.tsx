@@ -1,38 +1,30 @@
-import Image from "next/image";
 import Link from "next/link";
 import { mainNavLinks, socialLinks } from "../data/site-links";
 
 export function Navbar() {
   return (
-    <aside className="-ml-[8px] mb-8 tracking-tight">
-      <div className="lg:sticky lg:top-20">
+    <header className="site-header">
+      <div>
         <nav
-          className="w-full flex-wrap flex flex-row items-start relative px-0 pb-0 fade md:overflow-auto scroll-pr-6 md:relative"
+          className="site-nav"
           id="nav"
         >
-          <div className="w-full flex flex-wrap flex-row items-center gap-2 pr-10">
-            <div className="flex flex-row items-center space-x-0">
-              <Link href="/" className="flex items-center mr-4 shrink-0">
-                <Image
-                  src="/byron-wall-2024.jpeg"
-                  alt="Profile picture"
-                  width={40}
-                  height={40}
-                  className="rounded-full"
-                  priority
-                />
-              </Link>
+          <div className="site-nav-inner">
+            <Link href="/" className="brand-mark" aria-label="Byron Wall, home">
+              BW
+            </Link>
+            <div className="nav-links">
               {mainNavLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="transition-all hover:text-neutral-800 dark:hover:text-neutral-200 flex align-middle relative py-1 px-2 m-1"
+                  className="nav-link"
                 >
                   {link.label}
                 </Link>
               ))}
             </div>
-            <div className="flex items-center space-x-4 ml-auto">
+            <div className="nav-socials">
               {socialLinks
                 .filter(
                   (link) => link.shouldShowInNav && link.label !== "Resume"
@@ -41,7 +33,7 @@ export function Navbar() {
                   <Link
                     key={label}
                     href={href}
-                    className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                    className="nav-social-link"
                     target={
                       href.startsWith("http") || href.endsWith(".pdf")
                         ? "_blank"
@@ -62,6 +54,6 @@ export function Navbar() {
           </div>
         </nav>
       </div>
-    </aside>
+    </header>
   );
 }

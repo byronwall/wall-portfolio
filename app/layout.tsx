@@ -55,7 +55,6 @@ export default function RootLayout({
     <html
       lang="en"
       className={cx(
-        "text-black bg-white dark:text-white dark:bg-black",
         GeistSans.variable,
         GeistMono.variable
       )}
@@ -67,14 +66,16 @@ export default function RootLayout({
           data-website-id="03d5aaeb-7747-4d42-83b1-a3e859babdca"
         ></script>
       </head>
-      <body className="antialiased max-w-xl mx-4 mt-8 lg:mx-auto">
-        <main className="flex-auto min-w-0 mt-6 flex flex-col px-2 md:px-0">
-          <Navbar />
-          {children}
+      <body className="antialiased">
+        <div className="site-shell">
+          <div className="site-content">
+            <Navbar />
+            {children}
+          </div>
           <Footer />
           <Analytics />
           <SpeedInsights />
-        </main>
+        </div>
       </body>
     </html>
   );

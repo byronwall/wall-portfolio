@@ -1,0 +1,4 @@
+interface:
+  display_name: "Redesign Portfolio Page"
+  short_description: "Build portfolio pages from the approved design system"
+  default_prompt: "Use $redesign-portfolio-page to redesign the blog index page and verify it visually."
