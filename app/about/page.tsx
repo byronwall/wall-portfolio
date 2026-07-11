@@ -1,225 +1,48 @@
-import { Timeline } from "../components/Timeline";
-import { baseUrl } from "app/sitemap";
+import Image from "next/image";
+import Link from "next/link";
+import { SocialIcons } from "../components/social-icons";
+import { baseUrl } from "../sitemap";
+import styles from "./about.module.css";
 
 export const metadata = {
   title: "About",
-  description:
-    "About Byron Wall, a software developer focused on TypeScript, SolidJS, data visualization, engineering tools, and AI-assisted workflows.",
-  alternates: {
-    canonical: `${baseUrl}/about`,
-  },
+  description: "About Byron Wall, a software engineer who builds data-rich applications and technical tools.",
+  alternates: { canonical: `${baseUrl}/about` },
 };
 
 export default function AboutPage() {
-  const experienceItems = [
-    {
-      title: (
-        <>
-          <span className="block">
-            <a
-              href="https://relational.ai"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:underline"
-            >
-              RelationalAI
-            </a>
-          </span>
-          <span className="block text-base font-normal text-neutral-700 dark:text-neutral-300">
-            Full Stack Engineer
-          </span>
-        </>
-      ),
-      date: "April 2025 – Present",
-      children: (
-        <ul>
-          <li>
-            Building server-side components with FastAPI, Pydantic AI, and
-            Python for an agentic/LLM data modeling application for Snowflake
-            databases
-          </li>
-          <li>
-            Developing client-side components using SolidJS for the same data
-            modeling application
-          </li>
-        </ul>
-      ),
-    },
-    {
-      title: (
-        <>
-          <span className="block">
-            <a
-              href="https://www.allisontransmission.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:underline"
-            >
-              Allison Transmission
-            </a>
-          </span>
-          <span className="block text-base font-normal text-neutral-700 dark:text-neutral-300">
-            Staff Software Developer
-          </span>
-        </>
-      ),
-      date: "February 2023 – March 2025",
-      children: (
-        <ul>
-          <li>
-            Created and maintain a data analysis platform (100k+ LOC) using C#,
-            TypeScript, and React/SolidJS with interactive visualizations via
-            D3.js
-          </li>
-          <li>
-            Developed domain-specific language for custom engineering analyses
-          </li>
-          <li>
-            Led security platform migration for Engineering division (800+
-            workstations)
-          </li>
-          <li>
-            Created extensive documentation and training materials including 10+
-            hours of video content
-          </li>
-        </ul>
-      ),
-    },
-    {
-      title: (
-        <>
-          <span className="block">
-            <a
-              href="https://www.allisontransmission.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:underline"
-            >
-              Allison Transmission
-            </a>
-          </span>
-          <span className="block text-base font-normal text-neutral-700 dark:text-neutral-300">
-            Staff/Senior Engineer
-          </span>
-        </>
-      ),
-      date: "November 2017 – January 2023",
-      children: (
-        <ul>
-          <li>
-            Built interactive hydraulic schematic tool using Electron,
-            React/SolidJS, and TypeScript
-          </li>
-          <li>
-            Developed visualization tools for engineering design and
-            troubleshooting
-          </li>
-        </ul>
-      ),
-    },
-    {
-      title: (
-        <>
-          <span className="block">
-            <a
-              href="https://www.tda.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:underline"
-            >
-              TDA Research
-            </a>
-          </span>
-          <span className="block text-base font-normal text-neutral-700 dark:text-neutral-300">
-            Research and Project Engineer
-          </span>
-        </>
-      ),
-      date: "August 2015 – October 2017",
-      children: (
-        <ul>
-          <li>
-            Designed data pipeline connecting CSV files to InfluxDB with Grafana
-            visualization
-          </li>
-          <li>Developed Excel add-in in C# for database connectivity</li>
-          <li>
-            Created automated quoting tools reducing processing time from hours
-            to minutes
-          </li>
-        </ul>
-      ),
-    },
-  ];
-
   return (
-    <section>
-      <div className="mb-6">
-        <h1 className="font-medium text-4xl  tracking-tighter">
-          About: Byron Wall
-        </h1>
-      </div>
-      <div className="prose prose-neutral dark:prose-invert">
-        <p className="mb-8 text-lg">
-          I'm a Software Developer with 14+ years of experience in Software and
-          Chemical Engineering. I specialize in creating highly interactive
-          data-centric applications. With a foundation in Chemical Engineering,
-          I've evolved into a full-stack developer focusing on TypeScript,
-          React/SolidJS, and C#. I excel at building tools that help engineers
-          and technical teams analyze data, visualize complex systems, and
-          automate workflows.
-        </p>
-
-        <h3>Professional Experience</h3>
-        <Timeline items={experienceItems} />
-
-        <h3>Skills</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <h4>Expert in:</h4>
-            <ul>
-              <li>TypeScript/JavaScript</li>
-              <li>Excel/VBA</li>
-              <li>Data Analysis</li>
-              <li>Statistics</li>
-            </ul>
-          </div>
-          <div>
-            <h4>Proficient in:</h4>
-            <ul>
-              <li>C#</li>
-              <li>React/SolidJS</li>
-              <li>Node.js</li>
-              <li>Python</li>
-              <li>Git</li>
-              <li>RESTful APIs</li>
-            </ul>
-          </div>
+    <main className={styles.page}>
+      <section className={styles.hero}>
+        <div className={styles.copy}>
+          <h1>About me</h1>
+          <p className={styles.lede}>I’m a software engineer with more than 14 years of experience across software and chemical engineering.</p>
+          <p>I specialize in highly interactive, data-centric applications. With a foundation in chemical engineering, I evolved into a full-stack developer focused on TypeScript, React and SolidJS, Python, and C#.</p>
+          <p>I’m at my best building tools that help engineers and technical teams analyze data, visualize complex systems, and automate the parts of a workflow that get in the way of the real work.</p>
         </div>
-
-        <h3>Education</h3>
-        <h4>
-          <a
-            href="https://www.purdue.edu"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:underline"
-          >
-            Purdue University
-          </a>
-        </h4>
-        <p>
-          Bachelor of Science in{" "}
-          <a
-            href="https://engineering.purdue.edu/ChE"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:underline"
-          >
-            Chemical Engineering
-          </a>
-        </p>
-      </div>
-    </section>
+        <Image className={styles.portrait} src="/byron-wall-headshot.webp" alt="Byron Wall" width={400} height={400} priority />
+      </section>
+      <section className={styles.story}>
+        <div className={styles.marginTitle}><h2>How I got here</h2></div>
+        <div className={styles.storyCopy}>
+          <p>I studied chemical engineering at Purdue University and began my career close to experiments, process equipment, and physical systems. Software first entered the picture as a practical answer: a way to connect datasets, automate repetitive analysis, and make complicated behavior visible.</p>
+          <p>Those tools became larger and more ambitious. Over time, the center of gravity shifted from engineering supported by software to software shaped by engineering experience. I still approach product work the same way—start with the system, understand how people reason about it, and make the interface reveal what matters.</p>
+          <h2>What I care about</h2>
+          <p>I care about clean code, thoughtful interfaces, and measurable impact. I like software with enough domain depth that design and engineering cannot be separated: analysis environments, developer tools, data products, and systems that help specialists make better decisions.</p>
+          <p>Right now I’m especially interested in agentic interfaces, LLM-assisted data modeling, SolidJS, and better ways to capture the context behind technical work—not just the finished artifact.</p>
+        </div>
+      </section>
+      <section className={styles.footerBand}>
+        <div>
+          <h2>Elsewhere</h2>
+          <p>The fuller chronology lives in Experience. Current projects and working notes live throughout the rest of this site.</p>
+        </div>
+        <div className={styles.links}>
+          <Link href="/experience">Experience <span aria-hidden="true">→</span></Link>
+          <a href="https://github.com/byronwall" target="_blank" rel="noreferrer"><SocialIcons.GitHub /> GitHub</a>
+          <a href="https://www.linkedin.com/in/byronwall/" target="_blank" rel="noreferrer"><SocialIcons.LinkedIn /> LinkedIn</a>
+        </div>
+      </section>
+    </main>
   );
 }

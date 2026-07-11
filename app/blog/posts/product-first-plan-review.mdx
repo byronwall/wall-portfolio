@@ -1,0 +1,97 @@
+---
+title: Review the product assumptions before the architecture
+publishedAt: 2026-07-11
+summary: "A practical way to review technical plans by asking product questions first, then letting the answers determine the architecture—especially when agents will write much of the implementation."
+---
+
+I recently reviewed a client/server migration plan for TSX Data Flow. The plan was technically thorough: typed API contracts, server projections, Solid components, migration phases, compatibility endpoints, and test boundaries. It was also possible to execute the whole thing successfully while still making the product worse.
+
+That is the danger with a detailed architecture plan. Specificity can make unresolved product assumptions look like settled technical decisions.
+
+I did not care deeply whether a selector lived on the server or in the browser. I cared whether the finished tool helped someone understand unfamiliar code. So instead of asking for another architecture review, I asked for ten product questions that could resolve the technical choices for me:
+
+> I don't really care about technical or architecture stuff. I care deeply about the product. Ask me what matters about the product so you can make the best technical choices for me.
+
+That turned out to be the most useful review of the plan.
+
+## Ask questions that force priorities
+
+The useful questions were not disguised implementation questions. They asked:
+
+1. What is the single most important job a user hires this product to do?
+2. Which three screens or reports would survive if only three could remain?
+3. What decision should a user make within the first minute?
+4. Is the main visualization a working surface, a drill-down tool, or decoration?
+5. What state actually needs to survive refresh?
+6. Do links need to remain meaningful across analyses or machines?
+7. What project sizes and response times must feel good?
+8. Who uses each output format, and how important is compatibility?
+9. What should happen when analysis is slow, fails, or finds nothing?
+10. Which product qualities outrank visual parity?
+
+These questions work because each answer removes a family of plausible but unnecessary technical choices.
+
+If links are disposable, do not design cross-generation entity identity. If the tool only runs on localhost, do not optimize payload bytes before measuring client cost. If mobile does not matter, remove mobile-specific architecture and tests. If one screen carries the product, migrate that workflow vertically before building contracts for fourteen secondary reports.
+
+## The raw answer is often the useful answer
+
+My dictated response was more revealing than a polished product brief would have been.
+
+The job was to review a file or the files changed in a PR, usually code written by someone else or an agent, and answer:
+
+> Did this most recent change make something worse? Does this code objectively do dumb things that are not needed?
+
+More specifically: did it add unnecessary fallbacks, conditional paths, transformations, packed objects, relay hops, or complexity unsupported by the types?
+
+The code map was not one feature among many. It was "the surface on which all of the analysis hangs." Its job was to provide ambient information—to show where the important problems probably were before I clicked through every variable.
+
+The outputs were not equal either. Markdown was useful because a person could inspect it or paste evidence into an agent prompt. JSON was potentially useful for automation, but there were no known external consumers. Much of the generated fix prose was just "words, words, words."
+
+Those are strong product constraints. They are far more useful to an implementing agent than "use a conventional client/server architecture."
+
+## Let the product answers rewrite the plan
+
+The reviewed plan changed in several important ways:
+
+- The acceptance criterion became: an unfamiliar changed file should become understandable within about one minute.
+- Review scope—one file, changed files, or the whole project—became a first-class input.
+- Baseline comparison became central because the product must answer whether a change made things worse.
+- The code map moved ahead of the long tail of reports.
+- Context and prop-relay analysis became the second committed workflow.
+- Every other report had to be classified as migrate, merge, defer, or delete.
+- Refresh kept the current page and useful selection, but not incidental UI state.
+- IDs and links only needed to survive one analysis generation.
+- Performance received concrete budgets instead of vague language like "local-tool scale."
+- Markdown became a concise evidence handoff, not a place for generic generated advice.
+
+The architecture did not become less rigorous. It became rigorous about the right product.
+
+## A useful pattern for vibe-coded work
+
+This matters even more when an agent will write most of the implementation.
+
+An agent can follow a detailed technical plan extremely literally. That is useful once the plan reflects the desired product. Before that point, literal execution can turn weak assumptions into a large amount of clean, tested, confidently wrong code.
+
+A product-first plan review creates a better delegation boundary:
+
+```text
+product questions
+  -> explicit priorities and non-goals
+  -> technical constraints
+  -> architecture and migration sequence
+  -> agent implementation
+```
+
+The human does not need to prescribe every DTO, component, cache, or endpoint. The human needs to be unusually clear about the experience, the tradeoffs, and what is not valuable. The agent can then choose technical machinery in service of those answers.
+
+That may be the best division of labor for vibe-coded software: let the human supply taste and product judgment; let the agent translate those constraints into architecture and code.
+
+## A prompt worth reusing
+
+When a plan feels technically complete but product-thin, this is the review prompt I would reuse:
+
+> Review this plan from the product lens. Identify the places where an implementation could satisfy the architecture while doing something dumb for the user. Then ask me ten product questions whose answers would resolve the important technical and architectural choices. Do not ask me to choose technologies. Ask what experience, behavior, scale, compatibility, and tradeoffs actually matter.
+
+The output is not merely feedback on the plan. It is the missing product brief.
+
+Related: [Rebuilding TSX Data Flow around TypeScript and SolidJS](/blog/typescript-solid-client-server-migration)

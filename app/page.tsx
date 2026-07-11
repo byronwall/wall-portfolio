@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { SocialIcons } from "./components/social-icons";
 import { getBlogPosts } from "./blog/utils";
+import { experiences } from "./experience/data";
 
 const featuredProjects = [
   {
@@ -12,11 +13,11 @@ const featuredProjects = [
     image: "https://raw.githubusercontent.com/byronwall/hn-offline/master/docs/image.png",
   },
   {
-    title: "Alt Image Zoom Modal",
+    title: "Logo Dodo",
     description:
-      "A Chrome extension for inspecting, saving, and organizing page images with a fast pan-and-zoom viewer.",
-    href: "/projects/chrome-image-modal",
-    image: "/images/projects/chrome-image-modal/modal.png",
+      "An AI-assisted logo workbench for generating direction boards, collecting feedback, and refining visual ideas.",
+    href: "/projects/logo-dodo",
+    image: "/images/projects/logo-dodo/rise-and-riot-board.png",
   },
 ];
 
@@ -29,6 +30,7 @@ export default function Home() {
       return aDate === bDate ? (a.slug < b.slug ? -1 : 1) : aDate < bDate ? 1 : -1;
     })
     .slice(0, 2);
+  const recentExperience = experiences.slice(0, 2);
 
   return (
     <main className="home-page">
@@ -42,7 +44,23 @@ export default function Home() {
           <p>
             I build full-stack applications, data tools, and developer tooling.
             I’m currently a <strong>Full Stack Engineer</strong> at{" "}
-            <a href="https://relational.ai" target="_blank" rel="noreferrer">
+            <a
+              className="home-company-link"
+              href="https://relational.ai"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <svg
+                aria-hidden="true"
+                className="home-company-mark"
+                focusable="false"
+                viewBox="0 0 36 28"
+              >
+                <path d="M11.266 2.045 17.936 8.718 24.609 2.045" />
+                <path d="m24.609 26.045-6.673-6.67-6.67 6.67" />
+                <path d="M8.547 7.366 1.874 14.05l6.673 6.659" />
+                <path d="m27.321 20.709 6.674-6.659-6.641-6.652" />
+              </svg>
               RelationalAI
             </a>
             , working on an agentic and LLM-driven data modeling application for
@@ -130,6 +148,32 @@ export default function Home() {
               <div className="content-preview-copy">
                 <h2>{post.metadata.title}</h2>
                 <p>{post.metadata.summary}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="featured-experience" aria-labelledby="featured-experience-heading">
+        <Link className="section-heading-link" href="/experience">
+          <span className="section-label" id="featured-experience-heading">Experience</span>
+          <span aria-hidden="true">→</span>
+        </Link>
+        <div className="content-preview-grid">
+          {recentExperience.map((experience) => (
+            <Link
+              className="content-preview-card experience-preview-card"
+              href={`/experience/${experience.slug}`}
+              key={experience.slug}
+            >
+              <div className="experience-preview-logo">
+                <img src={experience.logoUrl} alt={`${experience.company} logo`} />
+              </div>
+              <div className="content-preview-copy experience-preview-copy">
+                <h2>{experience.company}</h2>
+                <p className="experience-preview-role">{experience.role}</p>
+                <p>{experience.summary}</p>
+                <p className="experience-preview-dates">{experience.dates}</p>
               </div>
             </Link>
           ))}

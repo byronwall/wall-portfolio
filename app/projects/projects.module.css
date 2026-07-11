@@ -1,0 +1,77 @@
+.page, .detailPage { padding-top: 70px; }
+.intro { padding: 0 var(--page-gutter) 62px; max-width: 780px; }
+.intro h1, .hero h1 { margin: 0; color: var(--ink-primary); font-size: clamp(46px, 5vw, 62px); line-height: 1; letter-spacing: -.05em; }
+.intro p { max-width: 650px; margin: 28px 0 0; color: var(--ink-body); font-size: 17px; line-height: 1.55; }
+.ledger { padding-top: 4px; }
+.row { display: grid; grid-template-columns: minmax(250px, 38%) minmax(0, 1fr); gap: clamp(34px, 6vw, 78px); min-height: 292px; padding: 34px var(--page-gutter); border-top: 1px solid var(--border-quiet); }
+.row:first-child { border-top: 0; }
+.media { display: flex; min-height: 220px; overflow: hidden; align-items: center; justify-content: center; border: 1px solid var(--border-quiet); border-radius: 7px; background: var(--surface-quiet); text-decoration: none; }
+.media img { display: block; width: 100%; height: 100%; max-height: 250px; object-fit: contain; transition: transform 180ms ease; }
+.media:hover img { transform: scale(1.015); }
+.placeholder { color: var(--ink-muted); font-size: 42px; font-weight: 750; letter-spacing: -.08em; }
+.copy { align-self: center; max-width: 520px; }
+.meta, .status { display: flex; gap: 9px; align-items: center; color: var(--ink-muted); font-size: 11px; font-weight: 630; letter-spacing: .05em; text-transform: uppercase; }
+.meta span:first-child::before, .status span:first-child::before { display: inline-block; width: 6px; height: 6px; margin-right: 8px; border-radius: 50%; background: var(--accent-warm); content: ""; vertical-align: 1px; }
+.meta span + time::before, .status span + span::before { margin-right: 9px; content: "·"; }
+.copy h2 { margin: 13px 0 10px; font-size: clamp(25px, 3vw, 34px); line-height: 1.08; letter-spacing: -.035em; }
+.copy h2 a { text-decoration: none; }
+.copy h2 span { color: var(--ink-muted); font-size: .55em; vertical-align: .2em; }
+.copy p { margin: 0; color: var(--ink-body); font-size: 15px; line-height: 1.55; }
+.tags { display: flex; flex-wrap: wrap; gap: 7px; margin: 18px 0 0; padding: 0; list-style: none; }
+.tags li { padding: 5px 8px; border-radius: 4px; background: var(--surface-chip); color: var(--ink-body); font-size: 11px; line-height: 1; }
+
+.detailPage { padding-bottom: 0; }
+.backLink { display: inline-block; margin: 0 var(--page-gutter) 31px; color: var(--ink-muted); font-size: 13px; text-decoration: none; }
+.hero { display: grid; grid-template-columns: minmax(280px, .72fr) minmax(0, 1.28fr); align-items: center; gap: clamp(38px, 6vw, 76px); padding: 0 var(--page-gutter) 64px; }
+.heroCopy h1 { font-size: clamp(42px, 4.6vw, 58px); }
+.heroCopy > p { margin: 25px 0 0; color: var(--ink-body); font-size: 17px; line-height: 1.55; }
+.heroDetails { display: flex; gap: 20px; align-items: flex-end; justify-content: space-between; margin-top: 26px; }
+.heroDetails .tags { justify-content: flex-end; margin-top: 0; }
+.heroMedia { display: flex; min-height: 360px; max-height: 480px; align-items: center; justify-content: center; overflow: hidden; border: 1px solid var(--border-quiet); border-radius: 8px; background: var(--surface-quiet); }
+.heroMedia img { display: block; width: 100%; height: 100%; max-height: 480px; object-fit: contain; }
+.heroPlaceholder { display: flex; flex-direction: column; align-items: center; gap: 12px; color: var(--ink-muted); }
+.heroPlaceholder span { font-size: 54px; font-weight: 750; letter-spacing: -.08em; }
+.heroPlaceholder small { font-size: 12px; }
+.story { display: grid; grid-template-columns: 180px minmax(0, 720px); justify-content: center; gap: clamp(38px, 7vw, 90px); padding: 58px var(--page-gutter) 74px; border-top: 1px solid var(--border-quiet); background: var(--surface-quiet); }
+.storyNav { padding-top: 19px; }
+.storyNav > span { display: block; color: var(--ink-muted); font-size: 10px; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; }
+.storyNav nav { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
+.storyNav a { color: var(--ink-muted); font-size: 12px; line-height: 1.35; text-decoration: none; }
+.storyNav a:hover { color: var(--action-primary); }
+.prose { width: 100%; max-width: 720px; color: var(--ink-body); font-size: 15px; line-height: 1.68; }
+.prose > :global(:first-child) { margin-top: 0 !important; color: var(--ink-primary); font-size: 18px; line-height: 1.6; }
+.prose :global(h2) { margin-top: 46px; color: var(--ink-primary); font-size: 27px; letter-spacing: -.025em; }
+.prose :global(h3) { color: var(--ink-primary); }
+.prose :global(p), .prose :global(li) { color: var(--ink-body); }
+.prose :global(img) { width: 100%; height: auto; border-color: var(--border-quiet) !important; border-radius: 7px; background: var(--surface-paper); }
+.nextProject { display: flex; align-items: center; justify-content: flex-end; padding: 31px var(--page-gutter); border-top: 1px solid var(--border-quiet); }
+.nextProject a { color: var(--action-primary); font-size: 14px; text-decoration: none; }
+
+@media (max-width: 820px) {
+  .row { grid-template-columns: minmax(210px, 42%) minmax(0, 1fr); gap: 28px; }
+  .hero { grid-template-columns: 1fr; }
+  .heroMedia { min-height: 300px; }
+  .story { grid-template-columns: 1fr; gap: 20px; }
+  .storyNav nav { flex-flow: row wrap; gap: 8px 16px; }
+}
+@media (max-width: 600px) {
+  .page, .detailPage { padding-top: 48px; }
+  .intro { padding-bottom: 46px; }
+  .intro h1 { font-size: 46px; }
+  .intro p { margin-top: 22px; font-size: 16px; }
+  .row { grid-template-columns: 1fr; gap: 22px; min-height: 0; padding-top: 28px; padding-bottom: 32px; }
+  .media { min-height: 190px; }
+  .media img { max-height: 220px; }
+  .copy { align-self: start; }
+  .copy h2 { font-size: 27px; }
+  .backLink { margin-bottom: 24px; }
+  .hero { gap: 32px; padding-bottom: 48px; }
+  .heroCopy h1 { font-size: 42px; }
+  .heroCopy > p { font-size: 16px; }
+  .heroDetails { align-items: flex-start; flex-direction: column; }
+  .heroDetails .tags { justify-content: flex-start; }
+  .heroMedia { min-height: 220px; max-height: 320px; }
+  .story { padding-top: 40px; padding-bottom: 56px; }
+  .storyNav { padding-top: 0; }
+  .nextProject { align-items: flex-start; gap: 18px; }
+}

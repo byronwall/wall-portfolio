@@ -3,10 +3,9 @@ import { CustomMDX } from "app/components/mdx";
 import { baseUrl } from "app/sitemap";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import styles from "../projects.module.css";
 
-type ProjectPageProps = {
-  params: Promise<{ slug: string }>;
-};
+type ProjectPageProps = { params: Promise<{ slug: string }> };
 
 function absoluteUrl(pathOrUrl: string) {
   return pathOrUrl.startsWith("http")
@@ -14,90 +13,100 @@ function absoluteUrl(pathOrUrl: string) {
     : `${baseUrl}${pathOrUrl.startsWith("/") ? pathOrUrl : `/${pathOrUrl}`}`;
 }
 
-export async function generateStaticParams() {
-  const projects = getProjects();
-  return projects.map((project) => ({
-    slug: project.slug,
+function slugifyHeading(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+}
+
+function getHeadings(content: string) {
+  return Array.from(content.matchAll(/^##\s+(.+)$/gm)).map((match) => ({
+    label: match[1].replace(/[*_`]/g, ""),
+    id: slugifyHeading(match[1].replace(/[*_`]/g, "")),
   }));
+}
+
+function projectStatus(date?: string) {
+  if (!date) return "Project archive";
+  return Number(date.slice(0, 4)) >= 2026 ? "Active project" : "Completed project";
+}
+
+export async function generateStaticParams() {
+  return getProjects().map((project) => ({ slug: project.slug }));
 }
 
 export async function generateMetadata({ params }: ProjectPageProps) {
   const { slug } = await params;
-  let post = getProjects().find((post) => post.slug === slug);
-  if (!post) {
-    return;
-  }
-
-  let {
-    title,
-    publishedAt: publishedTime,
-    summary: description,
-    image,
-  } = post.metadata;
-  const canonicalUrl = `${baseUrl}/projects/${post.slug}`;
-  const ogImage = image
-    ? absoluteUrl(image)
-    : `${baseUrl}/og?title=${encodeURIComponent(title)}`;
-
+  const project = getProjects().find((entry) => entry.slug === slug);
+  if (!project) return;
+  const { title, publishedAt, summary, image } = project.metadata;
+  const canonicalUrl = `${baseUrl}/projects/${project.slug}`;
+  const ogImage = image ? absoluteUrl(image) : `${baseUrl}/og?title=${encodeURIComponent(title)}`;
   return {
     title,
-    description,
-    alternates: {
-      canonical: canonicalUrl,
-    },
-    openGraph: {
-      title,
-      description,
-      type: "article",
-      publishedTime,
-      url: canonicalUrl,
-      images: [
-        {
-          url: ogImage,
-        },
-      ],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      images: [ogImage],
-    },
+    description: summary,
+    alternates: { canonical: canonicalUrl },
+    openGraph: { title, description: summary, type: "article", publishedTime: publishedAt, url: canonicalUrl, images: [{ url: ogImage }] },
+    twitter: { card: "summary_large_image", title, description: summary, images: [ogImage] },
   };
 }
 
-export default async function ProjectPage({
-  params,
-}: ProjectPageProps) {
+export default async function ProjectPage({ params }: ProjectPageProps) {
   const { slug } = await params;
-  const project = getProjects().find((project) => project.slug === slug);
-
-  if (!project) {
-    return notFound();
-  }
+  const project = getProjects().find((entry) => entry.slug === slug);
+  if (!project) notFound();
+  const headings = getHeadings(project.content);
 
   return (
-    <article className="max-w-5xl mx-auto">
-      <Link
-        href="/projects"
-        className="hover:underline mb-4 block"
-      >
-        ← Back to Projects
-      </Link>
-      <h1 className="text-4xl font-bold mb-4">{project.metadata.title}</h1>
-      <div className="flex gap-2 mb-8">
-        {project.metadata.tags?.map((tag) => (
-          <span
-            key={tag}
-            className="bg-gray-200 dark:bg-gray-800 px-2 py-1 rounded text-sm"
-          >
-            {tag}
-          </span>
-        ))}
+    <main className={styles.detailPage}>
+      <Link href="/projects" className={styles.backLink}>← Projects</Link>
+      <header className={styles.hero}>
+        <div className={styles.heroCopy}>
+          <h1>{project.metadata.title}</h1>
+          <p>{project.metadata.description ?? project.metadata.summary}</p>
+          <div className={styles.heroDetails}>
+            <div className={styles.status}>
+              <span>{projectStatus(project.metadata.publishedAt)}</span>
+              {project.metadata.publishedAt && <span>{project.metadata.publishedAt.slice(0, 4)}</span>}
+            </div>
+            {project.metadata.tags?.length ? (
+              <ul className={styles.tags} aria-label="Technologies">
+                {project.metadata.tags.map((tag) => <li key={tag}>{tag}</li>)}
+              </ul>
+            ) : null}
+          </div>
+        </div>
+        <div className={styles.heroMedia}>
+          {project.thumbnail ? (
+            <img src={project.thumbnail} alt={`${project.metadata.title} interface`} />
+          ) : (
+            <div className={styles.heroPlaceholder} aria-hidden="true">
+              <span>{project.metadata.title.slice(0, 2).toUpperCase()}</span>
+              <small>Project artifact forthcoming</small>
+            </div>
+          )}
+        </div>
+      </header>
+
+      <div className={styles.story}>
+        <aside className={styles.storyNav}>
+          <span>Project story</span>
+          {headings.length > 0 && (
+            <nav aria-label="On this page">
+              {headings.map((heading) => <a href={`#${heading.id}`} key={heading.id}>{heading.label}</a>)}
+            </nav>
+          )}
+        </aside>
+        <article className={`prose ${styles.prose}`}>
+          <CustomMDX source={project.content} />
+        </article>
       </div>
-      <div className="prose dark:prose-invert max-w-none">
-        <CustomMDX source={project.content} />
-      </div>
-    </article>
+
+      <footer className={styles.nextProject}>
+        <Link href="/projects">All projects →</Link>
+      </footer>
+    </main>
   );
 }

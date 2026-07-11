@@ -1,0 +1,103 @@
+.blogIndex,
+.articlePage {
+  padding: 64px var(--page-gutter) 86px;
+}
+
+.indexHeader {
+  padding-bottom: 24px;
+}
+
+.indexHeader h1,
+.articleHeader h1 {
+  margin: 0;
+  color: var(--ink-primary);
+  letter-spacing: -.045em;
+  text-wrap: balance;
+}
+
+.indexHeader h1 { font-size: clamp(46px, 5vw, 62px); line-height: 1; }
+.indexIntro { max-width: 620px; margin: 22px 0 0; color: var(--ink-body); font-size: 18px; line-height: 1.5; }
+
+.postList { display: grid; gap: 0; }
+.postRow {
+  display: grid;
+  grid-template-columns: minmax(280px, .86fr) minmax(0, 1.14fr);
+  gap: 44px;
+  padding: 28px 0;
+  text-decoration: none;
+}
+.postRow:hover { text-decoration: none; }
+.postRow:hover .postTitle { color: var(--action-primary); }
+.postVisual { position: relative; min-height: 220px; overflow: hidden; border-radius: 7px; background: var(--surface-quiet); }
+.postImage { display: block; width: 100%; height: 100%; min-height: 220px; object-fit: contain; background: var(--surface-quiet); transition: transform 180ms ease; }
+.postRow:hover .postImage { transform: scale(1.012); }
+.fallbackVisual { display: flex; min-height: 220px; height: 100%; align-items: flex-end; padding: 25px; background: var(--surface-quiet); color: var(--action-primary); }
+.fallbackVisual::before { content: ""; position: absolute; inset: 23px; border-top: 1px solid var(--action-border); border-left: 1px solid var(--action-border); opacity: .5; }
+.fallbackMark { position: relative; font-family: var(--font-geist-mono); font-size: 38px; font-weight: 700; letter-spacing: -.08em; }
+.postCopy { display: flex; flex-direction: column; align-self: center; min-width: 0; }
+.postMeta { display: flex; flex-wrap: wrap; gap: 7px 14px; margin-bottom: 15px; color: var(--ink-muted); font-family: var(--font-geist-mono); font-size: 11px; line-height: 1.4; text-transform: uppercase; letter-spacing: .045em; }
+.postMeta span + span { position: relative; }
+.postMeta span + span::before { content: ""; position: absolute; left: -8px; top: 50%; width: 2px; height: 2px; border-radius: 50%; background: var(--ink-tertiary); }
+.postTitle { margin: 0; color: var(--ink-primary); font-size: clamp(24px, 2.5vw, 34px); line-height: 1.08; letter-spacing: -.035em; transition: color 150ms ease; }
+.postTitle span { color: var(--ink-muted); font-size: .55em; vertical-align: .2em; }
+.postSummary { max-width: 620px; margin: 16px 0 0; color: var(--ink-body); font-size: 15px; line-height: 1.58; }
+
+.articleLayout { display: grid; grid-template-columns: 190px minmax(0, 760px); gap: clamp(50px, 7vw, 92px); align-items: start; }
+.articleRail { min-width: 0; align-self: stretch; }
+.backLink { display: inline-block; margin-bottom: 30px; color: var(--action-primary); font-size: 12px; font-weight: 620; text-decoration: none; }
+.railMeta { display: grid; gap: 18px; margin: 0; padding: 0 0 26px; border-bottom: 1px solid var(--border-quiet); }
+.railMeta div { display: grid; gap: 4px; }
+.railMeta dt, .tocTitle { color: var(--ink-muted); font-size: 10px; font-weight: 650; letter-spacing: .085em; text-transform: uppercase; }
+.railMeta dd { margin: 0; color: var(--ink-body); font-size: 12px; line-height: 1.45; }
+.toc { position: sticky; top: 28px; margin-top: 25px; }
+.tocTitle { display: block; margin-bottom: 12px; }
+.toc ol { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
+.toc a { display: block; padding-left: 10px; border-left: 2px solid transparent; color: var(--ink-muted); font-size: 11.5px; line-height: 1.35; text-decoration: none; transition: border-color 150ms ease, color 150ms ease; }
+.toc a:hover { color: var(--action-primary); }
+.toc a.tocActive { border-left-color: var(--action-primary); color: var(--action-primary); font-weight: 620; }
+
+.articleMain { min-width: 0; }
+.articleHeader h1 { max-width: 760px; font-size: clamp(40px, 5vw, 58px); line-height: 1.03; }
+.articleSummary { max-width: 690px; margin: 23px 0 0; color: var(--ink-body); font-size: 18px; line-height: 1.52; }
+.articleMobileMeta { display: none; margin-top: 18px; color: var(--ink-muted); font-family: var(--font-geist-mono); font-size: 11px; }
+.articleHero { position: relative; width: 100%; min-height: 310px; margin-top: 34px; overflow: hidden; border-radius: 9px; background: var(--surface-quiet); }
+.articleHeroImage { display: block; width: 100%; max-height: 520px; min-height: 310px; object-fit: contain; background: var(--surface-quiet); }
+.articleFallback { min-height: 310px; }
+.articleBody { margin-top: 44px; color: var(--ink-body); font-size: 16px; line-height: 1.72; }
+.articleBody :global(p) { color: var(--ink-body); }
+.articleBody :global(h2) { margin-top: 2.3em; color: var(--ink-primary); font-size: 29px; line-height: 1.18; letter-spacing: -.03em; }
+.articleBody :global(h3) { margin-top: 2em; color: var(--ink-primary); font-size: 21px; line-height: 1.25; }
+.articleBody :global(pre) { margin: 28px 0; padding: 18px 20px; border-color: var(--border-quiet); border-radius: 7px; background: #f6f8fb; font-size: 13px; line-height: 1.62; }
+.articleBody :global(img) { max-width: 100%; height: auto; border-radius: 7px; }
+.articleBody :global(.not-prose) { margin: 30px 0; }
+.articleBody :global(.mdx-table-scroll) { max-width: 100%; }
+
+@media (max-width: 900px) {
+  .postRow { grid-template-columns: minmax(240px, .8fr) minmax(0, 1.2fr); gap: 28px; }
+  .articleLayout { grid-template-columns: 150px minmax(0, 1fr); gap: 38px; }
+}
+
+@media (max-width: 760px) {
+  .blogIndex, .articlePage { padding-top: 46px; padding-bottom: 62px; }
+  .indexHeader { padding-bottom: 18px; }
+  .indexHeader h1 { font-size: 46px; }
+  .postRow { grid-template-columns: 1fr; gap: 20px; padding: 28px 0; }
+  .postVisual, .postImage, .fallbackVisual { min-height: 210px; }
+  .postTitle { font-size: 27px; }
+  .articleLayout { display: block; }
+  .articleRail { position: static; }
+  .articleRail .railMeta, .articleRail .toc { display: none; }
+  .backLink { margin-bottom: 26px; }
+  .articleHeader h1 { font-size: 40px; }
+  .articleSummary { font-size: 16px; }
+  .articleMobileMeta { display: block; }
+  .articleHero, .articleHeroImage, .articleFallback { min-height: 220px; }
+  .articleHero { margin-top: 26px; }
+  .articleBody { margin-top: 34px; font-size: 15.5px; }
+  .articleBody :global(h2) { font-size: 25px; }
+}
+
+@media (max-width: 460px) {
+  .postVisual, .postImage, .fallbackVisual { min-height: 180px; }
+  .articleHeader h1 { font-size: 36px; }
+}

@@ -1,7 +1,10 @@
 import { notFound } from "next/navigation";
 import { CustomMDX } from "app/components/mdx";
-import { formatDate, getBlogPosts } from "app/blog/utils";
+import { formatDate, getBlogPosts, getPostCategory, getReadingTime, getTableOfContents } from "app/blog/utils";
 import { baseUrl } from "app/sitemap";
+import Link from "next/link";
+import { ArticleToc } from "../components/article-toc";
+import styles from "../blog.module.css";
 
 type BlogPageProps = {
   params: Promise<{ slug: string }>;
@@ -75,8 +78,12 @@ export default async function Blog({ params }: BlogPageProps) {
     notFound();
   }
 
+  const readingTime = getReadingTime(post.content);
+  const category = getPostCategory(post.metadata);
+  const tableOfContents = getTableOfContents(post.content);
+
   return (
-    <section>
+    <main className={styles.articlePage}>
       <script
         type="application/ld+json"
         suppressHydrationWarning
@@ -101,17 +108,28 @@ export default async function Blog({ params }: BlogPageProps) {
           }),
         }}
       />
-      <h1 className="title font-semibold text-2xl tracking-tighter">
-        {post.metadata.title}
-      </h1>
-      <div className="flex justify-between items-center mt-2 mb-8 text-sm">
-        <p className="text-sm text-neutral-600 dark:text-neutral-400">
-          {formatDate(post.metadata.publishedAt)}
-        </p>
+      <div className={styles.articleLayout}>
+        <aside className={styles.articleRail}>
+          <Link className={styles.backLink} href="/blog">← All notes</Link>
+          <dl className={styles.railMeta}>
+            <div><dt>Published</dt><dd>{formatDate(post.metadata.publishedAt)}</dd></div>
+            <div><dt>Reading time</dt><dd>{readingTime}</dd></div>
+            <div><dt>Filed under</dt><dd>{category}</dd></div>
+          </dl>
+          {tableOfContents.length > 0 && <ArticleToc items={tableOfContents} />}
+        </aside>
+        <div className={styles.articleMain}>
+          <header className={styles.articleHeader}>
+            <h1>{post.metadata.title}</h1>
+            <p className={styles.articleSummary}>{post.metadata.summary}</p>
+            <p className={styles.articleMobileMeta}>{formatDate(post.metadata.publishedAt)} · {readingTime} · {category}</p>
+            <div className={styles.articleHero}>
+              {post.thumbnail ? <img className={styles.articleHeroImage} src={post.thumbnail} alt="" /> : <div className={`${styles.fallbackVisual} ${styles.articleFallback}`}><span className={styles.fallbackMark}>BW / {post.metadata.title.slice(0, 2).toUpperCase()}</span></div>}
+            </div>
+          </header>
+          <article className={`prose ${styles.articleBody}`}><CustomMDX source={post.content} /></article>
+        </div>
       </div>
-      <article className="prose">
-        <CustomMDX source={post.content} />
-      </article>
-    </section>
+    </main>
   );
 }

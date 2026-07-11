@@ -94,6 +94,39 @@ export function getBlogPosts() {
   return getMDXData(path.join(process.cwd(), "app", "blog", "posts"));
 }
 
+export function getReadingTime(content: string) {
+  const words = content
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/<[^>]+>/g, " ")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean).length;
+  return `${Math.max(1, Math.ceil(words / 220))} min read`;
+}
+
+export function getPostCategory(metadata: BaseMetadata) {
+  if (metadata.category && typeof metadata.category === "string") return metadata.category;
+  const text = `${metadata.title} ${metadata.summary} ${(metadata.tags ?? []).join(" ")}`.toLowerCase();
+  if (/debug|fix|troubleshoot|suspense/.test(text)) return "Engineering note";
+  if (/image|canvas|interface|ui|design/.test(text)) return "Interface work";
+  if (/llm|codex|prompt|openai|chatgpt/.test(text)) return "AI tooling";
+  if (/ship|package|deploy|extension|cli/.test(text)) return "Tooling";
+  return "Project update";
+}
+
+export function getTableOfContents(content: string) {
+  return Array.from(content.matchAll(/^##\s+(.+)$/gm)).map((match) => ({
+    title: match[1].replace(/[`*_]/g, ""),
+    id: match[1]
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, "-")
+      .replace(/&/g, "-and-")
+      .replace(/[^\w-]+/g, "")
+      .replace(/--+/g, "-"),
+  }));
+}
+
 export function getProjects() {
   const projectsDirectory = path.join(process.cwd(), "content/projects");
 

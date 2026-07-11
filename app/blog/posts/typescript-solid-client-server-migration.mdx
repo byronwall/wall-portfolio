@@ -1,0 +1,152 @@
+---
+title: Rebuilding TSX Data Flow around TypeScript and SolidJS
+publishedAt: 2026-07-11
+summary: "How I used a concrete Codex goal, a written migration plan, typed API contracts, and visual comparison to replace a mixed JavaScript and generated-HTML architecture with a smaller TypeScript and SolidJS application."
+---
+
+TSX Data Flow had reached an awkward middle state. The analyzer was useful, the local server worked, and a SolidJS frontend existed, but the repository still crossed several generations of architecture at once.
+
+Most of the analyzer, report, CLI, and test code was JavaScript in `.mjs` files. The server rendered large HTML strings. The Solid app reused parts of those renderers through `innerHTML`. Some browser behavior lived in a generated client script, while other behavior lived in Solid components. Even the main frontend route had grown to 2,032 lines.
+
+The migration had two goals:
+
+1. Make TypeScript and TSX the only authored application languages.
+2. Make Solid own the browser interface, with the server reduced to typed data and static asset delivery.
+
+The interesting part was not renaming files or translating template strings into JSX. It was finding a sequence that preserved a fairly dense analysis interface while changing who owned almost every part of it.
+
+## Start with an auditable goal
+
+I started the TypeScript conversion with a Codex `/goal` command:
+
+```text
+/goal Convert this repo over to fully TS and TSX.
+When done, no bare mjs or js files exist.
+There is a dev server available that does hot reload.
+There is a build option that compiles all for a release or local runs via npm link.
+```
+
+That wording mattered because it described completion in terms I could check. The goal was not "modernize the codebase." It named the file audit, development loop, release build, and package workflow.
+
+The first pass converted the authored files, updated imports and tests, added a Vite hot-reload path, emitted a runnable package under `dist`, and checked the compiled CLI and `npm pack` contents. The final audit found zero authored `.js` or `.mjs` files outside generated output and dependencies.
+
+`/goal` was especially useful because this was larger than one edit-and-test cycle. Codex could keep the terminal condition visible while moving through mechanical renames, TypeScript configuration, test failures, packaging, and smoke checks. It did not replace a plan or the verification work. It kept a long task from quietly shrinking into "the compiler passes."
+
+## Plan the ownership change before moving code
+
+The JavaScript-to-TypeScript conversion made the repository consistent, but it also made the next architectural problem easier to see.
+
+The Solid frontend imported styling and rendering helpers from `src/html`. Code maps, network viewers, report markdown, and parts of the interaction model still arrived as pre-rendered strings. The server exposed a broad report payload whose accidental shape had become a client contract. Solid was present, but it did not really own the page.
+
+Before changing that boundary, I wrote a separate migration plan. The plan assigned each responsibility to one side:
+
+```text
+analyzer -> report model -> typed API projection -> Solid components
+```
+
+The server would own analysis, caching, route handling, and small JSON projections. The client would own markup, SVG, selection, filtering, sorting, navigation, and browser interaction state. Shared Zod schemas would define the wire format, infer the TypeScript types, and validate both server output and client input.
+
+The plan also included a product-level acceptance test: an unfamiliar file should become understandable within about a minute. That kept the work from becoming a technically clean rewrite that lost the useful density of the old interface.
+
+## Execute it as vertical slices
+
+The safest path was to migrate one complete flow at a time.
+
+The workspace overview became a small JSON endpoint and native Solid page. The file route followed with a typed source-and-findings payload. Refresh became an explicit API action. Reports moved from server-rendered markdown and HTML to structured report projections rendered by Solid components.
+
+The code map was the hardest slice because it combined source text, path highlighting, inventory filters, selected-item details, graph views, scrolling, and URL state. Moving it was less about JSX syntax and more about moving behavior to the component that owned its lifecycle.
+
+That led to focused modules for the source pane, inventory, finding details, report tables, semantic graphs, client state, and API projections. The route components became composition points instead of places where loading, data shaping, DOM behavior, and rendering all accumulated.
+
+Only after those slices were running did I remove the old HTML renderer directory, generated client script, compatibility routes, and markdown-to-HTML path. Deleting the fallback at the end made the new boundary real.
+
+## Compare behavior, not just markup
+
+The first native Solid version was structurally correct, but some useful details had been flattened. I went back to the last known-good HTML-rendered version, ran it in a temporary worktree, and captured the same analyzed file in both versions.
+
+The earlier code map kept a dense, independently scrolling source and detail workspace:
+
+<figure>
+  <img
+    src="/images/posts/solid-client-server-migration/code-map-before.jpg"
+    alt="The earlier TSX Data Flow code map with source on the left and a dense findings inventory on the right"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+  <figcaption>The HTML-rendered code map before the client/server migration.</figcaption>
+</figure>
+
+The restored Solid version keeps that two-pane working shape while rendering the selected item as native components:
+
+<figure>
+  <img
+    src="/images/posts/solid-client-server-migration/code-map-after.jpg"
+    alt="The SolidJS code map with highlighted source and a selected boundary detail panel"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+  <figcaption>The native Solid code map after restoring the detail workspace.</figcaption>
+</figure>
+
+The same comparison caught a more subtle regression in finding details. The old page showed the selected render path, source context, burden, confidence, risk, and metric breakdown together:
+
+<figure>
+  <img
+    src="/images/posts/solid-client-server-migration/finding-before.jpg"
+    alt="The earlier finding detail view with a highlighted render path and analysis metrics"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+  <figcaption>A finding in the previous HTML-rendered interface.</figcaption>
+</figure>
+
+The final Solid component restored the source emphasis and the useful finding context without handing control back to an HTML string:
+
+<figure>
+  <img
+    src="/images/posts/solid-client-server-migration/finding-after.jpg"
+    alt="The native SolidJS finding detail view with the selected source range highlighted"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+  <figcaption>The corresponding finding rendered by Solid components.</figcaption>
+</figure>
+
+This was a useful reminder that architectural equivalence is not product equivalence. A route can load the right data and still lose the scanning, navigation, or context that made the old page useful.
+
+## Did the codebase get smaller?
+
+Yes, with one important qualification.
+
+The raw Git diff looks much more dramatic because the migration also replaced a 32,000-line generated snapshot. That is real repository weight, but it is not a fair measure of application complexity.
+
+Counting production TypeScript and JavaScript under `src`, `bin`, `scripts`, and `examples` gives a better comparison:
+
+| | Before | After | Change |
+| --- | ---: | ---: | ---: |
+| Source files | 83 | 98 | +15 |
+| Lines of code | 16,764 | 12,793 | -3,971 |
+
+The production code became about 24% smaller while being split into more files. That is the outcome I wanted: fewer total lines, but more focused modules with clearer reasons to change.
+
+The reduction came mainly from removing parallel representations of the same interface. The repository no longer needs a Solid shell, an HTML renderer, a generated browser script, and compatibility adapters that all describe overlapping behavior. Typed API projections and native components replaced that duplication.
+
+## The completed boundary
+
+The final application has a much simpler ownership model:
+
+- the analyzer builds the domain report
+- Zod schemas define small client/server contracts
+- the server caches analysis and returns JSON projections
+- Solid renders the entire interface and owns browser state
+- lint rules prevent the frontend from importing analyzer, server, or legacy HTML modules
+
+The full migration finished with lint, type checking, tests, and release build passing. The final suite covered 146 tests, and the repository also gained documented performance baselines for larger codebases.
+
+The main lesson is that a persistent goal works best when "done" is observable. `/goal` kept the TypeScript conversion moving toward a file audit, a working development loop, and a distributable package. The written migration plan then turned a broad client/server rewrite into bounded vertical slices. Tests checked the contracts, while before-and-after screenshots checked whether the product still communicated the same information.
+
+That combination made it possible to remove a large amount of code without removing the interface's useful detail.
+
+- [Review the product assumptions before the architecture](/blog/product-first-plan-review)
+- [TSX Data Flow project page](/projects/tsx-data-flow)
+- [Source on GitHub](https://github.com/byronwall/tsx-data-flow)

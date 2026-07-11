@@ -1,0 +1,32 @@
+.page { padding: 74px var(--page-gutter) 82px; }
+.intro { max-width: 780px; margin-bottom: 58px; }
+.intro h1 { margin: 0 0 18px; color: var(--ink-primary); font-size: clamp(42px, 5vw, 58px); line-height: 1; letter-spacing: -.05em; }
+.intro p { max-width: 750px; margin: 0; color: var(--ink-body); font-size: 17px; line-height: 1.55; text-wrap: balance; }
+.timeline { position: relative; max-width: 920px; margin: 0; padding: 0; list-style: none; }
+.timeline::before { position: absolute; top: 22px; bottom: 24px; left: 148px; width: 1px; background: var(--border-quiet); content: ""; }
+.entry { display: grid; grid-template-columns: 120px 28px minmax(0, 1fr) 128px; gap: 14px; align-items: start; padding: 0 0 38px; }
+.entry:last-child { padding-bottom: 0; }
+.dates { padding-top: 7px; color: var(--ink-muted); font-size: 12px; line-height: 1.45; text-align: right; }
+.dot { position: relative; z-index: 1; width: 9px; height: 9px; margin: 10px auto 0; border: 3px solid var(--surface-paper); border-radius: 50%; background: var(--action-primary); box-sizing: content-box; }
+.entryCopy { padding: 2px 0 30px; border-bottom: 1px solid var(--border-quiet); }
+.entry:last-child .entryCopy { border-bottom: 0; }
+.entryCopy h2 { margin: 0 0 5px; font-size: 21px; line-height: 1.2; letter-spacing: -.025em; }
+.entryCopy h2 a { text-decoration: none; }
+.role { margin: 0 0 10px; color: var(--ink-primary); font-size: 14px; font-weight: 620; }
+.summary { max-width: 610px; margin: 0; color: var(--ink-body); font-size: 14px; line-height: 1.55; }
+.mark { display: grid; width: 120px; height: 64px; place-items: center; justify-self: end; }
+.mark img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.resume { display: inline-flex; align-items: center; gap: 8px; margin: 44px 0 0 176px; padding: 11px 15px; border: 1px solid var(--action-border); border-radius: 5px; color: var(--action-primary); font-size: 13px; font-weight: 620; text-decoration: none; }
+
+@media (max-width: 760px) {
+  .page { padding-top: 54px; padding-bottom: 60px; }
+  .intro { margin-bottom: 42px; }
+  .intro h1 { font-size: 44px; }
+  .timeline::before { left: 6px; }
+  .entry { grid-template-columns: 14px minmax(0, 1fr) 74px; gap: 11px; padding-bottom: 31px; }
+  .dates { grid-column: 2 / 4; grid-row: 1; padding: 0; text-align: left; }
+  .dot { grid-column: 1; grid-row: 2; margin-top: 8px; }
+  .entryCopy { grid-column: 2; grid-row: 2; padding-bottom: 24px; }
+  .mark { grid-column: 3; grid-row: 2; width: 70px; height: 48px; }
+  .resume { margin: 32px 0 0 25px; }
+}
