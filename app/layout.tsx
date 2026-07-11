@@ -7,6 +7,15 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Footer } from "./components/footer";
 import { baseUrl } from "./sitemap";
+import { getOgImageUrl } from "./og-image";
+
+const siteDescription =
+  "Software engineer building full-stack applications, data tools, and developer tooling.";
+const defaultOgImage = getOgImageUrl({
+  title: "Byron Wall",
+  description: siteDescription,
+  section: "Portfolio",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
@@ -14,16 +23,21 @@ export const metadata: Metadata = {
     default: "Byron Wall",
     template: "%s | Byron Wall",
   },
-  description:
-    "Software engineer with expertise in TypeScript, React/SolidJS, and data visualization. Currently working as a Hydraulic and Fluid Systems Engineer at Allison Transmission.",
+  description: siteDescription,
   openGraph: {
     title: "Byron Wall",
-    description:
-      "Software engineer with expertise in TypeScript, React/SolidJS, and data visualization. Currently working as a Hydraulic and Fluid Systems Engineer at Allison Transmission.",
+    description: siteDescription,
     url: baseUrl,
     siteName: "Byron Wall",
     locale: "en_US",
     type: "website",
+    images: [{ url: defaultOgImage, width: 1200, height: 630, alt: "Byron Wall portfolio" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Byron Wall",
+    description: siteDescription,
+    images: [defaultOgImage],
   },
   alternates: {
     canonical: "/",

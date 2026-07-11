@@ -248,6 +248,66 @@ a.project-card-link:hover {
   @apply bg-neutral-50 dark:bg-neutral-900 rounded-lg overflow-x-auto border border-neutral-200 dark:border-neutral-900 py-2 px-3 text-sm;
 }
 
+.prose .code-block {
+  position: relative;
+  margin: 1.75rem 0;
+}
+
+.prose .code-block pre {
+  margin: 0;
+  padding-right: 3.25rem;
+}
+
+.code-copy-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid var(--border-quiet);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--surface-paper) 88%, transparent);
+  color: var(--ink-muted);
+  cursor: pointer;
+  opacity: 0;
+  backdrop-filter: blur(5px);
+  transition: opacity 140ms ease, color 140ms ease, border-color 140ms ease,
+    background-color 140ms ease;
+}
+
+.code-block:hover .code-copy-button,
+.code-copy-button:focus-visible {
+  opacity: 0.72;
+}
+
+.code-copy-button:hover,
+.code-copy-button:focus-visible {
+  border-color: var(--action-border);
+  background: var(--surface-paper);
+  color: var(--action-primary);
+  opacity: 1;
+  outline: none;
+}
+
+.code-copy-button svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (hover: none) {
+  .code-copy-button {
+    opacity: 0.62;
+  }
+}
+
 /* Inline code: subtle pill background (but not in fenced blocks) */
 .prose :not(pre) > code {
   @apply px-1 py-0.5 rounded-md bg-neutral-100 dark:bg-neutral-800 border border-neutral-200/70 dark:border-neutral-700/60;

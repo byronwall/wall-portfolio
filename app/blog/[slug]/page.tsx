@@ -5,6 +5,7 @@ import { baseUrl } from "app/sitemap";
 import Link from "next/link";
 import { ArticleToc } from "../components/article-toc";
 import styles from "../blog.module.css";
+import { getOgImageUrl } from "app/og-image";
 
 type BlogPageProps = {
   params: Promise<{ slug: string }>;
@@ -35,13 +36,16 @@ export async function generateMetadata({ params }: BlogPageProps) {
     title,
     publishedAt: publishedTime,
     summary: description,
-    image,
   } = post.metadata;
 
   const canonicalUrl = `${baseUrl}/blog/${post.slug}`;
-  const ogImage = image
-    ? absoluteUrl(image)
-    : `${baseUrl}/og?title=${encodeURIComponent(title)}`;
+  const previewImage = post.thumbnail ? absoluteUrl(post.thumbnail) : undefined;
+  const ogImage = getOgImageUrl({
+    title,
+    description,
+    image: previewImage,
+    section: "Blog note",
+  });
 
   return {
     title,
@@ -58,6 +62,9 @@ export async function generateMetadata({ params }: BlogPageProps) {
       images: [
         {
           url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: `${title} — Byron Wall`,
         },
       ],
     },
@@ -95,11 +102,12 @@ export default async function Blog({ params }: BlogPageProps) {
             datePublished: post.metadata.publishedAt,
             dateModified: post.metadata.publishedAt,
             description: post.metadata.summary,
-            image: post.metadata.image
-              ? absoluteUrl(post.metadata.image)
-              : `${baseUrl}/og?title=${encodeURIComponent(
-                  post.metadata.title
-                )}`,
+            image: getOgImageUrl({
+              title: post.metadata.title,
+              description: post.metadata.summary,
+              image: post.thumbnail ? absoluteUrl(post.thumbnail) : undefined,
+              section: "Blog note",
+            }),
             url: `${baseUrl}/blog/${post.slug}`,
             author: {
               "@type": "Person",
@@ -123,9 +131,11 @@ export default async function Blog({ params }: BlogPageProps) {
             <h1>{post.metadata.title}</h1>
             <p className={styles.articleSummary}>{post.metadata.summary}</p>
             <p className={styles.articleMobileMeta}>{formatDate(post.metadata.publishedAt)} · {readingTime} · {category}</p>
-            <div className={styles.articleHero}>
-              {post.thumbnail ? <img className={styles.articleHeroImage} src={post.thumbnail} alt="" /> : <div className={`${styles.fallbackVisual} ${styles.articleFallback}`}><span className={styles.fallbackMark}>BW / {post.metadata.title.slice(0, 2).toUpperCase()}</span></div>}
-            </div>
+            {post.metadata.articleHero !== "false" && (
+              <div className={styles.articleHero}>
+                {post.thumbnail ? <img className={styles.articleHeroImage} src={post.thumbnail} alt="" /> : <div className={`${styles.fallbackVisual} ${styles.articleFallback}`}><span className={styles.fallbackMark}>BW / {post.metadata.title.slice(0, 2).toUpperCase()}</span></div>}
+              </div>
+            )}
           </header>
           <article className={`prose ${styles.articleBody}`}><CustomMDX source={post.content} /></article>
         </div>

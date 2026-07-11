@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "next dev --port 3010",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "terminal-card": "node scripts/render-terminal-card.mjs"
   },
   "dependencies": {
     "@tailwindcss/postcss": "4.0.0-alpha.13",
@@ -23,6 +24,7 @@
     "react": "19.2.7",
     "react-dom": "19.2.7",
     "remark-gfm": "^4.0.1",
+    "sharp": "0.34.5",
     "sugar-high": "^0.6.0",
     "tailwindcss": "4.0.0-alpha.13",
     "typescript": "5.3.3"

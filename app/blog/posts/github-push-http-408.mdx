@@ -1,0 +1,116 @@
+---
+title: When a 5 MB Git push times out after the upload finishes
+publishedAt: 2026-07-11
+summary: "A GitHub HTTPS push returned HTTP 408 after every byte arrived. The useful clues were in the curl trace, and the practical fix was to push the image objects in smaller batches."
+image: "/images/posts/github-push-http-408/git-push-http-408.png"
+articleHero: false
+---
+
+I had one commit left to push for this portfolio. It changed 38 files, including eleven new images. Git built a 5.44 MiB pack, uploaded the whole thing at roughly 10 MiB per second, and then failed:
+
+```text
+Writing objects: 100% (62/62), 5.44 MiB | 10.31 MiB/s, done.
+Total 62 (delta 18), reused 0 (delta 0), pack-reused 0
+error: RPC failed; HTTP 408 curl 22 The requested URL returned error: 408
+send-pack: unexpected disconnect while reading sideband packet
+fatal: the remote end hung up unexpectedly
+Everything up-to-date
+```
+
+That last line was especially unhelpful. Everything was not up to date. My local `main` was still one commit ahead of `origin/main`.
+
+The repository was healthy. No file was close to GitHub's 100 MiB limit, the largest new image was about 1.75 MiB, and the complete commit was preserved on a local backup branch. This looked like a transport problem, but the obvious transport fixes did not change it.
+
+## The usual fixes did not fit the evidence
+
+I first forced HTTP/1.1:
+
+```bash
+git -c http.version=HTTP/1.1 push origin main
+```
+
+Same 408.
+
+Then I increased `http.postBuffer` above the size of the outgoing pack. That makes Git send the request with a fixed `Content-Length` instead of relying on chunked transfer encoding, which can help when a proxy handles Git traffic badly:
+
+```bash
+git -c http.version=HTTP/1.1 \
+    -c http.postBuffer=10485760 \
+    push origin main
+```
+
+Same 408, only with a faster upload.
+
+I also tried `push --no-thin`, which creates a more self-contained pack and gives the server less delta resolution to do. The generated pack was effectively the same size, and the result was still the same.
+
+At that point, changing Git settings without seeing the request felt like guessing. The next useful artifact was the HTTP trace.
+
+## The trace showed where the time went
+
+I ran the push with Git and curl tracing enabled:
+
+```bash
+GIT_TRACE=1 \
+GIT_TRACE_CURL=1 \
+GIT_CURL_VERBOSE=1 \
+git -c http.version=HTTP/1.1 \
+    -c http.postBuffer=10485760 \
+    push origin main
+```
+
+The important part was short:
+
+```text
+=> Send header: Content-Length: 5700976
+== Info: upload completely sent off: 5700976 bytes
+... about ten seconds pass ...
+<= Recv header: HTTP/1.1 408 Request Timeout
+<= Recv header: Server: GitHub-Babel/3.0
+<= Recv header: X-GitHub-Request-Id: ...
+```
+
+The 5,700,976-byte request finished uploading in about 0.33 seconds. Authentication had already succeeded. The TLS certificate was for `github.com`, the response came from `GitHub-Babel/3.0`, and GitHub waited about ten seconds after receiving the request before returning 408.
+
+That ruled out most of the explanations I had been working through:
+
+- The connection was not timing out while uploading.
+- The request was not using chunked transfer encoding.
+- Credentials were accepted.
+- An individual file-size limit was not involved.
+- The images having identical content hashes in other repositories did not matter. Repeated Git object hashes are normal.
+
+The failure was happening after upload, while GitHub processed this particular receive operation.
+
+## Smaller pushes worked
+
+I had the complete tree backed up on a branch, so I reopened the failed commit without losing its files:
+
+```bash
+git reset --mixed origin/main
+```
+
+My first split was still too large. Four images totaling roughly 4.4 MiB produced the same ten-second 408. I reopened that local commit and tried one image:
+
+```bash
+git add public/images/projects/logo-dodo/punk-direction.png
+git commit -m "Add punk direction image"
+git push origin main
+```
+
+That push completed immediately.
+
+I repeated the process for the other large images, pushed the seven smaller images together, and then pushed the code and content as the final commit. Every smaller receive operation succeeded. The final tree on `main` was byte-for-byte equivalent to the original combined commit on the backup branch; only the history changed from one commit to six.
+
+## What I would do next time
+
+An HTTP status alone does not tell you which part of a Git push failed. `HTTP 408` sounds like a slow upload, but here the upload was already complete. The timestamps around `upload completely sent off` were the useful evidence.
+
+My debugging order for this case would now be:
+
+1. Confirm the local and remote branch hashes. Ignore `Everything up-to-date` after a failed `send-pack` until the refs prove it.
+2. Check the outgoing pack size and the largest new objects.
+3. Try HTTP/1.1 and a POST buffer larger than the pack.
+4. Capture a curl trace and locate the delay relative to the completed upload.
+5. If GitHub receives the full request and then times out processing it, preserve the full tree on a backup branch and push smaller object batches.
+
+Splitting the commit was not a satisfying explanation for why GitHub's receive path took more than ten seconds. It was, however, a clean workaround supported by the trace: smaller uploads succeeded, the final tree matched, and HTTPS worked without changing remotes or losing anything.

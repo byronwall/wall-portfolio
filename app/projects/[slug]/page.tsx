@@ -4,6 +4,7 @@ import { baseUrl } from "app/sitemap";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import styles from "../projects.module.css";
+import { getOgImageUrl } from "app/og-image";
 
 type ProjectPageProps = { params: Promise<{ slug: string }> };
 
@@ -41,14 +42,26 @@ export async function generateMetadata({ params }: ProjectPageProps) {
   const { slug } = await params;
   const project = getProjects().find((entry) => entry.slug === slug);
   if (!project) return;
-  const { title, publishedAt, summary, image } = project.metadata;
+  const { title, publishedAt, summary } = project.metadata;
   const canonicalUrl = `${baseUrl}/projects/${project.slug}`;
-  const ogImage = image ? absoluteUrl(image) : `${baseUrl}/og?title=${encodeURIComponent(title)}`;
+  const ogImage = getOgImageUrl({
+    title,
+    description: summary,
+    image: project.thumbnail ? absoluteUrl(project.thumbnail) : undefined,
+    section: "Project",
+  });
   return {
     title,
     description: summary,
     alternates: { canonical: canonicalUrl },
-    openGraph: { title, description: summary, type: "article", publishedTime: publishedAt, url: canonicalUrl, images: [{ url: ogImage }] },
+    openGraph: {
+      title,
+      description: summary,
+      type: "article",
+      publishedTime: publishedAt,
+      url: canonicalUrl,
+      images: [{ url: ogImage, width: 1200, height: 630, alt: `${title} — Byron Wall` }],
+    },
     twitter: { card: "summary_large_image", title, description: summary, images: [ogImage] },
   };
 }

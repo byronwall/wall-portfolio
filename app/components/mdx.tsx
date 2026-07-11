@@ -4,6 +4,7 @@ import { MDXRemote } from 'next-mdx-remote/rsc'
 import { highlight } from 'sugar-high'
 import React from 'react'
 import remarkGfm from 'remark-gfm'
+import { CodeBlock } from 'app/components/code-block'
 import { SolidResourceExplorer } from 'app/blog/components/solid-resource-explorer'
 import {
   CanvasScatterAnimationExplorer,
@@ -142,6 +143,7 @@ let components = {
   Image: RoundedImage,
   a: CustomLink,
   code: Code,
+  pre: CodeBlock,
   table: MarkdownTable,
   Table,
   CanvasScatterAnimationExplorer,
