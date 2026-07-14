@@ -1,0 +1,154 @@
+---
+title: The invisible backdrop filter that blanked my code blocks
+publishedAt: 2026-07-13
+summary: "A one-line backdrop blur on an invisible copy button made Chrome intermittently stop painting code-heavy MDX articles. The DOM stayed correct; the compositor did not."
+image: "/images/posts/backdrop-filter-blank-code-blocks/broken-code-blocks.png"
+articleHero: false
+---
+
+Two code-heavy articles on this site started turning into a sea of white while I scrolled. The page structure was still there. Headings and paragraphs would sometimes survive, code block borders stayed visible, and DevTools showed the code exactly where it belonged. But the code itself disappeared.
+
+Scrolling quickly made it worse. Selecting text could trigger it. Every so often the missing content would flash back for a moment and then disappear again.
+
+<div className="not-prose my-6">
+  <img
+    src="/images/posts/backdrop-filter-blank-code-blocks/broken-code-blocks.png"
+    alt="The prompt cache article in Chrome with empty code block surfaces while the surrounding headings and paragraphs remain visible"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+  <div className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
+    The code block backgrounds and borders still painted. The text layer did not.
+  </div>
+</div>
+
+My first guess was the MDX renderer. The two obvious failures were the canvas interactivity article and the prompt caching article, so it looked like the pages with extra TSX functionality had crossed some weird server/client boundary.
+
+That explanation did not hold up. The prompt caching article does not have a custom interactive component. What it does have is ten fenced code blocks. The canvas article has fourteen. They are the two most code-heavy posts on the site.
+
+The shared component was not the canvas explorer. It was the code block.
+
+## The DOM was not broken
+
+Every fenced MDX block maps its `pre` element to a small client component:
+
+```tsx
+let components = {
+  // ...
+  code: Code,
+  pre: CodeBlock,
+  // ...
+}
+```
+
+That component wraps the normal `pre` in a relatively positioned container and adds a copy button:
+
+```tsx
+<div className="code-block">
+  <pre ref={preRef} {...props} />
+  <button className="code-copy-button" onClick={copyCode}>
+    <CopyIcon />
+  </button>
+</div>
+```
+
+The browser inspection was boring in a useful way:
+
+- all code text existed in the DOM;
+- computed text colors were correct;
+- every code block had its expected height;
+- there were no console or hydration errors;
+- headless Playwright kept painting the page after aggressive scrolling.
+
+That moved the problem below React and MDX. The browser knew what the page was. It was intermittently failing to put those pixels on screen.
+
+## The suspicious line did not look suspicious enough
+
+The copy button was hidden until the code block was hovered. Its original CSS included this:
+
+```css
+.code-copy-button {
+  position: absolute;
+  opacity: 0;
+  backdrop-filter: blur(5px);
+  transition: opacity 140ms ease;
+}
+```
+
+I had trouble believing that a five-pixel blur on a 30-pixel button could blank large portions of an article. The button was invisible most of the time. It felt too small and too unrelated to the missing code.
+
+The important distinction is that `opacity: 0` makes the final element invisible. It does not necessarily make the backdrop operation free.
+
+<div className="not-prose my-8 rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-800 dark:bg-neutral-950">
+  <div className="grid gap-3 md:grid-cols-[1fr_auto_1fr_auto_1fr] md:items-center">
+    <div className="rounded-md border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+      <div className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Article pixels</div>
+      <div className="mt-2 text-sm text-neutral-800 dark:text-neutral-200">Code, background, and syntax highlighting</div>
+    </div>
+    <div className="hidden text-neutral-400 md:block">→</div>
+    <div className="rounded-md border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950">
+      <div className="text-xs font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-300">Backdrop surface</div>
+      <div className="mt-2 text-sm text-neutral-800 dark:text-neutral-200">Capture pixels behind each copy button and blur them</div>
+    </div>
+    <div className="hidden text-neutral-400 md:block">→</div>
+    <div className="rounded-md border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+      <div className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Composite</div>
+      <div className="mt-2 text-sm text-neutral-800 dark:text-neutral-200">Clip, scroll, and blend the resulting layers</div>
+    </div>
+  </div>
+  <div className="mt-4 text-sm text-neutral-600 dark:text-neutral-400">
+    Ten code blocks meant ten filtered surfaces. The canvas article had fourteen.
+  </div>
+</div>
+
+A backdrop filter works on the pixels behind an element. The browser may create an offscreen surface, capture that part of the page, apply the blur, and composite the result back into the scene. Here, every code block added another filtered button inside one long clipped article surface.
+
+Fast scrolling changes which surfaces are visible. Hover changes the button opacity. Text selection invalidates painted text. My working explanation is that this combination pushed Chrome into a bad compositor state where it reused or failed to refresh the code layer correctly.
+
+That also fits the glimmers. A selection or scroll briefly forced the right repaint, then the text disappeared again when Chrome reused the broken layer. The layout never changed because layout was not the failing system.
+
+## The fix was one deleted declaration
+
+The clean test was to remove only the filter:
+
+```diff
+ .code-copy-button {
+   opacity: 0;
+-  backdrop-filter: blur(5px);
+   transition: opacity 140ms ease;
+ }
+```
+
+Nothing else changed. The MDX renderer stayed in place. The client component stayed in place. The copy button still appeared on hover and still copied code.
+
+The disappearing content stopped immediately.
+
+<div className="not-prose my-6">
+  <img
+    src="/images/posts/backdrop-filter-blank-code-blocks/fixed-code-blocks.png"
+    alt="The same prompt cache article after removing the backdrop filter, with all syntax-highlighted code visible"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+  <div className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
+    Same article and code component. The copy button no longer asks Chrome to maintain a filtered backdrop surface.
+  </div>
+</div>
+
+I stress-scrolled both pages again. The prompt caching article kept all ten code blocks populated. The canvas article kept fourteen code blocks and eight canvases on screen. The copy interaction still reached its `Code copied` state, and the browser console stayed clean.
+
+Playwright never reproduced the original failure, either before or after the fix. That is worth keeping in the result. A headless browser check could prove the DOM and interactions were healthy, but the real failure depended on the local Chrome compositor and GPU path. The final verification had to happen in the browser where the pixels were disappearing.
+
+## What I would check next time
+
+The useful clue was the disagreement between the DOM and the screen. Once the elements, text, styles, and geometry are all correct, continuing to rearrange React components is probably the wrong level of debugging.
+
+For this kind of failure, I would now check:
+
+1. Whether the missing content still exists and has visible computed styles.
+2. Which nearby CSS properties create compositor surfaces: `backdrop-filter`, `filter`, transforms, masks, fixed positioning, and aggressive containment.
+3. Whether an invisible element still owns one of those expensive effects.
+4. How many copies of that effect exist on the failing page.
+5. Whether disabling one declaration in DevTools makes the failure stop.
+
+The surprising part was not that a blur costs something. It was that a tiny invisible blur could destabilize pixels far outside the button that owned it. That is a good boundary to remember: invisible in the final composition does not mean absent from the rendering pipeline.

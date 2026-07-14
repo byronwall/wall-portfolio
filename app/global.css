@@ -273,7 +273,6 @@ a.project-card-link:hover {
   color: var(--ink-muted);
   cursor: pointer;
   opacity: 0;
-  backdrop-filter: blur(5px);
   transition: opacity 140ms ease, color 140ms ease, border-color 140ms ease,
     background-color 140ms ease;
 }
