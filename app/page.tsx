@@ -1,27 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { SocialIcons } from "./components/social-icons";
-import { getBlogPosts } from "./blog/utils";
+import { getBlogPosts, getProjects } from "./blog/utils";
 import { experiences } from "./experience/data";
 
-const featuredProjects = [
-  {
-    title: "HN Offline",
-    description:
-      "An offline-first Hacker News reader that keeps stories and comments available without a connection.",
-    href: "/projects/0-hn-offline",
-    image: "https://raw.githubusercontent.com/byronwall/hn-offline/master/docs/image.png",
-  },
-  {
-    title: "Logo Dodo",
-    description:
-      "An AI-assisted logo workbench for generating direction boards, collecting feedback, and refining visual ideas.",
-    href: "/projects/logo-dodo",
-    image: "/images/projects/logo-dodo/rise-and-riot-board.png",
-  },
-];
-
 export default function Home() {
+  const featuredProjects = getProjects()
+    .filter((project) => project.metadata.featured === "true")
+    .sort((a, b) => (a.slug < b.slug ? -1 : 1))
+    .slice(0, 2);
   const featuredPosts = getBlogPosts()
     .filter((post) => post.metadata.featured === "true")
     .sort((a, b) => {
@@ -112,16 +99,11 @@ export default function Home() {
         </Link>
         <div className="content-preview-grid">
           {featuredProjects.map((project) => (
-            <Link className="content-preview-card" href={project.href} key={project.title}>
-              <img
-                src={project.image}
-                alt=""
-                className="content-preview-image"
-                loading="lazy"
-              />
+            <Link className="content-preview-card" href={`/projects/${project.slug}`} key={project.slug}>
+              {project.thumbnail && <img src={project.thumbnail} alt="" className="content-preview-image" loading="lazy" />}
               <div className="content-preview-copy">
-                <h2>{project.title}</h2>
-                <p>{project.description}</p>
+                <h2>{project.metadata.title}</h2>
+                <p>{project.metadata.description ?? project.metadata.summary}</p>
               </div>
             </Link>
           ))}

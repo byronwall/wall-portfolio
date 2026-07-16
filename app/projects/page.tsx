@@ -10,12 +10,6 @@ export const metadata = {
   alternates: { canonical: `${baseUrl}/projects` },
 };
 
-function projectStatus(date?: string) {
-  if (!date) return "Project archive";
-  const year = Number(date.slice(0, 4));
-  return year >= 2026 ? "Active" : year >= 2024 ? "Recent" : "Archive";
-}
-
 export default function ProjectsPage() {
   const projects = getProjects().sort((a, b) => {
     const dateOrder = (b.metadata.publishedAt ?? "").localeCompare(
@@ -53,7 +47,7 @@ export default function ProjectsPage() {
             </Link>
             <div className={styles.copy}>
               <div className={styles.meta}>
-                <span>{projectStatus(project.metadata.publishedAt)}</span>
+                <span>{project.metadata.status ?? "Content coming soon"}</span>
                 {project.metadata.publishedAt && (
                   <time dateTime={project.metadata.publishedAt}>
                     {project.metadata.publishedAt.slice(0, 4)}

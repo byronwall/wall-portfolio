@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 
-type BaseMetadata = {
+export type BaseMetadata = {
   title: string;
   description: string;
   date: string;
@@ -94,6 +94,17 @@ export function getBlogPosts() {
   return getMDXData(path.join(process.cwd(), "app", "blog", "posts"));
 }
 
+export function getPostsForProject(slug: string) {
+  return getBlogPosts()
+    .filter((post) => post.metadata.project === slug)
+    .sort((a, b) => {
+      const dateOrder = (b.metadata.publishedAt ?? "").localeCompare(
+        a.metadata.publishedAt ?? "",
+      );
+      return dateOrder || (a.slug < b.slug ? -1 : 1);
+    });
+}
+
 export function getReadingTime(content: string) {
   const words = content
     .replace(/```[\s\S]*?```/g, " ")
@@ -105,6 +116,9 @@ export function getReadingTime(content: string) {
 }
 
 export function getPostCategory(metadata: BaseMetadata) {
+  if (metadata.type && typeof metadata.type === "string") {
+    return metadata.type.charAt(0).toUpperCase() + metadata.type.slice(1);
+  }
   if (metadata.category && typeof metadata.category === "string") return metadata.category;
   const text = `${metadata.title} ${metadata.summary} ${(metadata.tags ?? []).join(" ")}`.toLowerCase();
   if (/debug|fix|troubleshoot|suspense/.test(text)) return "Engineering note";

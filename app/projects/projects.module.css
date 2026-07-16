@@ -27,6 +27,9 @@
 .heroCopy > p { margin: 25px 0 0; color: var(--ink-body); font-size: 17px; line-height: 1.55; }
 .heroDetails { display: flex; gap: 20px; align-items: flex-end; justify-content: space-between; margin-top: 26px; }
 .heroDetails .tags { justify-content: flex-end; margin-top: 0; }
+.projectLinks { display: flex; flex-wrap: wrap; gap: 10px 18px; margin-top: 22px; }
+.projectLinks a { color: var(--action-primary); font-size: 13px; text-decoration: none; }
+.projectLinks a:hover { text-decoration: underline; }
 .heroMedia { display: flex; min-height: 360px; max-height: 480px; align-items: center; justify-content: center; overflow: hidden; border: 1px solid var(--border-quiet); border-radius: 8px; background: var(--surface-quiet); }
 .heroMedia img { display: block; width: 100%; height: 100%; max-height: 480px; object-fit: contain; }
 .heroPlaceholder { display: flex; flex-direction: column; align-items: center; gap: 12px; color: var(--ink-muted); }
@@ -44,6 +47,14 @@
 .prose :global(h3) { color: var(--ink-primary); }
 .prose :global(p), .prose :global(li) { color: var(--ink-body); }
 .prose :global(img) { width: 100%; height: auto; border-color: var(--border-quiet) !important; border-radius: 7px; background: var(--surface-paper); }
+.prose :global(.project-content-placeholder) { margin: 18px 0 0; padding: 16px 18px; border-left: 3px solid var(--action-border); border-radius: 0 5px 5px 0; background: var(--surface-paper); color: var(--ink-muted); font-size: 14px; font-weight: 620; }
+.relatedPosts { padding: 48px var(--page-gutter) 58px; border-top: 1px solid var(--border-quiet); background: var(--surface-paper); }
+.relatedHeading { margin-bottom: 24px; }
+.relatedHeading h2 { margin: 0; color: var(--ink-primary); font-size: 28px; letter-spacing: -.025em; }
+.relatedHeading p { max-width: 560px; margin: 9px 0 0; color: var(--ink-body); font-size: 14px; line-height: 1.5; }
+.relatedPlaceholder { display: flex; align-items: flex-end; min-width: 0; min-height: 180px; height: 100%; padding: 22px; border-right: 1px solid var(--border-quiet); background: var(--surface-quiet); color: var(--action-primary); font-family: var(--font-geist-mono); font-size: 27px; font-weight: 700; letter-spacing: -.07em; }
+.relatedMeta { display: block !important; margin: 0 0 9px !important; color: var(--ink-muted) !important; font-family: var(--font-geist-mono); font-size: 10px !important; line-height: 1.35 !important; text-transform: uppercase; letter-spacing: .045em; -webkit-line-clamp: unset !important; }
+.emptyRelated { padding: 22px; border: 1px solid var(--border-quiet); border-radius: 7px; background: var(--surface-quiet); color: var(--ink-muted); font-size: 14px; font-weight: 620; }
 .nextProject { display: flex; align-items: center; justify-content: flex-end; padding: 31px var(--page-gutter); border-top: 1px solid var(--border-quiet); }
 .nextProject a { color: var(--action-primary); font-size: 14px; text-decoration: none; }
 
@@ -70,6 +81,7 @@
   .heroCopy > p { font-size: 16px; }
   .heroDetails { align-items: flex-start; flex-direction: column; }
   .heroDetails .tags { justify-content: flex-start; }
+  .relatedPosts { padding-top: 40px; padding-bottom: 46px; }
   .heroMedia { min-height: 220px; max-height: 320px; }
   .story { padding-top: 40px; padding-bottom: 56px; }
   .storyNav { padding-top: 0; }

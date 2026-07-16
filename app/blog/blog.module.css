@@ -49,12 +49,51 @@
 .railMeta div { display: grid; gap: 4px; }
 .railMeta dt, .tocTitle { color: var(--ink-muted); font-size: 10px; font-weight: 650; letter-spacing: .085em; text-transform: uppercase; }
 .railMeta dd { margin: 0; color: var(--ink-body); font-size: 12px; line-height: 1.45; }
+.railMeta dd a { color: var(--action-primary); text-decoration: none; }
+.railMeta dd a:hover { text-decoration: underline; }
 .toc { position: sticky; top: 28px; margin-top: 25px; }
 .tocTitle { display: block; margin-bottom: 12px; }
 .toc ol { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
 .toc a { display: block; padding-left: 10px; border-left: 2px solid transparent; color: var(--ink-muted); font-size: 11.5px; line-height: 1.35; text-decoration: none; transition: border-color 150ms ease, color 150ms ease; }
 .toc a:hover { color: var(--action-primary); }
-.toc a.tocActive { border-left-color: var(--action-primary); color: var(--action-primary); font-weight: 620; }
+.toc a.tocActive { border-left-color: var(--action-primary); color: var(--action-primary); }
+
+.tocCompact { top: 96px; width: 32px; margin-top: 8px; z-index: 5; }
+.tocCompactTitle { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.tocCompact ol { gap: 0; }
+.tocCompact li { position: relative; height: 21px; }
+.tocCompact a {
+  position: absolute;
+  left: 0;
+  display: flex;
+  width: 28px;
+  min-height: 21px;
+  align-items: center;
+  gap: 10px;
+  padding: 0 8px 0 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  white-space: nowrap;
+  transition: width 160ms ease, background-color 160ms ease, color 160ms ease;
+}
+.tocMark { display: block; width: 17px; height: 2px; flex: 0 0 auto; border-radius: 999px; background: var(--ink-tertiary); transition: width 160ms ease, background-color 160ms ease; }
+.tocLabel { opacity: 0; color: var(--ink-body); font-size: 11.5px; line-height: 1.25; transition: opacity 100ms ease 30ms; }
+.tocCompact:hover a,
+.tocCompact:focus-within a { width: min(260px, calc(100vw - 54px)); background: color-mix(in srgb, var(--surface-paper) 96%, transparent); }
+.tocCompact:hover li:not(:first-child, :last-child) a,
+.tocCompact:focus-within li:not(:first-child, :last-child) a { border-radius: 0; }
+.tocCompact:hover li:first-child a,
+.tocCompact:focus-within li:first-child a { border-radius: 4px 4px 0 0; }
+.tocCompact:hover li:last-child a,
+.tocCompact:focus-within li:last-child a { border-radius: 0 0 4px 4px; }
+.tocCompact:hover .tocLabel,
+.tocCompact:focus-within .tocLabel { opacity: 1; }
+.tocCompact a:hover,
+.tocCompact a:focus-visible { background: var(--surface-quiet); outline: none; }
+.tocCompact a.tocActive { color: var(--action-primary); font-weight: 620; }
+.tocCompact a.tocActive .tocMark { width: 25px; background: var(--action-primary); }
 
 .articleMain { min-width: 0; }
 .articleHeader h1 { max-width: 760px; font-size: clamp(40px, 5vw, 58px); line-height: 1.03; }
@@ -72,6 +111,42 @@
 .articleBody :global(img) { max-width: 100%; height: auto; border-radius: 7px; }
 .articleBody :global(.not-prose) { margin: 30px 0; }
 .articleBody :global(.mdx-table-scroll) { max-width: 100%; }
+.articleRelated { margin-top: 48px; padding-top: 28px; border-top: 1px solid var(--border-quiet); color: var(--ink-body); }
+.articleRelated > p { margin: 0; font-size: 15px; }
+.articleRelated a { color: var(--action-primary); }
+.articleRelated > div { margin-top: 22px; }
+.articleRelated > div > span { color: var(--ink-muted); font-size: 10px; font-weight: 650; letter-spacing: .085em; text-transform: uppercase; }
+.articleRelated ul { display: grid; gap: 8px; margin: 12px 0 0; padding-left: 18px; }
+.articleRelated li { color: var(--ink-body); font-size: 14px; line-height: 1.4; }
+
+.interactiveArticlePage { padding-top: 28px; }
+.interactiveTopbar { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 42px; padding-bottom: 16px; border-bottom: 1px solid var(--border-quiet); }
+.interactiveBackLink { flex: 0 0 auto; color: var(--action-primary); font-size: 12px; font-weight: 620; text-decoration: none; }
+.interactiveMeta { display: flex; min-width: 0; flex-wrap: wrap; justify-content: flex-end; gap: 6px 18px; color: var(--ink-muted); font-family: var(--font-geist-mono); font-size: 10.5px; line-height: 1.4; }
+.interactiveMeta > * + * { position: relative; }
+.interactiveMeta > * + *::before { content: ""; position: absolute; left: -10px; top: 50%; width: 2px; height: 2px; border-radius: 50%; background: var(--ink-tertiary); }
+.interactiveMeta a { color: var(--action-primary); text-decoration: none; }
+.interactiveLayout { position: relative; display: block; }
+.interactiveRail {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(-1 * var(--page-gutter) - 44px);
+  width: 32px;
+  z-index: 4;
+}
+.interactiveMain { width: 100%; }
+.interactiveMain .articleHeader { max-width: 820px; margin: 0 auto; }
+.interactiveMain .articleHeader h1 { max-width: 820px; font-size: clamp(44px, 5vw, 64px); }
+.interactiveMain .articleSummary { max-width: 760px; }
+.interactiveBody { width: 100%; margin-top: 52px; }
+.interactiveBody > :global(:not(.not-prose)) { width: min(100%, 700px); margin-right: auto; margin-left: auto; }
+.interactiveBody :global(.not-prose) { margin-top: 42px; margin-bottom: 42px; }
+.interactiveMain .articleRelated { width: min(100%, 700px); margin-right: auto; margin-left: auto; }
+
+@media (max-width: 1240px) {
+  .interactiveRail { display: none; }
+}
 
 @media (max-width: 900px) {
   .postRow { grid-template-columns: minmax(240px, .8fr) minmax(0, 1.2fr); gap: 28px; }
@@ -96,9 +171,28 @@
   .articleHero { margin-top: 26px; }
   .articleBody { margin-top: 34px; font-size: 15.5px; }
   .articleBody :global(h2) { font-size: 25px; }
+  .interactiveArticlePage { padding-right: 20px; padding-left: 20px; }
+  .interactiveTopbar { align-items: flex-start; margin-bottom: 34px; }
+  .interactiveMeta { max-width: 74%; }
+  .interactiveLayout { display: block; }
+  .interactiveRail,
+  .interactiveRail .tocCompact { display: none; }
+  .interactiveMain .articleMobileMeta { display: none; }
+  .interactiveMain .articleHeader h1 { font-size: clamp(38px, 10vw, 48px); }
+  .interactiveBody { margin-top: 38px; }
 }
 
 @media (max-width: 460px) {
   .postVisual, .postImage, .fallbackVisual { min-height: 180px; }
   .articleHeader h1 { font-size: 36px; }
+  .interactiveArticlePage { padding-right: 14px; padding-left: 14px; }
+  .interactiveTopbar { display: grid; gap: 12px; }
+  .interactiveMeta { max-width: none; justify-content: flex-start; }
+  .interactiveMain .articleHeader h1 { font-size: 38px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tocCompact a,
+  .tocMark,
+  .tocLabel { transition: none; }
 }

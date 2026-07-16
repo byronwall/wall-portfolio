@@ -5,7 +5,13 @@ import styles from "../blog.module.css";
 
 type TocItem = { id: string; title: string };
 
-export function ArticleToc({ items }: { items: TocItem[] }) {
+export function ArticleToc({
+  items,
+  variant = "editorial",
+}: {
+  items: TocItem[];
+  variant?: "editorial" | "compact";
+}) {
   const [activeId, setActiveId] = useState(items[0]?.id ?? "");
 
   useEffect(() => {
@@ -33,9 +39,16 @@ export function ArticleToc({ items }: { items: TocItem[] }) {
     };
   }, [items]);
 
+  const isCompact = variant === "compact";
+
   return (
-    <nav className={styles.toc} aria-label="On this page">
-      <span className={styles.tocTitle}>On this page</span>
+    <nav
+      className={`${styles.toc} ${isCompact ? styles.tocCompact : ""}`}
+      aria-label="On this page"
+    >
+      <span className={isCompact ? styles.tocCompactTitle : styles.tocTitle}>
+        On this page
+      </span>
       <ol>
         {items.map((item) => (
           <li key={item.id}>
@@ -44,7 +57,8 @@ export function ArticleToc({ items }: { items: TocItem[] }) {
               className={activeId === item.id ? styles.tocActive : undefined}
               aria-current={activeId === item.id ? "location" : undefined}
             >
-              {item.title}
+              {isCompact && <span className={styles.tocMark} aria-hidden="true" />}
+              <span className={isCompact ? styles.tocLabel : undefined}>{item.title}</span>
             </a>
           </li>
         ))}

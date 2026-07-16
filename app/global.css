@@ -71,6 +71,10 @@ body {
   box-shadow: 0 12px 40px rgba(38, 48, 70, 0.04);
 }
 
+.site-content:has(.interactive-article-page) {
+  overflow: visible;
+}
+
 .site-header { padding: 25px var(--page-gutter) 0; }
 .site-nav-inner { display: flex; align-items: center; min-height: 32px; gap: 30px; }
 .brand-mark { font-size: 18px; font-weight: 800; letter-spacing: -0.06em; text-decoration: none; }
@@ -334,6 +338,27 @@ a.project-card-link:hover {
 
 .prose p {
   @apply my-4 text-neutral-800 dark:text-neutral-200;
+}
+
+.prose blockquote {
+  margin: 1.75rem 0;
+  padding: clamp(0.95rem, 2vw, 1.15rem) clamp(1rem, 3vw, 1.35rem);
+  border-left: 3px solid var(--action-border);
+  border-radius: 0 7px 7px 0;
+  background: var(--surface-quiet);
+  color: var(--ink-body);
+  font-style: normal;
+  overflow-wrap: anywhere;
+}
+
+.prose blockquote p {
+  margin: 0;
+  color: inherit;
+  line-height: 1.7;
+}
+
+.prose blockquote p + p {
+  margin-top: 0.8rem;
 }
 
 .prose h1 {

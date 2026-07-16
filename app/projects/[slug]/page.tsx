@@ -1,4 +1,4 @@
-import { getProjects } from "app/blog/utils";
+import { formatDate, getPostCategory, getPostsForProject, getProjects } from "app/blog/utils";
 import { CustomMDX } from "app/components/mdx";
 import { baseUrl } from "app/sitemap";
 import Link from "next/link";
@@ -27,11 +27,6 @@ function getHeadings(content: string) {
     label: match[1].replace(/[*_`]/g, ""),
     id: slugifyHeading(match[1].replace(/[*_`]/g, "")),
   }));
-}
-
-function projectStatus(date?: string) {
-  if (!date) return "Project archive";
-  return Number(date.slice(0, 4)) >= 2026 ? "Active project" : "Completed project";
 }
 
 export async function generateStaticParams() {
@@ -71,6 +66,13 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   const project = getProjects().find((entry) => entry.slug === slug);
   if (!project) notFound();
   const headings = getHeadings(project.content);
+  const relatedPosts = getPostsForProject(project.slug);
+  const projectLinks = [
+    ["Live demo", project.metadata.demo],
+    ["Source", project.metadata.repo],
+    ["Package", project.metadata.package],
+    ["Documentation", project.metadata.docs],
+  ].filter((entry): entry is [string, string] => typeof entry[1] === "string" && entry[1].length > 0);
 
   return (
     <main className={styles.detailPage}>
@@ -81,7 +83,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           <p>{project.metadata.description ?? project.metadata.summary}</p>
           <div className={styles.heroDetails}>
             <div className={styles.status}>
-              <span>{projectStatus(project.metadata.publishedAt)}</span>
+              <span>{project.metadata.status ?? "Content coming soon"}</span>
               {project.metadata.publishedAt && <span>{project.metadata.publishedAt.slice(0, 4)}</span>}
             </div>
             {project.metadata.tags?.length ? (
@@ -90,6 +92,13 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               </ul>
             ) : null}
           </div>
+          {projectLinks.length > 0 && (
+            <nav className={styles.projectLinks} aria-label="Project links">
+              {projectLinks.map(([label, href]) => (
+                <a href={href} key={label} target="_blank" rel="noreferrer">{label} ↗</a>
+              ))}
+            </nav>
+          )}
         </div>
         <div className={styles.heroMedia}>
           {project.thumbnail ? (
@@ -116,6 +125,35 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           <CustomMDX source={project.content} />
         </article>
       </div>
+
+      <section className={styles.relatedPosts} aria-labelledby="related-posts-heading">
+        <div className={styles.relatedHeading}>
+          <h2 id="related-posts-heading">Related posts</h2>
+          <p>Updates, decisions, experiments, and lessons connected to this project.</p>
+        </div>
+        {relatedPosts.length > 0 ? (
+          <div className="content-preview-grid">
+            {relatedPosts.map((post) => (
+              <Link className="content-preview-card" href={`/blog/${post.slug}`} key={post.slug}>
+                {post.thumbnail ? (
+                  <img src={post.thumbnail} alt="" className="content-preview-image" loading="lazy" />
+                ) : (
+                  <div className={styles.relatedPlaceholder} aria-hidden="true">
+                    BW / {post.metadata.title.slice(0, 2).toUpperCase()}
+                  </div>
+                )}
+                <div className="content-preview-copy">
+                  <p className={styles.relatedMeta}>{formatDate(post.metadata.publishedAt)} · {getPostCategory(post.metadata)}</p>
+                  <h2>{post.metadata.title}</h2>
+                  <p>{post.metadata.summary}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className={styles.emptyRelated}>Content coming soon.</div>
+        )}
+      </section>
 
       <footer className={styles.nextProject}>
         <Link href="/projects">All projects →</Link>

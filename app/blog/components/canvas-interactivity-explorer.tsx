@@ -1735,7 +1735,7 @@ function useCenteredBleedStyle(mode: 'compact' | 'wide') {
       const desiredWidth =
         mode === 'compact'
           ? Math.min(parentRect.width + 200, viewportWidth * 0.82, 860)
-          : Math.min(viewportWidth * 0.92, 1184)
+          : Math.min(parentRect.width, 960)
       const width = Math.max(220, Math.min(desiredWidth, centeredLimit))
       const marginLeft = (parentRect.width - width) / 2
 

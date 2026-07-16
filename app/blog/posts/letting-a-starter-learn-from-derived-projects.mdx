@@ -1,0 +1,143 @@
+---
+title: Letting a starter repo learn from the projects cloned from it
+publishedAt: 2026-07-15
+summary: "A practical workflow for reviewing agent threads, finding reusable improvements in projects derived from a common starter, and feeding the useful parts back into the next project."
+project: solid-start-park-ui-starter
+type: tooling
+---
+
+A starter repo has a predictable problem: the starter stops learning as soon as you clone it.
+
+The new project gets the current Docker setup, scripts, components, agent guidance, and deployment conventions. Then real work begins. The project finds the bad defaults. It runs into the deployment issue that the starter never saw. It adds the small development helper that turns out to be useful every day.
+
+Those fixes usually stay in the derived project. The next project starts from the same older baseline and has to discover them again.
+
+I wanted a better loop for my SolidStart starter. I was not trying to keep every existing project synchronized or turn the starter into a shared package. The desired result was simpler: review what the derived projects had learned, move the broadly useful pieces back into the starter, and let the next project begin from a better place.
+
+The prompt that started the review was:
+
+> Review the last 100 threads.  Find any projects which were derived from the `solid-starter-panda` template or whatever I call it.  My goal is to find changes that woudl be beneficial to bring into the main starter package.  For example, I think one project has a file written whenever the server starts/stops.  Other have improved Docker stuff.  etc.  Review all the threads and try to glean improvements that should be pushed back into the main repo.
+
+## Starting with the thread history
+
+The first pass reviewed my 100 most recent Codex threads. The useful unit was the thread, not only the commit history.
+
+A commit can tell me that a Dockerfile changed. The thread usually tells me why:
+
+- which deployment failed
+- what the error looked like
+- which earlier project had already solved the same problem
+- what was tested before the change was considered done
+- which parts were intentionally project-specific
+
+That context matters when deciding whether something belongs in a starter. A random difference between two repositories is not automatically an improvement. A difference that fixed the same class of failure in multiple projects is much more interesting.
+
+The recent threads covered a lot of unrelated work, so I grouped them by repository and narrowed the list to projects that clearly came from the SolidStart, Panda CSS, and Park UI starter. Some had explicit clone history. Others still had the starter's distinctive package name, dependency set, directory layout, and configuration.
+
+The first 100 threads found recent work in Pluck, Kids Animals, and AI Icon Kit. A targeted search went slightly farther back for terms such as `Docker`, `pnpm`, `shutdown`, and `dev server`, because the operational fixes I remembered were just outside the chronological slice.
+
+That second pass found the most useful material.
+
+## The dev server should describe itself
+
+Pluck had grown a wrapper around `vinxi dev`. The wrapper watches the actual server output, detects the assigned URL, and writes a repo-root `live-server-details.json` file.
+
+While the server is running, the file includes the URL, port, process IDs, start time, environment details, and recent output. When the child process exits, the wrapper overwrites the file with an intentionally inactive state:
+
+```json
+{
+  "status": "likely-not-running",
+  "serverLikelyRunning": false,
+  "url": null,
+  "port": null
+}
+```
+
+This is a small piece of machinery, but it resolves a surprisingly annoying development problem. An agent can inspect one file before starting another server. It does not have to guess which port Vinxi selected, trust an old terminal message, or assume that a stale URL still works.
+
+The shutdown behavior is the important part. A manifest that only gets written on startup eventually becomes misinformation. Clearing the advertised URL turns it into a useful lifecycle contract.
+
+That behavior was not specific to Pluck. I moved a generalized version into the starter, derived the application name instead of hard-coding it, added focused tests for URL detection and manifest states, and added guidance to reuse a running server before creating another one.
+
+## Docker improvements hiding in deployment failures
+
+The Docker changes came from a less pleasant route.
+
+Comic Books failed during a Coolify deployment after moving to pnpm 11. The Docker install layer copied `package.json`, the lockfile, and patches, but it did not copy `pnpm-workspace.yaml` before running `pnpm install`.
+
+That workspace file now carries pnpm policy that used to live elsewhere:
+
+```yaml
+allowBuilds:
+  "@parcel/watcher": true
+  esbuild: true
+  unrs-resolver: true
+
+patchedDependencies:
+  vinxi@0.5.10: patches/vinxi@0.5.10.patch
+```
+
+If the Docker layer cannot see the file, it cannot see the build approvals or patched dependency mappings. A frozen install can fail even though the repository looks correctly configured on the host.
+
+The Comic Books Dockerfile also had a better caching boundary. It copied only dependency manifests, workspace settings, and patches before installation. Application source arrived in the next stage. A source edit could therefore reuse the expensive install layer.
+
+The starter still copied the entire app before installing dependencies. It worked, but it threw away the dependency cache on every source change. The backport combined both lessons: a dedicated dependency stage and an explicit copy of `pnpm-workspace.yaml` and `patches/` before the frozen install.
+
+The repository also had no `.dockerignore`. Downstream projects had already learned to exclude local `node_modules`, Vinxi output, generated Panda files, environment files, agent artifacts, and local pnpm stores. That is not exciting work, but it keeps the Docker context small and prevents local state from leaking into an image build.
+
+## A few smaller fixes added up
+
+The same review found several smaller pieces that were worth moving upstream.
+
+Pluck had centralized application URL resolution and recognized Coolify's automatically supplied `SERVICE_URL_APP`. The starter still read `APP_BASE_URL` independently in magic-link, Stripe, and secure-cookie code. I replaced those copies with one resolver that prefers the Coolify URL, falls back to the portable environment variable, uses the request origin when available, and only then uses localhost.
+
+AI Icon Kit had added a single default verification command:
+
+```json
+"verify": "pnpm type-check && pnpm test"
+```
+
+The starter now has its own version that also runs lint. The production build remains separate because it is slower and answers a different question.
+
+The verification change immediately proved its value. The starter's ESLint config imported `@eslint/js`, but the package was not declared directly. It happened to exist transitively in the lockfile, which was enough to hide the mistake until a clean dependency link. Adding the direct dependency made the contract real instead of accidental.
+
+Two recent projects also left `.pnpm-store` SQLite sidecar files in their worktrees during agent verification. The fix was simply to ignore the local store in Git and Docker. Data and Glyphs had suppressed Panda's update notifier in code-generation scripts, which made the scripted output a little quieter and more deterministic.
+
+None of these changes is a major feature. Together they remove several bits of repeated friction from the next clone.
+
+## What does not belong in the starter
+
+The review would be dangerous if every downstream improvement automatically moved upstream.
+
+Kids Animals had a genuinely useful development fix: its startup plugin was scanning stale images and re-running background removal, which made the development server painfully slow. The solution disabled that production recovery work in development unless a dedicated environment flag opted back in.
+
+The general lesson belongs in the starter guidance: expensive queues, media processing, remote calls, and backlog repair should not run during ordinary development without a good reason.
+
+The background-removal flags, image states, API behavior, and client polling logic do not belong in the starter. They solve one product's problem.
+
+Pluck had the same boundary. The live-server manifest generalized cleanly. Its Chrome extension smoke tests, annotation audits, capture fixtures, and domain-specific changelog rules did not.
+
+The useful question was not, "Can I copy this?" It was, "Will this make an unrelated project better before that project has any domain code?"
+
+That filter removed most of the apparent differences between the repositories.
+
+## This is a backport loop, not project synchronization
+
+I do not plan to push these changes sideways into every project that came from the starter. Those projects have diverged. Some have different deployment requirements. Some have enough local tooling that taking a new starter convention would be churn rather than help.
+
+The starter is for the next project.
+
+That changes the maintenance problem. I do not need a shared package, a monorepo, or an automated update service. I need an occasional review that does four things:
+
+1. Find recent threads in repositories derived from the starter.
+2. Search for repeated operational pain and fixes that survived real use.
+3. Compare the actual files and separate reusable infrastructure from product behavior.
+4. Backport the small set that improves the default, then test the starter as a clean system.
+
+For this pass, the final verification included the normal type checks, tests, and lint; a full Docker image build using the new dependency stage; and a live dev-server smoke test. Vinxi selected port 3001, the manifest advertised it correctly, and Ctrl-C replaced the file with the inactive state.
+
+One last bit of guidance was deliberately modest. Many derived repos still had the package name `example-bare`. I could build a project initialization command, but for now I added an explicit agent rule: after cloning the starter, replace the package name and visible Starter placeholders before feature work or deployment. That is probably enough until it proves otherwise.
+
+This gives the starter a useful kind of memory. Not every project receives every improvement. The work is not synchronized. But the lessons stop disappearing inside the project that happened to discover them, and the next clone starts a little farther ahead.
+
+Source: [byronwall/solid-start-panda-park-ui](https://github.com/byronwall/solid-start-panda-park-ui)

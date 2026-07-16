@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { CustomMDX } from "app/components/mdx";
-import { formatDate, getBlogPosts, getPostCategory, getReadingTime, getTableOfContents } from "app/blog/utils";
+import { formatDate, getBlogPosts, getPostCategory, getPostsForProject, getProjects, getReadingTime, getTableOfContents } from "app/blog/utils";
 import { baseUrl } from "app/sitemap";
 import Link from "next/link";
 import { ArticleToc } from "../components/article-toc";
@@ -88,9 +88,18 @@ export default async function Blog({ params }: BlogPageProps) {
   const readingTime = getReadingTime(post.content);
   const category = getPostCategory(post.metadata);
   const tableOfContents = getTableOfContents(post.content);
+  const isInteractive = post.metadata.layout === "interactive";
+  const currentPostSlug = post.slug;
+  const projectSlug = typeof post.metadata.project === "string" ? post.metadata.project : undefined;
+  const relatedProject = projectSlug
+    ? getProjects().find((project) => project.slug === projectSlug)
+    : undefined;
+  const relatedPosts = projectSlug
+    ? getPostsForProject(projectSlug).filter((entry) => entry.slug !== currentPostSlug).slice(0, 3)
+    : [];
 
   return (
-    <main className={styles.articlePage}>
+    <main className={`${styles.articlePage} ${isInteractive ? `${styles.interactiveArticlePage} interactive-article-page` : ""}`}>
       <script
         type="application/ld+json"
         suppressHydrationWarning
@@ -116,28 +125,57 @@ export default async function Blog({ params }: BlogPageProps) {
           }),
         }}
       />
-      <div className={styles.articleLayout}>
-        <aside className={styles.articleRail}>
-          <Link className={styles.backLink} href="/blog">← All notes</Link>
-          <dl className={styles.railMeta}>
-            <div><dt>Published</dt><dd>{formatDate(post.metadata.publishedAt)}</dd></div>
-            <div><dt>Reading time</dt><dd>{readingTime}</dd></div>
-            <div><dt>Filed under</dt><dd>{category}</dd></div>
-          </dl>
-          {tableOfContents.length > 0 && <ArticleToc items={tableOfContents} />}
+      {isInteractive && (
+        <div className={styles.interactiveTopbar}>
+          <Link className={styles.interactiveBackLink} href="/blog">← All notes</Link>
+          <div className={styles.interactiveMeta} aria-label="Article details">
+            <span>{formatDate(post.metadata.publishedAt)}</span>
+            <span>{readingTime}</span>
+            <span>{category}</span>
+            {relatedProject && <Link href={`/projects/${relatedProject.slug}`}>{relatedProject.metadata.title} →</Link>}
+          </div>
+        </div>
+      )}
+      <div className={`${styles.articleLayout} ${isInteractive ? styles.interactiveLayout : ""}`}>
+        <aside className={`${styles.articleRail} ${isInteractive ? styles.interactiveRail : ""}`}>
+          {isInteractive ? (
+            tableOfContents.length > 0 && <ArticleToc items={tableOfContents} variant="compact" />
+          ) : (
+            <>
+              <Link className={styles.backLink} href="/blog">← All notes</Link>
+              <dl className={styles.railMeta}>
+                <div><dt>Published</dt><dd>{formatDate(post.metadata.publishedAt)}</dd></div>
+                <div><dt>Reading time</dt><dd>{readingTime}</dd></div>
+                <div><dt>Filed under</dt><dd>{category}</dd></div>
+                {relatedProject && <div><dt>Related project</dt><dd><Link href={`/projects/${relatedProject.slug}`}>{relatedProject.metadata.title} →</Link></dd></div>}
+              </dl>
+              {tableOfContents.length > 0 && <ArticleToc items={tableOfContents} />}
+            </>
+          )}
         </aside>
-        <div className={styles.articleMain}>
+        <div className={`${styles.articleMain} ${isInteractive ? styles.interactiveMain : ""}`}>
           <header className={styles.articleHeader}>
             <h1>{post.metadata.title}</h1>
             <p className={styles.articleSummary}>{post.metadata.summary}</p>
-            <p className={styles.articleMobileMeta}>{formatDate(post.metadata.publishedAt)} · {readingTime} · {category}</p>
+            <p className={styles.articleMobileMeta}>{formatDate(post.metadata.publishedAt)} · {readingTime} · {category}{relatedProject ? ` · ${relatedProject.metadata.title}` : ""}</p>
             {post.metadata.articleHero !== "false" && (
               <div className={styles.articleHero}>
                 {post.thumbnail ? <img className={styles.articleHeroImage} src={post.thumbnail} alt="" /> : <div className={`${styles.fallbackVisual} ${styles.articleFallback}`}><span className={styles.fallbackMark}>BW / {post.metadata.title.slice(0, 2).toUpperCase()}</span></div>}
               </div>
             )}
           </header>
-          <article className={`prose ${styles.articleBody}`}><CustomMDX source={post.content} /></article>
+          <article className={`prose ${styles.articleBody} ${isInteractive ? styles.interactiveBody : ""}`}><CustomMDX source={post.content} /></article>
+          {relatedProject && (
+            <footer className={styles.articleRelated}>
+              <p>Part of <Link href={`/projects/${relatedProject.slug}`}>{relatedProject.metadata.title}</Link>.</p>
+              {relatedPosts.length > 0 && (
+                <div>
+                  <span>More from this project</span>
+                  <ul>{relatedPosts.map((entry) => <li key={entry.slug}><Link href={`/blog/${entry.slug}`}>{entry.metadata.title}</Link></li>)}</ul>
+                </div>
+              )}
+            </footer>
+          )}
         </div>
       </div>
     </main>
