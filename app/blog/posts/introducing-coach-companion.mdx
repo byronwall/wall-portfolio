@@ -1,0 +1,29 @@
+---
+title: Introducing Coach Companion
+publishedAt: 2026-07-16
+summary: 'A soccer rotation planner built around the actual coaching job: get a fair first draft, make the judgment calls visible, and carry one clear plan to the field.'
+image: "https://raw.githubusercontent.com/byronwall/soccer-schedule/main/docs/images/readme/schedule-builder.png"
+project: soccer-coach-companion
+type: update
+---
+
+The soccer schedule started as a spreadsheet. Every game was a sheet, every player was a row, and every column represented a chunk of playing time. It worked, but making the next plan still meant a lot of counting, moving names around, and checking whether one player had quietly ended up with too much time in midfield or on the bench.
+
+Coach Companion keeps the useful part of that model: a player, a time span, and a position. The goal is to make the rest of the work less painful.
+
+![Coach Companion schedule editor](https://raw.githubusercontent.com/byronwall/soccer-schedule/main/docs/images/readme/schedule-builder.png)
+
+The app manages one team's roster and games. Before a match, the coach records who is available and generates a rotation across four 14-minute quarters, with a substitution point every seven minutes. The generator aims for roughly equal minutes, positional variety, sensible goalkeeper assignments, and a fair distribution of the extra running in midfield.
+
+That generated schedule is only a first draft. Coaching still involves judgment. A player may need a particular position, a rest at a particular time, or a full quarter in goal. The editor makes those changes direct: drag two players to swap them within a segment, use the cell picker for the same operation, lock an assignment, and keep undo and redo nearby.
+
+The warnings are there to expose the things that are easy to miss. They flag large minute differences, repeated midfield work, goalkeeper changes, and long stretches as a substitute. Most of those are advisory. The app should tell the coach what the plan does without pretending the algorithm knows every reason behind it.
+
+Publishing turns the draft into the stable game plan. From there it can be printed or opened in the mobile game-day view. During a game, either coach can run the clock and make temporary substitutions for an injury, rest, or unexpected absence. Those changes do not rewrite the published schedule. The plan remains the reference point, and the live adjustment remains an adjustment.
+
+![Coach Companion game-day view](https://raw.githubusercontent.com/byronwall/soccer-schedule/main/docs/images/readme/live-game.png)
+
+This is intentionally a small product: one team, two coaches, fixed game rules, and file-backed data. It does not need multi-team administration, public schedule sharing, billing, or a native iOS app. The useful end state is much narrower. Once availability is known, build a valid schedule quickly, make a handful of judgment calls, and arrive at the game with one clear plan.
+
+Source: [byronwall/soccer-schedule](https://github.com/byronwall/soccer-schedule)
+

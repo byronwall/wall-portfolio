@@ -1,0 +1,48 @@
+---
+title: "Coach Companion"
+description: "A private soccer coaching workspace for building fair rotations and carrying one clear plan through game day"
+date: "2026-07-16"
+publishedAt: "2026-07-16"
+summary: "A private soccer coaching workspace for roster management, fair rotation planning, schedule editing, printing, and live game-day adjustments."
+tags: ["SolidStart", "SolidJS", "TypeScript", "Panda CSS", "Park UI", "Product Design"]
+image: "https://raw.githubusercontent.com/byronwall/soccer-schedule/main/docs/images/readme/dashboard.png"
+status: "active"
+repo: "https://github.com/byronwall/soccer-schedule"
+---
+
+Coach Companion is a private, single-team workspace for planning soccer rotations and carrying the same plan through game day. It replaces the spreadsheet where every game is a sheet, every player is a row, and every column is a chunk of playing time.
+
+The app does not try to automate away the coach. It generates a fair starting point, makes problems visible, and keeps the judgment calls easy to change.
+
+- Source: [byronwall/soccer-schedule](https://github.com/byronwall/soccer-schedule)
+
+## Interface
+
+<div className="not-prose mt-6">
+  <img
+    src="https://raw.githubusercontent.com/byronwall/soccer-schedule/main/docs/images/readme/schedule-builder.png"
+    alt="Coach Companion eight-segment soccer rotation editor"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+</div>
+
+## How it works
+
+A coach adds the roster and season schedule, confirms availability for the next game, and generates an eight-segment rotation across four quarters. The generator balances planned minutes while accounting for midfield work, goalkeeper continuity, positional variety, and the size of the bench.
+
+The schedule can be reviewed by position or by player. Coaches can drag players within a segment, use an accessible cell picker, lock assignments, undo changes, and keep advisory quality warnings visible. Publishing creates a stable snapshot for printing, season totals, and game-day mode. If the plan needs another adjustment, **Edit again** starts from an exact draft copy rather than throwing the schedule away.
+
+During the game, the live view combines the current lineup, bench, and clock. Temporary substitutions never rewrite the published plan, so an injury or rest change does not quietly alter the season record.
+
+## Highlights
+
+- Private two-coach workspace with file-backed persistence
+- Roster, player profiles, availability, and season game management
+- Fair rotation generation for four 14-minute quarters and eight segments
+- Drag-and-drop schedule editing with durable player colors
+- Advisory checks for minute balance, midfield load, goalkeeper changes, and long bench stretches
+- Published schedule revisions, undo/redo, print view, and mobile game-day controls
+- Editable position labels backed by stable domain IDs
+- SolidStart server actions, Zod boundaries, Vitest, and a Docker/Coolify deployment path
+

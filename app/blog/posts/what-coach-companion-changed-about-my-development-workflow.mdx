@@ -1,0 +1,142 @@
+---
+title: What Coach Companion changed about my development workflow
+publishedAt: 2026-07-16
+summary: 'How a dictated product plan, a long browser QA pass, and repeated development friction turned into better scripts, repository rules, domain invariants, and verification defaults.'
+image: "https://raw.githubusercontent.com/byronwall/soccer-schedule/main/docs/images/readme/dashboard.png"
+project: soccer-coach-companion
+type: reflection
+---
+
+Coach Companion was built quickly, but the interesting part was not only how much application code an agent could produce. It was how much process work showed up after the first build looked complete.
+
+The site eventually had roster management, games, schedule generation, editing, publishing, printing, player history, and a live game-day view. It also had recurring problems around server startup, package-manager verification, oversized components, mutable test data, deployment configuration, and the gap between a clean unit test and a control that actually works in a browser.
+
+The first build produced the soccer tool. The follow-up work produced a better way to build the next tool.
+
+## The plan started as dictation
+
+The original input was a dictated description of the coaching workflow. The important object was already there: a spreadsheet where rows were players and columns were chunks of a game. The memo also described when the schedule gets built, what fairness means, why some positions need different treatment, and how the coach expects to use the result on the sideline.
+
+That dictation became a requirements-and-workflow document, but it still left a lot of architecture open. Should this support multiple teams? Is live game tracking central or optional? Does the field need offline support? Are formations configurable? Is the published schedule a plan or an actual event ledger?
+
+I used a product-question review skill before implementation. Its job is to find technical choices that are really unresolved product assumptions, then ask about the user, the primary job, priorities, scale, persistence, failure recovery, and acceptable tradeoffs. It does not ask the product owner to pick a database or a synchronization protocol.
+
+The answers collapsed the plan:
+
+- one private team and two coaches;
+- file-backed storage instead of a multi-tenant data model;
+- schedule creation as the primary success measure;
+- equal planned minutes as the first scheduling priority;
+- fixed game timing and fixed position IDs;
+- a printable published plan as the durable record;
+- simple shared live state instead of an authoritative event ledger;
+- a PWA instead of native iOS;
+- no public sharing, calendar integration, billing, or secondary administration.
+
+Those were not minor scoping decisions. They removed team and membership entities, configurable formations, public routes, calendar routes, offline synchronization, controller leases, and a history of actual-minute events before any of that code existed.
+
+The detailed implementation plan could then be specific in a useful way: routes, Zod schemas, file boundaries, revision rules, scheduling priorities, and milestones all served the product that had just been defined.
+
+## The first implementation was tested as a workflow
+
+The implementation prompt did not stop at “make the routes.” It asked for a running server, a dummy roster, visual proof for every route, and real create, read, update, and delete behavior through the forms.
+
+Static verification came first: TypeScript, tests, lint, then a production build. The browser pass then walked through the actual product:
+
+1. Sign in through the real form.
+2. Create, edit, deactivate, reactivate, and remove a player.
+3. Create a game and set player availability.
+4. Generate, edit, and publish a schedule.
+5. Inspect the by-player and print views.
+6. Start and pause the game clock.
+7. Make a temporary substitution and advance the quarter.
+8. Repeat the important game-day checks at a phone viewport.
+
+That pass found bugs that the green repository gate did not. The login page made a relative API request during server rendering. A native confirmation dialog made the delete flow brittle. The live clock stored the right state but did not repaint every second. An unavailable player could still appear on the bench.
+
+The QA loop was not “take screenshots after implementation.” It was exercise a user journey, treat the screenshot and DOM state as evidence, fix what the journey exposed, and run the journey again.
+
+Later feature threads repeated that pattern. Drag-and-drop required testing the actual pointer gesture, rejected cross-segment drops, Escape cancellation, and the click fallback. A position-settings route passed static checks but failed when loaded directly. A responsive games page was valid CSS but put the primary work too far below the fold. Published schedule editing needed a real product rule: **Edit again** creates an exact draft copy while the current published plan stays active.
+
+Those are all cases where the implementation can be internally consistent and still do something dumb for the user.
+
+## The work summaries exposed repeated friction
+
+The project accumulated 11 detailed work summaries. Read separately, each one described a reasonable local problem. Read together, the repetition was obvious.
+
+Eight of the 11 mentioned some version of the pnpm launcher stalling or attempting registry/signature work before the project checks started. Several UI changes pushed already-large Solid components over lint limits late in the task. Browser checks were repeatedly constrained by sparse data or reluctance to mutate the active local dataset. Concurrent edits and untracked files made diffs harder to trust. Domain rules were implemented correctly but scattered across code and individual summaries. Docker and authentication work revealed that build-time and runtime configuration were not clearly separated.
+
+The summaries were doing their job, but the same recommendations kept appearing in new summaries. A lesson that remains inside a retrospective has to be rediscovered.
+
+## Turn the repeated lesson into a repository default
+
+The next pass converted those recurring problems into scripts, docs, and code boundaries.
+
+### One verification entry point
+
+The repository now has `app/scripts/verify.mjs`. It runs the installed TypeScript, Vitest, and ESLint binaries directly, with the same sequence owned by the repository. `pnpm -C app verify` remains the normal command, but if pnpm fails before the script begins, the project checks can still run without reconstructing the gate by hand.
+
+The reporting language matters too: “project checks passed; pnpm launcher failed” describes a different outcome from “verification failed.”
+
+### A development server that describes itself
+
+The dev wrapper writes `live-server-details.json` with the current URL, port, process IDs, and recent output. When the server stops, it clears the advertised URL. It also refuses to start a second server for the same checkout and reports the existing one instead.
+
+That fixed more than a port-selection annoyance. Two server wrappers pointed at the same files and the same disposable data can produce confusing hot reloads, manifest races, and browser evidence against the wrong process. The manifest now uses unique temporary filenames for atomic writes and has focused tests around its lifecycle.
+
+### Complexity checks before the file is already too large
+
+Schedule UI work repeatedly crossed the 400-line lint guardrail, then had to be split under pressure. The new rule is earlier: once a substantially touched file reaches roughly 325–350 effective lines, identify a responsibility boundary before adding the next feature.
+
+The project also decomposed its soccer store into persistence, roster/game actions, schedule actions, live actions, and shared helpers. The point was not to win a line-count game. Those were responsibilities that the feature history had already shown to change for different reasons.
+
+### Domain rules in one place
+
+The scheduling work established several rules that should survive individual implementations:
+
+- position IDs are stable persistence keys while labels are editable presentation;
+- published schedules are immutable snapshots;
+- editing a published plan begins from a cloned draft;
+- game completion is explicit state, not something inferred from the date;
+- assignments store player IDs rather than copied names or colors;
+- schedule warnings remain advisory unless deliberately promoted to validation errors;
+- authentication responses are allowlisted projections and never serialized credential objects;
+- Zod validates shape, while migrations and domain functions still repair semantic problems.
+
+Those now live in a dedicated domain-invariants document and in repository guidance. A future change does not have to infer them from old schedule code.
+
+### A smaller documentation loop
+
+Creating a full work summary after every ordinary change produced good documents and too many disconnected follow-ups. Normal completed work now goes into `CHANGELOG.md` under `Unreleased`. A full retrospective is reserved for work that actually needs one.
+
+That is a small standardization, but it closes the loop faster. A lesson either becomes a rule, script, test, domain document, or explicit follow-up. It does not automatically become another standalone report.
+
+### QA guidance sized for this application
+
+The project now has a focused manual browser checklist. It records the high-risk checks the feature threads earned: direct route loads, real pointer gestures, accepted and rejected states, cancellation, accessible fallbacks, reload after persisted writes, responsive overflow, and a mobile game-day viewport.
+
+I did not add a full Playwright Test suite, CI system, or protected fixture infrastructure. This is a personal, file-backed application whose local data is explicitly disposable. The better default here is task-driven browser verification against the one running server, with checks chosen by the risk of the change. A larger automated suite may become useful later, but the process should fit the product.
+
+### Configuration as a lifecycle, not a bag of variables
+
+The Docker work found required coach credentials missing from Compose and build-time settings declared as if changing them at runtime would work. The README now classifies configuration by lifecycle: build time or runtime, secret or non-secret, and whether a change requires a rebuild or restart.
+
+The same cleanup removed remaining starter identity, aligned Compose defaults with Coach Companion, preserved the `/app/data` volume, and documented the production deployment path. This is the unglamorous part of making a generated application real: the name, storage, credentials, and URL rules have to agree outside the source tree too.
+
+## The resulting workflow
+
+The process I would reuse is fairly direct:
+
+1. Dictate the actual workflow, including the awkward details and current workaround.
+2. Convert it into requirements, then use product questions to remove unnecessary architecture.
+3. Build from a route and data plan with explicit domain boundaries.
+4. Run static checks before browser work.
+5. Exercise the primary journey with real controls and representative data.
+6. Record what was hard, then look across several tasks for repetition.
+7. Move repeated lessons into scripts, tests, repository rules, or a starter.
+
+The last step matters. Some of these improvements are already being moved back into the SolidStart/Panda/Park UI starter that Coach Companion came from. The soccer-specific scheduling rules stay here. The verification launcher, dev-server lifecycle, changelog convention, and documentation process can make the next unrelated application better before it has any domain code.
+
+The interesting artifact is not a perfect first pass. It is a project that can explain what went wrong, change its defaults, and make the same mistake less likely on the next pass.
+
+Source: [byronwall/soccer-schedule](https://github.com/byronwall/soccer-schedule)
