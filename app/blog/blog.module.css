@@ -28,8 +28,8 @@
 }
 .postRow:hover { text-decoration: none; }
 .postRow:hover .postTitle { color: var(--action-primary); }
-.postVisual { position: relative; min-height: 220px; overflow: hidden; border-radius: 7px; background: var(--surface-quiet); }
-.postImage { display: block; width: 100%; height: 100%; min-height: 220px; object-fit: contain; background: var(--surface-quiet); transition: transform 180ms ease; }
+.postVisual { position: relative; height: 260px; min-height: 0; overflow: hidden; border-radius: 7px; background: var(--surface-quiet); }
+.postImage { display: block; width: 100%; height: 100%; min-height: 0; object-fit: contain; background: var(--surface-quiet); transition: transform 180ms ease; }
 .postRow:hover .postImage { transform: scale(1.012); }
 .fallbackVisual { display: flex; min-height: 220px; height: 100%; align-items: flex-end; padding: 25px; background: var(--surface-quiet); color: var(--action-primary); }
 .fallbackVisual::before { content: ""; position: absolute; inset: 23px; border-top: 1px solid var(--action-border); border-left: 1px solid var(--action-border); opacity: .5; }
@@ -158,7 +158,8 @@
   .indexHeader { padding-bottom: 18px; }
   .indexHeader h1 { font-size: 46px; }
   .postRow { grid-template-columns: 1fr; gap: 20px; padding: 28px 0; }
-  .postVisual, .postImage, .fallbackVisual { min-height: 210px; }
+  .postVisual { height: 210px; min-height: 0; }
+  .postImage, .fallbackVisual { min-height: 0; }
   .postTitle { font-size: 27px; }
   .articleLayout { display: block; }
   .articleRail { position: static; }
@@ -183,7 +184,8 @@
 }
 
 @media (max-width: 460px) {
-  .postVisual, .postImage, .fallbackVisual { min-height: 180px; }
+  .postVisual { height: 180px; }
+  .postImage, .fallbackVisual { min-height: 0; }
   .articleHeader h1 { font-size: 36px; }
   .interactiveArticlePage { padding-right: 14px; padding-left: 14px; }
   .interactiveTopbar { display: grid; gap: 12px; }
