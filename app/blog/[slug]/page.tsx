@@ -17,6 +17,30 @@ function absoluteUrl(pathOrUrl: string) {
     : `${baseUrl}${pathOrUrl.startsWith("/") ? pathOrUrl : `/${pathOrUrl}`}`;
 }
 
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function renderArticleTitle(title: string, codeTokens?: string[]) {
+  if (!codeTokens?.length) return title;
+
+  const tokenSet = new Set(codeTokens);
+  const tokenPattern = new RegExp(
+    `(${codeTokens.map(escapeRegExp).join("|")})`,
+    "g",
+  );
+
+  return title.split(tokenPattern).map((part, index) =>
+    tokenSet.has(part) ? (
+      <code className={styles.articleTitleCode} key={`${part}-${index}`}>
+        {part}
+      </code>
+    ) : (
+      part
+    ),
+  );
+}
+
 export async function generateStaticParams() {
   let posts = getBlogPosts();
 
@@ -32,32 +56,40 @@ export async function generateMetadata({ params }: BlogPageProps) {
     return;
   }
 
-  let {
-    title,
-    publishedAt: publishedTime,
-    summary: description,
-  } = post.metadata;
+  const title = post.metadata.title;
+  const seoTitle =
+    typeof post.metadata.seoTitle === "string" ? post.metadata.seoTitle : title;
+  const description =
+    typeof post.metadata.seoDescription === "string"
+      ? post.metadata.seoDescription
+      : post.metadata.summary;
+  const publishedTime = post.metadata.publishedAt;
+  const modifiedTime =
+    typeof post.metadata.updatedAt === "string"
+      ? post.metadata.updatedAt
+      : publishedTime;
 
   const canonicalUrl = `${baseUrl}/blog/${post.slug}`;
   const previewImage = post.thumbnail ? absoluteUrl(post.thumbnail) : undefined;
   const ogImage = getOgImageUrl({
-    title,
+    title: seoTitle,
     description,
     image: previewImage,
     section: "Blog note",
   });
 
   return {
-    title,
+    title: seoTitle,
     description,
     alternates: {
       canonical: canonicalUrl,
     },
     openGraph: {
-      title,
+      title: seoTitle,
       description,
       type: "article",
       publishedTime,
+      modifiedTime,
       url: canonicalUrl,
       images: [
         {
@@ -70,7 +102,7 @@ export async function generateMetadata({ params }: BlogPageProps) {
     },
     twitter: {
       card: "summary_large_image",
-      title,
+      title: seoTitle,
       description,
       images: [ogImage],
     },
@@ -109,7 +141,10 @@ export default async function Blog({ params }: BlogPageProps) {
             "@type": "BlogPosting",
             headline: post.metadata.title,
             datePublished: post.metadata.publishedAt,
-            dateModified: post.metadata.publishedAt,
+            dateModified:
+              typeof post.metadata.updatedAt === "string"
+                ? post.metadata.updatedAt
+                : post.metadata.publishedAt,
             description: post.metadata.summary,
             image: getOgImageUrl({
               title: post.metadata.title,
@@ -145,6 +180,10 @@ export default async function Blog({ params }: BlogPageProps) {
               <Link className={styles.backLink} href="/blog">← All notes</Link>
               <dl className={styles.railMeta}>
                 <div><dt>Published</dt><dd>{formatDate(post.metadata.publishedAt)}</dd></div>
+                {typeof post.metadata.updatedAt === "string" &&
+                  post.metadata.updatedAt !== post.metadata.publishedAt && (
+                    <div><dt>Updated</dt><dd>{formatDate(post.metadata.updatedAt)}</dd></div>
+                  )}
                 <div><dt>Reading time</dt><dd>{readingTime}</dd></div>
                 <div><dt>Filed under</dt><dd>{category}</dd></div>
                 {relatedProject && <div><dt>Related project</dt><dd><Link href={`/projects/${relatedProject.slug}`}>{relatedProject.metadata.title} →</Link></dd></div>}
@@ -155,7 +194,14 @@ export default async function Blog({ params }: BlogPageProps) {
         </aside>
         <div className={`${styles.articleMain} ${isInteractive ? styles.interactiveMain : ""}`}>
           <header className={styles.articleHeader}>
-            <h1>{post.metadata.title}</h1>
+            <h1>
+              {renderArticleTitle(
+                post.metadata.title,
+                Array.isArray(post.metadata.titleCode)
+                  ? post.metadata.titleCode
+                  : undefined,
+              )}
+            </h1>
             <p className={styles.articleSummary}>{post.metadata.summary}</p>
             <p className={styles.articleMobileMeta}>{formatDate(post.metadata.publishedAt)} · {readingTime} · {category}{relatedProject ? ` · ${relatedProject.metadata.title}` : ""}</p>
             {post.metadata.articleHero !== "false" && (

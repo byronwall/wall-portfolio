@@ -134,6 +134,8 @@ LLM total: tokens in=..., cached=..., out=..., total=... cost=$...
 
 Those totals are also persisted into `analysis/transcript-summary.json` under `usage`, alongside the provider, model, call count, token totals, estimated cost, and pricing source metadata. Unknown models still report token counts and mark cost as unknown rather than guessing.
 
+The repeated transcript calls also have a cache-shaped request. [The prompt caching implementation](/blog/managing-openai-prompt-cache) keeps the transcript in a stable prefix, sends the changing extraction task last, and records `cached_tokens` so a cache hit is visible in the same accounting trail.
+
 After adding the cost reporting, the default model changed from `gpt-5.5` to `gpt-5.4-mini`. The more expensive model can still be selected with `--llm-model`, but the default now matches the everyday workflow: run analysis over personal memos often enough that cost should stay visible and modest.
 
 ## Why this shape works
@@ -154,6 +156,7 @@ Source: [byronwall/video-to-context](https://github.com/byronwall/video-to-conte
 
 Related:
 
+- [Managing OpenAI prompt caching and cached tokens](/blog/managing-openai-prompt-cache)
 - [Turning voice memos into Codex-ready analysis](/blog/video-to-context-codex-analysis-cli)
 - [Adding voice memo support to Video to Context](/blog/voice-memos-video-to-context)
 - [Video to Context project page](/projects/video-to-context)

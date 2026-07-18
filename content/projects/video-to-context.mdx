@@ -93,6 +93,8 @@ npx v2ctx voice-memos --run-llm
 
 That stage reads the full transcript, plans semantic sections, and performs focused extraction passes for tasks, claims, opinions, experiences, quotes, blog seeds, sensitive material, and follow-up questions. It then writes transcript and section summaries, review overlays, a session digest, and the derived files consumed by the UI. The source audio remains part of the local workflow; the API-backed step operates on transcript text.
 
+The repeated model calls share one long transcript prefix. [The OpenAI prompt caching implementation](/blog/managing-openai-prompt-cache) keeps that prefix stable, uses a transcript-derived `prompt_cache_key`, and records cached tokens separately so the cost reduction is visible rather than assumed.
+
 ## More than voice memos
 
 The original recording workflow remains available for a file or directory. Video inputs can produce timestamped transcripts, screenshots, a contact sheet, copied source media, and a self-contained HTML report. Audio-only inputs automatically skip visual extraction. Every run records meaningful inputs and options in a manifest so an identical rerun can reuse the existing package.

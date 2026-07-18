@@ -1,9 +1,13 @@
 ---
-title: Managing the prompt cache on OpenAI endpoints
+title: OpenAI prompt caching with prompt_cache_key and cached_tokens
+titleCode: ["prompt_cache_key", "cached_tokens"]
 publishedAt: 2026-07-04
+updatedAt: 2026-07-17
 project: video-to-context
 type: tooling
 summary: "How Video to Context structures repeated OpenAI Responses API calls so long transcript context can hit the prompt cache, report cached tokens, and make cost visible."
+seoTitle: "OpenAI Prompt Caching: prompt_cache_key and cached_tokens"
+seoDescription: "A practical Responses API guide to stable prompt prefixes, prompt_cache_key, cached_tokens, cache breakpoints, and measuring cached input cost."
 ---
 
 The voice memo analysis pipeline in Video to Context has a very cache-shaped workload. One transcript turns into a series of model calls: plan the semantic sections, extract claims, extract tasks, extract quotes, extract follow-up questions, and so on. Each call needs the same long transcript, but each call asks for a different slice of work.
@@ -11,6 +15,56 @@ The voice memo analysis pipeline in Video to Context has a very cache-shaped wor
 That is exactly the situation where prompt caching matters. The expensive part is not the short task instruction at the end. The expensive part is sending the same transcript over and over.
 
 OpenAI prompt caching is automatic on supported models, but it is not magic. The API can only reuse an exact matching prefix. So the work was to make the beginning of every request stable, put the variable task at the end, use a consistent `prompt_cache_key`, and then log enough usage data to see whether the cache is actually helping.
+
+## Quick answer
+
+For the Responses API, prompt caching starts with the shape of the request:
+
+1. Keep shared instructions, tools, schemas, images, and long context at the beginning.
+2. Put the part that changes at the end.
+3. Reuse `prompt_cache_key` for requests that genuinely share that long prefix.
+4. Read cache hits from `usage.input_tokens_details.cached_tokens`.
+5. On GPT-5.6 models and later families, also watch `cache_write_tokens` and consider explicit cache breakpoints.
+
+The request still has to be at least 1,024 input tokens before any prefix is eligible. A matching cache key does not override a changed prefix. It helps route related requests toward the same cache; the prefix itself still has to match.
+
+Here is the complete shape in the Video to Context pipeline:
+
+```js
+const response = await client.responses.create({
+  model,
+  prompt_cache_key: promptCacheKey,
+  input: [
+    {
+      role: "developer",
+      content: SHARED_TRANSCRIPT_INSTRUCTIONS,
+    },
+    {
+      role: "user",
+      content: transcriptPrefix(transcript),
+    },
+    {
+      role: "user",
+      content: taskLines.join("\n"),
+    },
+  ],
+  text: {
+    format: {
+      type: "json_schema",
+      name: schemaName,
+      strict: true,
+      schema,
+    },
+  },
+});
+
+const cacheReads =
+  response.usage?.input_tokens_details?.cached_tokens ?? 0;
+const cacheWrites =
+  response.usage?.input_tokens_details?.cache_write_tokens ?? 0;
+```
+
+`cache_write_tokens` is relevant to GPT-5.6-family caching. The current Video to Context implementation was built around the earlier automatic-prefix behavior, so it measures cache reads and keeps the prefix stable without claiming to control where OpenAI places breakpoints.
 
 <div className="not-prose my-6 rounded-lg border border-neutral-200 bg-neutral-50 p-4 text-sm dark:border-neutral-800 dark:bg-neutral-950">
   <div className="mb-3 font-semibold text-neutral-900 dark:text-neutral-100">The cache-friendly request shape</div>
@@ -51,7 +105,9 @@ The dynamic content is:
 - the current semantic section list
 - the package path or other run-specific notes
 
-The docs also say caching starts at 1024 prompt tokens and reports `cached_tokens` in usage. That reporting matters because otherwise cache work is mostly invisible. A request can look successful while still missing the cache on every call.
+The docs also say caching starts at 1,024 prompt tokens and reports `cached_tokens` in usage. That reporting matters because otherwise cache work is mostly invisible. A request can look successful while still missing the cache on every call.
+
+For GPT-5.6 models and later families, the accounting has another side: `cache_write_tokens` reports tokens written to cache, and those writes have their own price. That makes the useful measurement read-versus-write, not only hit-versus-miss.
 
 ## Make the prefix boring
 
@@ -202,6 +258,25 @@ extract tasks done: 18 item(s)
 
 That line is the feedback loop. If cached tokens stay near zero, the prompt shape is wrong, the prefix is changing, the calls are too short, or the workload is not close enough in time to benefit.
 
+## Why cached_tokens can stay at zero
+
+The failure cases are fairly mechanical:
+
+- The request is under 1,024 input tokens.
+- Instructions, tools, schemas, images, or message ordering change before the reusable prefix ends.
+- The dynamic task is interpolated into the beginning of the prompt.
+- Related calls use different `prompt_cache_key` values, or one key receives unrelated prefixes.
+- The requests are far enough apart that the useful prefix is no longer warm.
+- On GPT-5.6-family models, the request is missing the key needed for the more reliable matching path.
+
+The first debugging step is to log the prompt length, cache key, `cached_tokens`, and, when available, `cache_write_tokens` for two adjacent calls that should share a prefix. If the second call still reads zero cached tokens, compare the rendered request prefix rather than the source templates. A timestamp, reordered schema property, or changing tool definition is enough to make the prefixes different.
+
+## GPT-5.6 explicit cache breakpoints
+
+GPT-5.6-family models add explicit cache breakpoints. A content block can carry `prompt_cache_breakpoint: { mode: "explicit" }`, and the request can set `prompt_cache_options.mode` to `explicit` when only those marked prefixes should participate.
+
+That is useful when a request has a clearly reusable boundary, such as the end of a long transcript or file. It also changes the cost model because cache writes are reported and billed separately. I would not add breakpoints just to have more cache controls. The useful version is a breakpoint after a stable block that many nearby requests actually reuse, followed by enough logging to show that the reads are paying for the writes.
+
 ## Price cached input differently
 
 The cost estimator treats input tokens as two buckets:
@@ -269,7 +344,7 @@ Prompt caching is one of those features that works best when the application is 
 
 Source: [byronwall/video-to-context](https://github.com/byronwall/video-to-context)
 
-OpenAI docs used while writing this: [Prompt caching](https://developers.openai.com/api/docs/guides/prompt-caching) and [Prompt engineering: save on cost and latency with prompt caching](https://developers.openai.com/api/docs/guides/prompt-engineering#save-on-cost-and-latency-with-prompt-caching).
+OpenAI docs used while writing this: [Prompt caching](https://developers.openai.com/api/docs/guides/prompt-caching) and [Prompt Caching 201](https://developers.openai.com/cookbook/examples/prompt_caching_201).
 
 Related:
 

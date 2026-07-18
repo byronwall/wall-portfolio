@@ -97,6 +97,23 @@
 
 .articleMain { min-width: 0; }
 .articleHeader h1 { max-width: 760px; font-size: clamp(40px, 5vw, 58px); line-height: 1.03; }
+.articleTitleCode {
+  display: inline-block;
+  padding: 0 .13em .03em;
+  border: 1px solid var(--border-quiet);
+  border-radius: .18em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  background: var(--surface-quiet);
+  color: var(--ink-primary);
+  font-family: var(--font-geist-mono);
+  font-size: .72em;
+  font-weight: 620;
+  letter-spacing: -.065em;
+  line-height: 1.05;
+  vertical-align: .025em;
+  white-space: nowrap;
+}
 .articleSummary { max-width: 690px; margin: 23px 0 0; color: var(--ink-body); font-size: 18px; line-height: 1.52; }
 .articleMobileMeta { display: none; margin-top: 18px; color: var(--ink-muted); font-family: var(--font-geist-mono); font-size: 11px; }
 .articleHero { position: relative; width: 100%; min-height: 310px; margin-top: 34px; overflow: hidden; border-radius: 9px; background: var(--surface-quiet); }
