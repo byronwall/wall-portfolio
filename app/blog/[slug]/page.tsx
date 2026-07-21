@@ -118,6 +118,10 @@ export default async function Blog({ params }: BlogPageProps) {
   }
 
   const readingTime = getReadingTime(post.content);
+  const interactionTime =
+    typeof post.metadata.interactionTime === "string"
+      ? post.metadata.interactionTime
+      : undefined;
   const category = getPostCategory(post.metadata);
   const tableOfContents = getTableOfContents(post.content);
   const isInteractive = post.metadata.layout === "interactive";
@@ -166,6 +170,7 @@ export default async function Blog({ params }: BlogPageProps) {
           <div className={styles.interactiveMeta} aria-label="Article details">
             <span>{formatDate(post.metadata.publishedAt)}</span>
             <span>{readingTime}</span>
+            {interactionTime && <span>{interactionTime}</span>}
             <span>{category}</span>
             {relatedProject && <Link href={`/projects/${relatedProject.slug}`}>{relatedProject.metadata.title} →</Link>}
           </div>
@@ -203,7 +208,7 @@ export default async function Blog({ params }: BlogPageProps) {
               )}
             </h1>
             <p className={styles.articleSummary}>{post.metadata.summary}</p>
-            <p className={styles.articleMobileMeta}>{formatDate(post.metadata.publishedAt)} · {readingTime} · {category}{relatedProject ? ` · ${relatedProject.metadata.title}` : ""}</p>
+            <p className={styles.articleMobileMeta}>{formatDate(post.metadata.publishedAt)} · {readingTime}{interactionTime ? ` · ${interactionTime}` : ""} · {category}{relatedProject ? ` · ${relatedProject.metadata.title}` : ""}</p>
             {post.metadata.articleHero !== "false" && (
               <div className={styles.articleHero}>
                 {post.thumbnail ? <img className={styles.articleHeroImage} src={post.thumbnail} alt="" /> : <div className={`${styles.fallbackVisual} ${styles.articleFallback}`}><span className={styles.fallbackMark}>BW / {post.metadata.title.slice(0, 2).toUpperCase()}</span></div>}

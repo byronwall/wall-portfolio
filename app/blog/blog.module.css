@@ -141,6 +141,7 @@
 .interactiveBackLink { flex: 0 0 auto; color: var(--action-primary); font-size: 12px; font-weight: 620; text-decoration: none; }
 .interactiveMeta { display: flex; min-width: 0; flex-wrap: wrap; justify-content: flex-end; gap: 6px 18px; color: var(--ink-muted); font-family: var(--font-geist-mono); font-size: 10.5px; line-height: 1.4; }
 .interactiveMeta > * + * { position: relative; }
+.interactiveMeta > * { white-space: nowrap; }
 .interactiveMeta > * + *::before { content: ""; position: absolute; left: -10px; top: 50%; width: 2px; height: 2px; border-radius: 50%; background: var(--ink-tertiary); }
 .interactiveMeta a { color: var(--action-primary); text-decoration: none; }
 .interactiveLayout { position: relative; display: block; }
@@ -207,6 +208,7 @@
   .interactiveArticlePage { padding-right: 14px; padding-left: 14px; }
   .interactiveTopbar { display: grid; gap: 12px; }
   .interactiveMeta { max-width: none; justify-content: flex-start; }
+  .interactiveMeta > * + *::before { display: none; }
   .interactiveMain .articleHeader h1 { font-size: 38px; }
 }
 

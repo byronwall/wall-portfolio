@@ -1,0 +1,138 @@
+---
+title: Building a force-directed graph one desire at a time
+publishedAt: 2026-07-18
+project: tsx-data-flow
+type: reference
+summary: "Build a readable graph by turning springs, flow, collision, and fringe behavior into small desires you can inspect one tick at a time."
+layout: interactive
+articleHero: false
+interactionTime: "12 min interactive"
+---
+
+How do you make a graph settle into something that reads like data moving through an application?
+
+A graph can be connected correctly and still read incorrectly. A context lands downstream of its consumers. Labels occupy the same space. Terminal nodes disappear into the middle of the trunk.
+
+The useful outcome is not a graph with better-looking coordinates. It is a graph where you can select the bad node, see which rule is winning, and change the smallest part that explains the failure.
+
+Treat the layout as a negotiation among small, inspectable desires. Here, a desire is one force contribution. A tick accumulates those contributions, adds the current velocity, applies damping and a movement cap, then produces the next position.
+
+Start smaller than the real graph. Two nodes are enough to see the first rule, and the first rule is not “find the right coordinate.” It is “move toward a distance.”
+
+<GraphLayoutExplorer variant="spring" />
+
+Choose `Tight spring`, `Balanced`, or `Wide spring`, then press Play or drag the tick slider. Each preset restarts from the same initial state, so the only thing changing is the distance the spring requests.
+
+The gray edge is connectivity. The blue arrows are spring requests. The red arrow is the exact next displacement, and the dashed red circle is where the node will be after one tick.
+
+The positions are reconstructed from the initial state for the selected tick. Going backward is therefore deterministic. It does not try to run a damped simulation in reverse.
+
+## A spring does not know which way is downstream
+
+A chain of springs can become compact without becoming readable. Distance alone is symmetric: left, right, up, and down are all equally valid.
+
+<GraphLayoutExplorer variant="flow" />
+
+Start with `Loose chain`, then set `Direction` to zero. Run the graph forward and watch the chain shorten without acquiring a stable reading order. Raise direction toward `1` and compare the blue spring arrows with the purple directional arrows.
+
+Focused pseudocode for the new directional request:
+
+```ts
+const desired = {
+  x: parent.x + Math.cos(Math.PI / 4) * linkDistance,
+  y: parent.y + Math.sin(Math.PI / 4) * linkDistance,
+};
+
+child.force.x += (desired.x - child.x) * directionStrength;
+child.force.y += (desired.y - child.y) * directionStrength;
+```
+
+This is a desire, not a coordinate override. The spring can shorten the edge, collision can move it aside, and the directional term can keep asking it to return to the preferred cone.
+
+This is also where the physical metaphor stops being useful. The integrator comes from a force layout, but these are semantic layout rules rather than laws of mechanics. A directional correction can act more strongly on the child because the goal is readable flow, not conservation of momentum.
+
+Notice what happens when direction is too high. The chain becomes orderly, but it can also become rigid. That is the first tradeoff: a force can express meaning and still overpower the rest of the layout.
+
+## Branches need shape-aware clearance
+
+Now add a parent with several children. Some of those children are terminal nodes, drawn as squares.
+
+Before moving the controls, predict what `Mark gap = 0` will do. `Anatomy` starts visible so you can see the mark and label envelopes that the collision term is trying to protect.
+
+<GraphLayoutExplorer variant="collision" />
+
+Focused pseudocode for the new clearance decision:
+
+```ts
+const clearance =
+  left.markRadius +
+  right.markRadius +
+  labelAllowance +
+  markGap;
+
+if (distance < clearance) {
+  const overlap = clearance - distance;
+  const push = overlap * collisionStrength;
+  separate(left, right, push);
+}
+```
+
+`Mark gap` changes when separation begins. `Collision strength` changes how aggressively overlap is corrected. A high strength with a zero gap can still pack shapes tightly. A large gap with almost no strength requests clearance that the simulation does little to enforce.
+
+Labels matter here too. If every label renders to the right, the collision model needs a rightward text rectangle. Modeling the label as a symmetric circle may look approximately correct for isolated nodes and fail badly inside a branch.
+
+## Some edges reverse the visual rule
+
+The ordinary edges so far belong to the component tree. A route renders a page, the page renders a list, and the list renders an item. Down-right works because the graph is following that parent-to-child structure.
+
+A context does not fit that structure. One provider can feed components in several branches without being their visual parent. If it settles into the same lane as the component tree, the provider looks like another child and its fan-out cuts through the trunk.
+
+This graph knows those edges are different. It reserves an upper-right lane for context providers, outside the normal component flow. The dashed context edges still move downward, but they angle back toward the consumers on their left.
+
+<GraphLayoutExplorer variant="context" />
+
+The purple diamond and dashed edges use a different target vector. Ordinary parent-to-child edges prefer down-right. A context edge asks its consumer to sit down-left of the provider, leaving the provider above-right of the group it feeds.
+
+Focused pseudocode for that semantic branch:
+
+```ts
+const desiredDirection =
+  edge.kind === "context"
+    ? { x: -Math.SQRT1_2, y: Math.SQRT1_2 }
+    : { x: Math.SQRT1_2, y: Math.SQRT1_2 };
+```
+
+Try setting direction to zero. The context remains connected, but its placement no longer carries the meaning of “special input arriving from upstream.” Restore direction and scrub through the first 80 ticks. The ordinary and exceptional edges negotiate at the same time.
+
+This is an application convention, not a universal rule for graphs. Here, the graph already knows which edges span the component tree, so it can spend position on making that relationship visible.
+
+## The full graph is a weighted argument
+
+The final graph adds a source, two contexts, internal branches, several terminals, and enough nearby marks for the forces to disagree.
+
+The only new desire is fringe avoidance. It is deliberately local: each terminal measures nearby non-connected mass and moves away from that local center. Direct neighbors are ignored so the force does not build an invisible wall between a leaf and its parent.
+
+Focused pseudocode for the fringe request:
+
+```ts
+for (const neighbor of nearbyNodes) {
+  if (isDirectlyConnected(node, neighbor)) continue;
+
+  const weight = 1 - distance(node, neighbor) / searchRadius;
+  localMass.x += neighbor.x * weight;
+  localMass.y += neighbor.y * weight;
+  localMass.total += weight;
+}
+
+pushAway(node, localMass.center, fringeStrength);
+```
+
+<GraphLayoutExplorer variant="sandbox" />
+
+Compare the four presets, then change one value at a time. `Anatomy` is optional here; turn it on after selecting a terminal if you want to inspect the local fringe search. The selected-node readout stays in this final playground because this is the point where several desires can plausibly explain the same movement.
+
+No force needs to solve the graph. Each one needs to make a small, visible request, then leave enough room for the others to disagree.
+
+For the real iteration log behind these controls, see [Tuning a force-directed graph with visible controls](/blog/tuning-a-force-directed-graph-with-visible-controls).
+
+Source: [byronwall/tsx-data-flow](https://github.com/byronwall/tsx-data-flow)

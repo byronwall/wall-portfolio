@@ -1,0 +1,151 @@
+---
+title: When static analysis invents a recursive component graph
+publishedAt: 2026-07-18
+project: tsx-data-flow
+type: experiment
+summary: "A Suspense cycle exposed a component-identity problem in TSX Data Flow: merging render occurrences by name can manufacture paths that do not exist."
+image: "/images/posts/data-flow-visualization-iterations/34-upstream-cycle.png"
+---
+
+I selected a `Suspense` node in a route topology and got three incoming component relationships from different parts of the application.
+
+That looked useful for about a second. Then it looked impossible.
+
+One `Suspense` appeared under the route entry. Another appeared inside a color-distribution section. Another wrapped an isolation palette. The graph had collapsed all of them into one node named `component:suspense`, then used that shared node while expanding the selected component's upstream path.
+
+The cycle prevention code was working. The graph it received was already wrong.
+
+<figure className="not-prose my-6">
+  <img
+    src="/images/posts/data-flow-visualization-iterations/34-upstream-cycle.png"
+    alt="A selected Suspense topology node with unrelated incoming component paths converging on one merged node"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+  <figcaption>Several local `Suspense` occurrences had become one shared component node, creating an upstream cycle that did not exist in the source.</figcaption>
+</figure>
+
+## The identity key was making a claim
+
+The component topology used a normalized label as its identity:
+
+```text
+Suspense -> component:suspense
+Show     -> component:show
+Button   -> component:button
+```
+
+This is attractive because it compresses the graph. Fifty callers of `Button` become one reusable hub instead of fifty nearly identical leaves. That is often exactly what I want from a route overview.
+
+But a component name can describe at least two different things:
+
+- the component definition
+- one render occurrence of that component inside a parent
+
+Those are interchangeable only until ancestry matters.
+
+Imagine two real paths:
+
+```text
+CaptureRoute -> Suspense -> CaptureRouteContent
+
+CapturePageOverviewInspector -> CaptureColorDistributionSection
+  -> Suspense -> ColorSwatches
+```
+
+If both `Suspense` occurrences become the same graph node, the paths are no longer independent. The shared node can make one branch appear upstream of another. Add enough real component connections around it and a cycle appears.
+
+The cycle is not evidence that the Solid application is recursive. It is evidence that the analyzer merged two identities that the current question needed to keep separate.
+
+## `Show` had already warned me
+
+I had seen a similar problem with `Show`. The topology already treated route-local `Show` nodes as transparent. It connected the parent directly to the child and retained `Show` as `via` metadata on the edge.
+
+That handling was incomplete.
+
+The route-context hierarchy removed `Show`, but the exhaustive graph and inferred trajectory projection could add it back later by label. The same apparent primitive therefore depended on which analyzer representation supplied it.
+
+That is a bad property for a static-analysis tool. A normalization rule should sit at the boundary where representations join, or every later consumer has to remember which half-normalized facts it received.
+
+The current experiment treats `For`, `Index`, `Match`, `Show`, `Suspense`, and `Switch` as transparent Solid flow primitives throughout the topology projection:
+
+```text
+CaptureRoute -> CaptureRouteContent
+                 via Suspense
+```
+
+The wrapper is not a component node and cannot become a shared hub. The edge still records that the source hierarchy crossed `Suspense`, so the fact is available in the inspector or a later projection.
+
+For this component-topology view, that seems better. It does not mean `Suspense` is semantically unimportant. It means merging every `Suspense` occurrence into one component is not a useful representation of its importance.
+
+## Real recursion needs an occurrence too
+
+Removing framework wrappers fixes the noisy case, but it does not fix the identity model by itself.
+
+A real component can render itself:
+
+```tsx
+function Branch(props: { depth: number }) {
+  return props.depth > 0
+    ? <Branch depth={props.depth - 1} />
+    : <span>leaf</span>;
+}
+```
+
+If the graph stores only component definitions, that becomes:
+
+```text
+Branch -> Branch
+```
+
+The topology builder used to reject that as a self-edge. Avoiding the edge prevents an infinite traversal, but it also removes a real relationship.
+
+The new model keeps the shared definition and adds a dedicated recursive occurrence when the analyzer sees the same definition in its current ancestry:
+
+```text
+Branch (definition) -> Branch (recursive occurrence)
+```
+
+The occurrence is a leaf. The analyzer does not try to statically unfold an arbitrary runtime recursion depth. It preserves the fact that recursion happens and keeps the visible component path acyclic.
+
+Mutual recursion follows the same rule. If `A` renders `B` and `B` reaches `A` again, the second `A` is an occurrence under that path rather than a link back to the original definition node.
+
+This should change very little for the components I normally care about. Actual recursive UI components are rare. Shared non-recursive components can still collapse into useful hubs.
+
+## Why the traversal could not repair this
+
+The selection view uses direct neighbors plus cycle-safe upstream lineage. It adds edges incrementally and rejects only the edge that would close the focused cycle.
+
+That is still a useful safety net. It is not an identity repair system.
+
+Once several occurrences have been merged, traversal cannot recover which parent belonged to which occurrence. A more aggressive cycle filter only hides additional edges. A path-local visited set prevents an infinite loop, but it cannot make the underlying relationship true.
+
+The correction has to happen earlier:
+
+```text
+TypeScript symbols and JSX sites
+  -> component definitions and render occurrences
+  -> transparent framework normalization
+  -> topology edges
+  -> selected upstream traversal
+```
+
+Each arrow is a place where the analyzer can discard information. If it discards occurrence identity before topology construction, the UI has no principled way to reconstruct it.
+
+## This may still be the wrong abstraction
+
+I am writing this down as a candidate model, not a settled one.
+
+Making `Suspense` transparent improves the component topology, but another view may need it as an async boundary with its own identity. The likely answer is not to bring back one global `Suspense` component. It may be to project each occurrence as a different kind of boundary node.
+
+The recursive leaf is also an approximation. It shows that a recursive call exists, not how many runtime instances render or whether the condition terminates. One-level unrolling may be the right amount for a structural overview. It may be too little for a render-cost analysis.
+
+There is also a classification boundary around primitive names. A project can define its own `Show`. Static analysis should prefer symbol origin and framework role over a string match whenever that evidence exists.
+
+For now, the useful rule is narrower: do not let a convenient identity key create ancestry. Shared definitions are good compression. Repeated occurrences need to stay separate when merging them would turn a path back into one of its own parents.
+
+That gives the graph a chance to show the full upstream path without inventing recursion. I will probably learn where this model breaks by asking the graph harder questions.
+
+Related: [Learning to zoom out a data-flow visualization](/blog/learning-to-zoom-out-data-flow-visualization)
+
+Source: [byronwall/tsx-data-flow](https://github.com/byronwall/tsx-data-flow)

@@ -1,0 +1,307 @@
+---
+title: Learning to zoom out a data-flow visualization
+publishedAt: 2026-07-18
+project: tsx-data-flow
+type: reflection
+summary: "A visual log of the TSX Data Flow views that were too detailed, too flat, or too noisy—and the design rules emerging from a route-scoped topology view."
+image: "/images/posts/data-flow-visualization-iterations/40-current-topology-selection.png"
+---
+
+I wanted an overwhelming data-flow analysis.
+
+That was the phrase I kept using while working on the route views in TSX Data Flow. I know a real application has hundreds or thousands of render sinks, component handoffs, resources, contexts, shared UI primitives, and persistence boundaries. A route table saying there was one path was obviously not enough. A tiny curated diagram was not enough either. I wanted to see the thing.
+
+The mistake was assuming that every piece of that analysis needed equal visual weight.
+
+The view I am starting to like still contains a lot: the current Pluck capture route has 202 connected components, 396 visible links, and another 359 shared references summarized into hubs. The difference is that the graph is now willing to say that a route component, a terminal leaf, a common `Button`, and one of 43 Lucide icons are not equally important to draw.
+
+This is a visual log of how I got there. Most of these intermediate versions were not good, but they were useful because each bad view exposed a more specific rule.
+
+## The first trajectory was too literal
+
+The first route trajectory was a left-to-right lane of cards. I liked the basic ordering because a data flow should have some sense of source, transformation, and sink. In practice, though, the view consumed a huge amount of horizontal space. Clicking or expanding evidence reset the scroll position, the gaps did not carry an obvious meaning, and a blue line appeared without explaining what it proved.
+
+<div className="not-prose my-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+  <figure>
+    <img src="/images/posts/data-flow-visualization-iterations/01-early-lane-trajectory-confusing.png" alt="Early left-to-right route trajectory with large cards, wide gaps, and extensive horizontal scrolling" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+    <figcaption>The first card lane looked orderly, but interacting with it constantly moved the viewport and made the spacing hard to interpret.</figcaption>
+  </figure>
+  <figure>
+    <img src="/images/posts/data-flow-visualization-iterations/02-smoke-test-persisted-domain.png" alt="Route trajectory incorrectly elevating a smoke-test script as a persisted domain" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+    <figcaption>A one-off smoke-test script appeared as persisted domain evidence. More evidence was not helping when the evidence itself was poorly ranked.</figcaption>
+  </figure>
+</div>
+
+The cards also showed source lines simply because the analyzer had them. An `import` line is exact evidence, but it is rarely the first thing I need to understand. The interface was exposing the analyzer's intermediate representation instead of answering what happened to the value.
+
+<div className="not-prose my-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+  <figure>
+    <img src="/images/posts/data-flow-visualization-iterations/03-import-line-evidence.png" alt="Trajectory cards showing import statements as prominent evidence" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+    <figcaption>Exact source evidence was promoted into the main explanation even when an import line did not explain the data flow.</figcaption>
+  </figure>
+  <figure>
+    <img src="/images/posts/data-flow-visualization-iterations/04-selection-fading.png" alt="Early selected trajectory with unrelated cards faded too aggressively" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+    <figcaption>Selection fading was also too aggressive at card scale. The blue accent was enough; removing the surrounding content made orientation worse.</figcaption>
+  </figure>
+</div>
+
+The larger problem was that the route-context page implied a story it could not support. Data appeared on the left, a flat list of components appeared in the middle, and one terminal renderer appeared on the right. A board value was obviously used in more than one `style` attribute, so why was there one consumer? Why were the middle components flat? What did the arrows mean?
+
+Then one screenshot exposed an outright modeling error: `Suspense` appeared in the sequence even though the data was not passed into it. Independently discovered expressions had been stage-sorted and chained as if each output fed the next.
+
+<div className="not-prose my-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+  <figure>
+    <img src="/images/posts/data-flow-visualization-iterations/05-flat-route-context.png" alt="Flat route-context view with data on the left, components in the middle, and one terminal sink" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+    <figcaption>The flat route context omitted most consumers and gave no useful hierarchy to the components in the middle.</figcaption>
+  </figure>
+  <figure>
+    <img src="/images/posts/data-flow-visualization-iterations/06-false-suspense-chain.png" alt="Trajectory with a Suspense card incorrectly chained into the data flow" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+    <figcaption>`Suspense` made the diagram look more complete while making the underlying claim false. The synthetic arrows had to go.</figcaption>
+  </figure>
+</div>
+
+That was the first important boundary: a line is a claim. If the analyzer has not proved a value handoff through an argument, return, prop, or context, the UI should show a break or separate evidence. It should not invent a clean chain.
+
+## Getting all the paths on screen
+
+The next version swung in the opposite direction. I asked for the large node-and-edge diagram because the route table was hiding the scale of the analysis.
+
+<div className="not-prose my-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+  <figure>
+    <img src="/images/posts/data-flow-visualization-iterations/07-route-table-missing-graph.png" alt="Route table that reports too few paths and does not expose the underlying graph" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+    <figcaption>The route table was manageable, but it concealed the hundreds or thousands of sinks I knew were present.</figcaption>
+  </figure>
+  <figure>
+    <img src="/images/posts/data-flow-visualization-iterations/08-first-all-paths-graph.png" alt="First large all-paths node-and-edge diagram" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+    <figcaption>The all-paths graph was much closer to the object I wanted to inspect. It also immediately needed structure.</figcaption>
+  </figure>
+</div>
+
+Grouping by component helped because it introduced a real hierarchy. A field such as `board.description` does not simply end at a source expression; it crosses component boundaries as props. Those component-to-component edges are often the part I care about when deciding where to refactor.
+
+<div className="not-prose my-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+  <figure>
+    <img src="/images/posts/data-flow-visualization-iterations/09-component-grouping-one.png" alt="All-paths graph grouped into component bands" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+    <figcaption>Component bands added the first useful hierarchy.</figcaption>
+  </figure>
+  <figure>
+    <img src="/images/posts/data-flow-visualization-iterations/10-component-grouping-two.png" alt="Component-grouped data path with prop nodes and a missing cross-component edge" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+    <figcaption>The grouping also made missing prop handoffs easier to see.</figcaption>
+  </figure>
+  <figure>
+    <img src="/images/posts/data-flow-visualization-iterations/11-component-grouping-three.png" alt="Dense component-grouped route flow with oversized nodes" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+    <figcaption>But every node was still too large, so the hierarchy did not solve the navigation cost.</figcaption>
+  </figure>
+</div>
+
+The useful request at this stage was compression. One-line nodes. Narrower widths. Full-viewport rendering. Hover for source snippets. Explicit complex-path isolation. I was spending too much time panning just to find the path I wanted.
+
+<div className="not-prose my-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+  <figure>
+    <img src="/images/posts/data-flow-visualization-iterations/12-long-path-pan.png" alt="Long component-grouped path requiring extensive panning and scrolling" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+    <figcaption>A long path could be technically correct and still be a bad working surface if it required constant panning.</figcaption>
+  </figure>
+  <figure>
+    <img src="/images/posts/data-flow-visualization-iterations/13-hover-code-evidence.png" alt="Compact path node with a hover card showing source-code evidence" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+    <figcaption>Compact nodes became more viable once hover could reveal an actual usage snippet.</figcaption>
+  </figure>
+</div>
+
+Another recurring problem was the analyzer promoting mechanically unusual facts. “Shared across four components” appeared at the top even when the shared content was not useful. One case literally reported `undefined` as the shared value.
+
+<div className="not-prose my-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+  <figure>
+    <img src="/images/posts/data-flow-visualization-iterations/14-shared-components.png" alt="Path view prominently showing a low-value shared-across-components section" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+    <figcaption>“Shared” was treated as important because it was detectable, not because it helped explain the route.</figcaption>
+  </figure>
+  <figure>
+    <img src="/images/posts/data-flow-visualization-iterations/15-undefined-shared.png" alt="Path view listing undefined as shared content" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+    <figcaption>`undefined` made the ranking problem hard to ignore.</figcaption>
+  </figure>
+</div>
+
+The last improvement in this family was small but important: distinguish the actual route entry from the first component retained in a trace. A long path needs to tell me whether I am looking at the route root or merely where the available evidence starts.
+
+<figure className="not-prose my-6">
+  <img src="/images/posts/data-flow-visualization-iterations/16-route-entry.png" alt="Compact component path labeled with its route entry and trace start" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+  <figcaption>The route entry and trace start are different facts. Naming both made the path easier to trust.</figcaption>
+</figure>
+
+## The force-directed topology experiment
+
+The card lanes kept trying to make one path legible at full detail. What I still lacked was the big-picture connectivity. I wanted to zoom out, connect dots with lines, and see the component structure around a route.
+
+The first force-directed version was immediately more fun. That matters. I could move around, spot clusters, and form questions before reading every label. It was also a mess in predictable ways.
+
+<figure className="not-prose my-6">
+  <img src="/images/posts/data-flow-visualization-iterations/17-first-force-topology.png" alt="First force-directed route topology with many explicit component and shared-reference edges" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+  <figcaption>The first force-directed topology made the route feel like one connected object instead of a stack of reports.</figcaption>
+</figure>
+
+Common primitives such as `Button` consumed a huge amount of edge space. The better representation was not another pile of arrows. A high-degree shared reference could become a hub color, with a small matching ring on each connected node. The graph would preserve the fact of the relationship without giving every relationship a separate line.
+
+<figure className="not-prose my-6">
+  <img src="/images/posts/data-flow-visualization-iterations/18-popular-button-hub.png" alt="Topology where the common Button component consumes many explicit edges" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+  <figcaption>`Button` was the first obvious case where an explicit edge per reference was the wrong visual vocabulary.</figcaption>
+</figure>
+
+The graph also changed the value of every pixel around it. Tall toolbars that were acceptable on a report page were expensive here. I kept asking to combine controls until the interface occupied two compact rows.
+
+<div className="not-prose my-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+  <figure>
+    <img src="/images/posts/data-flow-visualization-iterations/19-toolbar-height.png" alt="Force graph with several tall toolbar rows reducing the available canvas" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+    <figcaption>The first graph shell spent too much vertical space on controls and status.</figcaption>
+  </figure>
+  <figure>
+    <img src="/images/posts/data-flow-visualization-iterations/20-two-line-toolbar.png" alt="Force graph with controls aggressively combined into two compact rows" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+    <figcaption>Not all information was useful enough to keep. Two rows left substantially more room for the object being inspected.</figcaption>
+  </figure>
+</div>
+
+## Learning what not to draw
+
+Most of the remaining iteration was subtraction. The purple context diamond and its surrounding edges formed a rat's nest. `ButtonPropsContext` occupied a large part of the canvas even though it was implementation detail for a common UI primitive. Components from unrelated routes appeared because they happened to use the same shared component.
+
+<div className="not-prose my-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+  <figure>
+    <img src="/images/posts/data-flow-visualization-iterations/21-context-rats-nest.png" alt="Dense context hub producing a rat's nest of edges in a route topology" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+    <figcaption>A context hub created a dense knot with no obvious reading order.</figcaption>
+  </figure>
+  <figure>
+    <img src="/images/posts/data-flow-visualization-iterations/22-button-context-too-large.png" alt="ButtonPropsContext receiving disproportionate visual space in the topology" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+    <figcaption>`ButtonPropsContext` did not warrant this much attention.</figcaption>
+  </figure>
+  <figure>
+    <img src="/images/posts/data-flow-visualization-iterations/23-off-route-table-demo.png" alt="TableDemo appearing in a route graph only because it shares Button references" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+    <figcaption>Shared references must not pull unrelated routes into the visible subgraph.</figcaption>
+  </figure>
+</div>
+
+Once the graph was route-scoped, disconnected nodes became suspicious. So did connected nodes placed far apart. A force layout can optimize an abstract energy function and still violate the visual meaning I expect: if two nodes are each other's only relationship, they should probably be close.
+
+<div className="not-prose my-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+  <figure>
+    <img src="/images/posts/data-flow-visualization-iterations/24-disconnected-nodes.png" alt="Visible route topology containing nodes with no rendered connections" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+    <figcaption>Disconnected nodes looked like analyzer or projection mistakes, not useful context.</figcaption>
+  </figure>
+  <figure>
+    <img src="/images/posts/data-flow-visualization-iterations/25-rats-nest-spacing.png" alt="Dense cluster of overlapping nodes, labels, and crossing edges" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+    <figcaption>A second rat's nest showed that generic force spacing was not enough.</figcaption>
+  </figure>
+  <figure>
+    <img src="/images/posts/data-flow-visualization-iterations/26-separated-connected-nodes.png" alt="Directly connected nodes placed unnecessarily far apart" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+    <figcaption>Directly connected nodes were separated for no useful reason.</figcaption>
+  </figure>
+</div>
+
+Removing noise cannot remove structure. When the Library filter route lost the component that tied its children together, the graph became cleaner and less true. The same thing happened when thick hub rings covered labels.
+
+<div className="not-prose my-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+  <figure>
+    <img src="/images/posts/data-flow-visualization-iterations/27-missing-library-filter-one.png" alt="Library filter topology missing the component that connects several related nodes" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+    <figcaption>The missing parent left a cluster without the component that explained it.</figcaption>
+  </figure>
+  <figure>
+    <img src="/images/posts/data-flow-visualization-iterations/28-missing-library-filter-two.png" alt="Source context for the missing Library filter component connection" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+    <figcaption>The source made the absent component boundary visible as an analysis problem.</figcaption>
+  </figure>
+</div>
+
+<div className="not-prose my-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+  <figure>
+    <img src="/images/posts/data-flow-visualization-iterations/29-ring-borders-too-thick.png" alt="Topology nodes with multiple thick shared-reference rings obscuring labels" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+    <figcaption>Summarization worked, but the first rings were so thick that they hid the labels they were supposed to support.</figcaption>
+  </figure>
+  <figure>
+    <img src="/images/posts/data-flow-visualization-iterations/30-ring-border-still-thick.png" alt="Close-up of a shared-reference ring still covering node text" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+    <figcaption>The close-up made the correction simple: less border and less gap between rings.</figcaption>
+  </figure>
+</div>
+
+Lucide icons were another high-degree family. The useful fact is usually that a component renders one or more icons from `lucide-solid`, not that every icon deserves an arrow across the graph. Grouping the package into a ring preserved that signal.
+
+<figure className="not-prose my-6">
+  <img src="/images/posts/data-flow-visualization-iterations/31-icon-edge-noise.png" alt="Many Lucide icon references creating unnecessary explicit edges across the topology" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+  <figcaption>Icon references were real, but explicit icon edges did not help me understand the route.</figcaption>
+</figure>
+
+## Keeping the graph truthful
+
+The topology was getting visually close while still missing the part I originally cared about: how data arrives. On the capture inventory route, a `createResource` calls a server handler. That boundary needs to appear. Otherwise the graph explains component topology while stopping just before the source of the data.
+
+<figure className="not-prose my-6">
+  <img src="/images/posts/data-flow-visualization-iterations/32-missing-data-sources.png" alt="Route topology missing createResource and server-handler data-source nodes" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+  <figcaption>The component topology was close, but the `createResource` and server source were exactly the incoming path I wanted to see.</figcaption>
+</figure>
+
+Adding upstream traversal introduced another class of false structure. A `Show` appeared as if it wrapped a route shell even though that connection did not exist in the source. `Suspense` could also close a cycle. Then a broad cycle-prevention rule hid legitimate inbound lines.
+
+<div className="not-prose my-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+  <figure>
+    <img src="/images/posts/data-flow-visualization-iterations/33-false-show-edge.png" alt="Topology showing an unsupported Show-to-route-shell relationship" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+    <figcaption>A graph edge that merely looks plausible is still wrong.</figcaption>
+  </figure>
+  <figure>
+    <img src="/images/posts/data-flow-visualization-iterations/34-upstream-cycle.png" alt="Upstream expansion creating a cycle through Suspense" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+    <figcaption>Upstream expansion needed path-local cycle prevention.</figcaption>
+  </figure>
+</div>
+
+Zoom created a separate legibility problem. If text shrinks with graph coordinates, there is no useful zoom level: zoom out and the labels disappear; zoom in and the overview disappears. Labels need screen-space behavior so that zoom changes topology scale without making text impossible to read.
+
+<div className="not-prose my-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+  <figure>
+    <img src="/images/posts/data-flow-visualization-iterations/35-small-zoom-labels.png" alt="Zoomed-out topology with labels too small to read" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+    <figcaption>Graph-space text made both the overview and the labels unusable at the same time.</figcaption>
+  </figure>
+  <figure>
+    <img src="/images/posts/data-flow-visualization-iterations/36-terminal-node-distance.png" alt="Terminal node connected by a long crossing edge instead of sitting near its parent" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+    <figcaption>Terminal-leaf compaction shortened unnecessary arcs and pulled single-purpose nodes back toward their parents.</figcaption>
+  </figure>
+</div>
+
+Finally, cycle prevention had to be edge-specific. “This node is reachable somewhere downstream” does not mean “this inbound edge closes a cycle now.” The graph should keep legitimate direct inbound relationships and reject only the particular edge that completes the loop.
+
+<div className="not-prose my-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+  <figure>
+    <img src="/images/posts/data-flow-visualization-iterations/37-cycle-filter-missing-inbound-one.png" alt="Selected topology missing a legitimate inbound edge after broad cycle filtering" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+    <figcaption>The first cycle rule removed a legitimate inbound connection.</figcaption>
+  </figure>
+  <figure>
+    <img src="/images/posts/data-flow-visualization-iterations/38-cycle-filter-missing-inbound-two.png" alt="Inspector showing inbound connections that are not all emphasized in the topology" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+    <figcaption>The inspector made the missing line auditable and led to incremental, edge-specific cycle detection.</figcaption>
+  </figure>
+</div>
+
+## The view that is starting to work
+
+The current overview is still dense. It should be. The route is dense.
+
+What feels different is that the density now has levels. The full graph provides shape. Common shared references are summarized. Data sources remain visible toward the edge. Component clusters occupy the center. Labels stay readable. The inspector is persistent but does not take over the canvas.
+
+<figure className="not-prose my-6">
+  <img src="/images/posts/data-flow-visualization-iterations/39-current-topology-overview.png" alt="Current zoomed-out route topology showing 202 connected components and summarized shared references" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+  <figcaption>The current overview: 202 connected components, 396 visible links, and 359 shared references summarized instead of drawn as another wall of edges.</figcaption>
+</figure>
+
+Selection then changes the job of the same map. The unrelated topology remains as faint spatial context while the selected component's contributors and consumers become the working view. This is where fading now feels useful. In the early card lane, fading removed content I still needed to read. In a zoomed-out map, it preserves where I am while letting a smaller subgraph come forward.
+
+<figure className="not-prose my-6">
+  <img src="/images/posts/data-flow-visualization-iterations/40-current-topology-selection.png" alt="Current route topology with CaptureOutlinePanel selected, related nodes emphasized, and the rest of the map faded" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+  <figcaption>Selecting `CaptureOutlinePanel` turns the full topology into context for one inspectable neighborhood.</figcaption>
+</figure>
+
+## The design rules I am taking from this
+
+The graph feels better because several choices are working together:
+
+- Start from a route. A universal repository atlas is interesting, but a route gives the graph a useful boundary and a concrete question.
+- Draw explicit edges for relationships worth following. Summarize high-degree shared components, contexts, and icon packages with rings or hubs.
+- Keep real hierarchy. Component boundaries, route entry, data sources, and terminal renderers should survive compression.
+- Let geometry carry meaning. Single-purpose leaves belong near their parents. Unrelated routes do not belong in the graph. A disconnected node should be explainable.
+- Keep labels in screen space and details in progressive disclosure. Zoom should reveal topology, hover should provide quick source evidence, and selection should open persistent detail.
+- Treat every edge as a claim. False completeness is worse than an honest gap.
+
+The main change in my own thinking is that “overwhelming” should describe the coverage of the analysis, not the treatment of every mark on screen. I still want all the paths. I just do not need all of them yelling at me at once.
+
+Source: [byronwall/tsx-data-flow](https://github.com/byronwall/tsx-data-flow)

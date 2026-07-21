@@ -1,0 +1,109 @@
+---
+title: Give Codex the tweet and let it run the claim to ground
+publishedAt: 2026-07-19
+summary: 'A post-work audit of giving Codex an alarming SSD-wear tweet, letting it choose and run the diagnostics, and checking whether the conclusion was actually earned.'
+type: reflection
+---
+
+I regularly see people respond to a technical problem with some version of: point Codex at it.
+
+That can sound a little glib. What does “point Codex at it” mean when the input is an alarming [tweet about Codex writing hundreds of terabytes to an SSD](https://x.com/0x_kaize/status/2078872972245225586), and I have no expertise in SSD diagnostics, SQLite write amplification, or macOS process accounting?
+
+In this case, I gave Codex the open tweet and asked it to figure out whether the issue was affecting my machine. I did not tell it which commands to run. That is the part I find useful. It had to turn a claim from a social post into a sequence of measurements, decide which measurements were inconclusive, and keep narrowing until it could say something about this machine.
+
+## Start with the thing that is actually running
+
+The first pass checked macOS, the installed Codex versions, active processes, and the files under `~/.codex`.
+
+That immediately found an important distinction:
+
+```text
+/opt/homebrew/bin/codex
+codex-cli 0.142.2
+
+/Applications/ChatGPT.app/Contents/Resources/codex
+codex-cli 0.145.0-alpha.18
+```
+
+The older Homebrew CLI existed, but it was not the process writing the active database. Three app-server processes from the ChatGPT desktop bundle had the file open. The running binary was newer than the fixes discussed in the tweet.
+
+Codex found the owners with `lsof`:
+
+```sh
+lsof ~/.codex/logs_2.sqlite \
+  ~/.codex/logs_2.sqlite-wal \
+  ~/.codex/logs_2.sqlite-shm
+```
+
+That is a small step, but it prevents a bad diagnosis. Checking the version returned by `codex --version` was not enough. The useful question was which binary had the suspicious file open.
+
+## A large database is not the same as a high write rate
+
+The active `logs_2.sqlite` file was 1.5 GB, with a 13 MB write-ahead log. That looked bad enough to keep investigating, but file size does not tell you how many bytes the SSD has absorbed.
+
+Codex opened the database in read-only mode and inspected the SQLite page counts, schema, retention window, and recent log levels:
+
+```sh
+sqlite3 'file:/Users/byronwall/.codex/logs_2.sqlite?mode=ro'
+```
+
+The database contained TRACE records. It also had 365,880 pages, of which 284,897 were free. About 78% of the allocated database was unused space left behind by churn. The live table held roughly 205,000 rows over ten days and an estimated 209 MB of payload.
+
+That explained the large file better, but it still did not answer the SSD question. A stable SQLite file can repeatedly write its WAL and checkpoint pages without growing.
+
+## Measure the process instead of the whole machine
+
+The first disk sample used `iostat`. That produced a large aggregate number, but it included the rest of the machine. Chrome, the operating system, and every other process were mixed together. Codex correctly treated that result as inconclusive.
+
+To isolate Codex, it wrote a small C probe around the macOS `proc_pid_rusage` API. The script records `ri_diskio_byteswritten` for each process, waits, records it again, and divides the difference by the sample duration:
+
+```c
+before = usage.ri_diskio_byteswritten;
+sleep(seconds);
+after = usage.ri_diskio_byteswritten;
+rate = (after - before) / seconds;
+```
+
+The first 30-second sample found that only one of the three Codex processes wrote data. It averaged about 92 KB/s. A 60-second sample averaged about 24 KB/s.
+
+More useful than either short sample was the process-lifetime counter. The active process had written 5.25 GB over about 38 hours, or roughly 3.3 GB per day. If that average continued for a year, it would be around 1.2 TB. That is not zero, but it is nowhere near the tweet's reported 640 TB per year.
+
+## Ask the SSD what it knows
+
+macOS reported the internal SSD's SMART status as `Verified`, but its built-in summary did not expose lifetime writes. Codex asked permission to install `smartmontools` through Homebrew, then ran:
+
+```sh
+smartctl -a /dev/disk0
+```
+
+The drive reported:
+
+```text
+SMART overall-health self-assessment test result: PASSED
+Percentage Used:                    1%
+Data Units Written:                 59,909,143 [30.6 TB]
+Power On Hours:                     850
+Media and Data Integrity Errors:    0
+```
+
+So the SSD had received 30.6 TB of writes over its life. That is a real and nontrivial number. It also reported 1% endurance used, 100% available spare, and no media or integrity errors.
+
+The practical conclusion was that the current Codex process was not showing the catastrophic behavior from the tweet, and the SSD was not reporting a health problem. The separate Homebrew CLI was still on `0.142.2`, so updating it before heavy use would be a reasonable precaution.
+
+## Was the investigation actually good?
+
+Mostly, yes.
+
+The strongest part was the progression of evidence. Codex did not stop at the database size, the presence of TRACE logs, or the first scary system-wide disk number. It identified the running binary, found the processes holding the database, inspected SQLite without mutating it, rejected an aggregate measurement, measured writes per process, and finally checked the hardware's own lifetime counters.
+
+That is exactly the part I would not have known how to do. I would not have started with `lsof`, known that SQLite file size could hide WAL churn, or reached for `proc_pid_rusage` when `iostat` could not attribute the writes. Codex could move between those layers without me first learning the diagnostic vocabulary.
+
+There are still real limits.
+
+The 30- and 60-second samples are short and depend on activity. Running the investigation through Codex also creates Codex log traffic, so the measurement changes the thing being measured. The process-lifetime counter is better, but it only covers the currently running process. The SSD's 30.6 TB counter is device-wide and cannot say which application caused those historical writes. This investigation cannot prove that an older Codex version never contributed to that total.
+
+The SMART interpretation also deserves some restraint. `Percentage Used: 1%` is a coarse, controller-reported endurance value, not a forensic accounting of NAND wear. One optional SMART error-log read failed even though the main health data succeeded. And installing `smartmontools` triggered a Homebrew auto-update, which was a larger side effect than the diagnostic itself required.
+
+So I think the conclusion was accurate, but bounded: **the dangerous write rate was not happening now, and the drive currently reported healthy**. A stronger historical claim would need a longer monitor, probably sampling process writes and the drive counter across idle and active periods for a day or more.
+
+That boundary is part of the positive example. “Point Codex at it” worked because Codex did not need me to know where to start, but the useful output was not blind reassurance. It was a chain of commands, measurements, discarded evidence, and qualifications that I could audit afterward.

@@ -15,6 +15,7 @@ import {
   CanvasSceneModelExplorer,
   CanvasWholeSystemPreview,
 } from 'app/blog/components/canvas-interactivity-explorer'
+import { GraphLayoutExplorer } from 'app/blog/components/graph-layout-explorer'
 
 function Table({ data }) {
   let headers = data.headers.map((header, index) => (
@@ -154,6 +155,7 @@ let components = {
   CanvasScatterPlotExplorer,
   CanvasSceneModelExplorer,
   CanvasWholeSystemPreview,
+  GraphLayoutExplorer,
 }
 
 export function CustomMDX(props) {
