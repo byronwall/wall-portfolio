@@ -1,0 +1,62 @@
+---
+title: "Find My AI Fit"
+description: "A resume-to-opportunity map for finding practical AI use cases in your actual work"
+date: "2026-07-24"
+publishedAt: "2026-07-24"
+summary: "A SolidStart application that turns a resume into a structured map of useful AI experiments and one practical next step."
+tags: ["AI", "SolidStart", "Product Design", "LLM", "Panda CSS", "Open Source"]
+image: "/images/projects/find-my-ai-fit/current-landing.png"
+status: "active"
+featured: "true"
+repo: "https://github.com/byronwall/finy-my-ai-fit"
+---
+
+Find My AI Fit turns a LinkedIn PDF or another resume into a structured map of AI opportunities. The user scans the map, marks the ideas that fit, and gets a practical plan with a small first experiment and a prompt they can take into the AI tool they already use.
+
+Source: [byronwall/finy-my-ai-fit](https://github.com/byronwall/finy-my-ai-fit)
+
+Domain: [FindMyAIFit.com](https://findmyaifit.com)
+
+## Interface
+
+<div className="not-prose mt-6">
+  <img
+    src="/images/projects/find-my-ai-fit/current-landing.png"
+    alt="Find My AI Fit landing page with a bold headline and resume upload workflow"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+</div>
+
+## How it works
+
+- Accepts a LinkedIn PDF or another resume as the starting context.
+- Extracts grounded profile facts and proposes an initial set of directions.
+- Organizes generated ideas in a three-by-three opportunity map.
+- Lets the user treat the grid as a checklist instead of a complex workspace.
+- Generates a practical plan, a recommended first experiment, and a reusable prompt from the selected ideas.
+- Stores model-generation traces on disk so results and prompt behavior can be inspected during development.
+
+## Highlights
+
+- Full-page resume drop target with a no-profile example path
+- Multi-stage structured generation using the Vercel AI SDK and Zod
+- Stable, history-aware idea generation with guided refinement questions
+- SolidStart server actions and file-backed generation records
+- Responsive Panda CSS interface with a deliberately compact sticky header
+- Public source, Docker Compose deployment configuration, and a self-hosted domain
+
+## Design evolution
+
+The first implementation exposed nearly every possible action: save, hide, inspect, deepen a cell, and build a brief. Successive design passes removed most of that machinery. The core flow is now much simpler: mark interesting ideas, ask for another set when useful, then build a plan.
+
+<div className="not-prose my-8">
+  <img
+    src="/images/projects/find-my-ai-fit/current-grid.png"
+    alt="Current Find My AI Fit opportunity grid with concise cards and a checklist interaction"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+</div>
+
+The accompanying post, [Building Find My AI Fit from a 50-minute dictation](/blog/building-find-my-ai-fit), walks through the product and branding decisions in detail.
