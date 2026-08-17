@@ -1,0 +1,939 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Date Table</title>
+  <style>
+    /*
+      THESIS: A working paper, not a dashboard. The editable schedule is the page.
+      OWN-WORLD: Cool paper, ink-blue type, ruled lines, and one sea-green action color.
+      STORY: Name the sheet, choose its cadence, enter notes, then print one clean page.
+      FIRST VIEWPORT: A compact setup rail sits above a full-width ruled date table.
+      FORM: A dependency-free operating tool shaped directly from the precise brief.
+    */
+    :root {
+      --ink: #18343c;
+      --muted: #5b7075;
+      --paper: #f5f8f7;
+      --sheet: #ffffff;
+      --line: #b8c9c8;
+      --line-strong: #789492;
+      --accent: #087f75;
+      --accent-dark: #075e58;
+      --wash: #e4efed;
+      --row-height: 44px;
+      --header-height: 42px;
+      --radius: 10px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(rgba(24, 52, 60, 0.035) 1px, transparent 1px),
+        var(--paper);
+      background-size: 100% 24px;
+      font-family: Avenir, "Segoe UI", Helvetica, Arial, sans-serif;
+      line-height: 1.35;
+    }
+
+    button, input, select { font: inherit; }
+
+    button, input, select {
+      border: 1px solid var(--line-strong);
+      border-radius: 7px;
+      color: var(--ink);
+      background: var(--sheet);
+    }
+
+    button:focus-visible, input:focus-visible, select:focus-visible {
+      outline: 3px solid rgba(8, 127, 117, 0.25);
+      outline-offset: 1px;
+    }
+
+    button {
+      min-height: 38px;
+      padding: 7px 12px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    button:hover { border-color: var(--accent); color: var(--accent-dark); }
+    button:active { transform: translateY(1px); }
+    button.primary { border-color: var(--accent); color: #fff; background: var(--accent); }
+    button.primary:hover { background: var(--accent-dark); color: #fff; }
+
+    .app { width: min(1600px, 100%); margin: 0 auto; padding: 20px; }
+
+    .masthead {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 2px 2px 15px;
+    }
+
+    .identity { min-width: 0; flex: 1; }
+    .title, .subtitle {
+      display: block;
+      width: 100%;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      color: var(--ink);
+    }
+    .title { font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 800; letter-spacing: -0.035em; }
+    .subtitle { margin-top: 2px; font-size: 1rem; color: var(--muted); }
+    .title::placeholder, .subtitle::placeholder { color: #74888c; opacity: 1; }
+    .title:focus-visible, .subtitle:focus-visible { outline: 0; box-shadow: 0 2px 0 var(--accent); }
+
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: end; }
+
+    .control-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(130px, 1fr));
+      gap: 12px;
+      padding: 4px 20px 20px;
+    }
+
+    .settings-backdrop {
+      position: fixed;
+      z-index: 20;
+      inset: 0;
+      border: 0;
+      border-radius: 0;
+      background: rgba(24, 52, 60, 0.35);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 160ms ease;
+    }
+    .settings-backdrop.is-open { opacity: 1; pointer-events: auto; }
+
+    .settings-drawer {
+      position: fixed;
+      z-index: 21;
+      inset: 0 0 0 auto;
+      display: flex;
+      flex-direction: column;
+      width: min(92vw, 430px);
+      max-width: 100%;
+      border: 0;
+      border-left: 1px solid var(--line-strong);
+      border-radius: 0;
+      background: rgba(255, 255, 255, 0.98);
+      box-shadow: -18px 0 46px rgba(24, 52, 60, 0.18);
+      transform: translateX(100%);
+      transition: transform 180ms ease;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+    .settings-drawer.is-open { transform: translateX(0); }
+    .settings-drawer-header {
+      position: sticky;
+      z-index: 1;
+      top: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 16px 20px 13px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.98);
+    }
+    .settings-drawer-header h2 { margin: 0; font-size: 1.12rem; color: var(--accent-dark); }
+    .settings-close { min-height: 34px; padding: 5px 10px; }
+    .settings-drawer .control-grid { grid-template-columns: 1fr; }
+    .settings-drawer .control-grid label { min-width: 0; }
+    .settings-check { display: flex; grid-template-columns: auto 1fr; align-items: center; gap: 8px; }
+    .settings-check input { width: 18px; height: 18px; margin: 0; }
+
+    label { display: grid; gap: 5px; font-size: 0.76rem; font-weight: 800; color: var(--muted); }
+    label input, label select { width: 100%; height: 38px; padding: 7px 9px; font-weight: 500; }
+    .increment-fields { display: grid; grid-template-columns: 0.75fr 1.25fr; gap: 6px; }
+    .resize-all-fields { display: grid; grid-template-columns: minmax(80px, 1fr) auto; gap: 6px; }
+    .resize-all-fields button { height: 38px; white-space: nowrap; }
+
+    .table-shell {
+      width: max-content;
+      margin-top: 38px;
+      overflow: visible;
+      border: 1px solid var(--line-strong);
+      border-radius: 4px;
+      background: var(--sheet);
+      box-shadow: 0 18px 46px rgba(24, 52, 60, 0.11);
+    }
+
+    table {
+      width: max-content;
+      border-collapse: collapse;
+      table-layout: fixed;
+      background: var(--sheet);
+    }
+
+    th, td { position: relative; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    th:last-child, td:last-child { border-right: 0; }
+    tr:last-child td { border-bottom: 0; }
+
+    thead th {
+      height: var(--header-height);
+      padding: 0;
+      overflow: visible;
+      background: var(--wash);
+      color: var(--ink);
+      text-align: left;
+      font-size: 1.05rem;
+      font-weight: 800;
+    }
+
+    tbody td { height: var(--row-height); padding: 0; }
+
+    td input, .header-editor {
+      width: 100%;
+      height: 100%;
+      padding: 6px 10px;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+    }
+    .header-editor {
+      height: auto;
+      min-height: var(--header-height);
+      padding-right: 44px;
+      align-content: center;
+      overflow-wrap: anywhere;
+      white-space: normal;
+      line-height: 1.15;
+      font-weight: 800;
+      cursor: text;
+    }
+    th.movable-column .header-editor { padding-left: 36px; }
+    td input:focus, .header-editor:focus { outline: 2px solid var(--accent); outline-offset: -2px; background: #fbfffe; }
+
+    .column-actions {
+      position: absolute;
+      inset: -38px 0 0;
+      z-index: 4;
+      display: block;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 120ms ease;
+    }
+    th:hover .column-actions, th:focus-within .column-actions {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .column-action {
+      min-height: 26px;
+      padding: 2px 7px;
+      border-color: var(--line-strong);
+      background: var(--sheet);
+      font-size: 0.7rem;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .remove-column-button {
+      position: absolute;
+      top: 4px;
+      left: 50%;
+      width: 30px;
+      min-height: 30px;
+      padding: 2px;
+      transform: translateX(-50%);
+    }
+    .remove-column-button:active { transform: translateX(-50%) translateY(1px); }
+    .add-column-button {
+      position: absolute;
+      top: 2px;
+      right: -14px;
+      width: 30px;
+      min-height: 30px;
+      padding: 2px;
+    }
+
+    table.striped-rows tbody tr:nth-child(even) td { background: #eaf3f1; }
+
+    .column-drag-handle {
+      position: absolute;
+      z-index: 2;
+      top: 50%;
+      left: 7px;
+      width: 22px;
+      min-height: 28px;
+      padding: 0;
+      border: 0;
+      color: var(--muted);
+      background: transparent;
+      cursor: grab;
+      font-size: 15px;
+      line-height: 1;
+      letter-spacing: -2px;
+      transform: translateY(-50%);
+      touch-action: none;
+    }
+    .column-drag-handle:hover { color: var(--accent-dark); }
+    .column-drag-handle:active { cursor: grabbing; transform: translateY(-50%); }
+    th.dragging-column { opacity: 0.55; }
+    th.drop-before::before, th.drop-after::after {
+      content: "";
+      position: absolute;
+      z-index: 5;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: var(--accent);
+      box-shadow: 0 2px 8px rgba(8, 127, 117, 0.3);
+    }
+    th.drop-before::before { left: -2px; }
+    th.drop-after::after { right: -2px; }
+
+    .date-cell {
+      padding: 6px 10px;
+      color: var(--accent-dark);
+      font-size: 0.82rem;
+      font-weight: 800;
+      white-space: nowrap;
+      background: #f8fbfa;
+    }
+
+    .column-resizer {
+      position: absolute;
+      z-index: 5;
+      top: 0;
+      right: -5px;
+      width: 10px;
+      height: 100%;
+      cursor: col-resize;
+      touch-action: none;
+    }
+    .column-resizer::after {
+      content: "";
+      position: absolute;
+      top: 8px;
+      bottom: 8px;
+      left: 4px;
+      width: 2px;
+      background: transparent;
+    }
+    .column-resizer:hover::after, body.resizing-column .column-resizer::after { background: var(--accent); }
+
+    .row-resizer {
+      position: absolute;
+      z-index: 2;
+      left: 0;
+      right: 0;
+      bottom: -5px;
+      height: 10px;
+      cursor: row-resize;
+      touch-action: none;
+    }
+    .row-resizer:hover { background: linear-gradient(transparent 4px, var(--accent) 4px, var(--accent) 6px, transparent 6px); }
+
+    .help { margin: 10px 2px 0; color: var(--muted); font-size: 0.78rem; }
+    .status {
+      position: fixed;
+      z-index: 10;
+      left: 16px;
+      bottom: max(16px, env(safe-area-inset-bottom));
+      max-width: min(90vw, 320px);
+      padding: 8px 12px;
+      border: 1px solid var(--accent-dark);
+      border-radius: 7px;
+      color: #fff;
+      background: var(--accent-dark);
+      box-shadow: 0 8px 22px rgba(24, 52, 60, 0.2);
+      font-size: 0.78rem;
+      font-weight: 800;
+      overflow-wrap: anywhere;
+      opacity: 1;
+      pointer-events: none;
+      transition: opacity 140ms ease;
+    }
+    .status:empty { opacity: 0; }
+    .print-warning { align-self: center; color: #755100; font-size: 0.78rem; font-weight: 800; }
+
+    @media (max-width: 850px) {
+      .app { padding: 12px; }
+      .masthead { align-items: stretch; flex-direction: column; }
+      .actions { justify-content: start; }
+      .control-grid { grid-template-columns: repeat(2, minmax(130px, 1fr)); }
+    }
+
+    @page { size: letter portrait; margin: 0.25in; }
+
+    @media print {
+      html, body { width: 100%; height: auto; background: #fff; }
+      body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .app { width: 100%; margin: 0; padding: 0; }
+      .masthead { display: block; padding: 0 0 15px; }
+      .actions, .settings-drawer, .settings-backdrop, .settings-trigger, .help, .status, .print-warning, .column-resizer, .row-resizer, .column-actions { display: none !important; }
+      .subtitle:not(.print-has-text) { display: none !important; }
+      .column-drag-handle { visibility: hidden !important; }
+      .table-shell {
+        width: var(--print-table-width);
+        margin-top: 0;
+        overflow: visible;
+        border-radius: 0;
+        box-shadow: none;
+        zoom: var(--print-scale, 1);
+      }
+      table { width: var(--print-table-width) !important; min-width: 0 !important; }
+      thead { display: table-header-group; }
+      tr { page-break-inside: avoid; break-inside: avoid; }
+      th:last-child, td:last-child { border-right: 1px solid var(--line-strong); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .settings-drawer, .settings-backdrop { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="masthead">
+      <div class="identity">
+        <input id="title" class="title" aria-label="Title" placeholder="Untitled date table">
+        <input id="subtitle" class="subtitle" aria-label="Subtitle" placeholder="Add an optional subtitle">
+      </div>
+      <div class="actions" aria-label="Table actions">
+        <button id="settingsTrigger" class="settings-trigger" type="button" aria-controls="settingsDrawer" aria-expanded="true">Settings</button>
+        <button id="print" class="primary" type="button">Print table</button>
+        <span id="printWarning" class="print-warning" role="status"></span>
+      </div>
+    </header>
+
+    <span id="status" class="status" role="status" aria-live="polite"></span>
+    <button id="settingsBackdrop" class="settings-backdrop" type="button" tabindex="-1" aria-label="Close table setup"></button>
+    <aside id="settingsDrawer" class="settings-drawer is-open" role="dialog" aria-modal="true" aria-labelledby="settingsTitle" aria-hidden="false">
+      <div class="settings-drawer-header">
+        <h2 id="settingsTitle">Table setup</h2>
+        <button id="settingsClose" class="settings-close" type="button">Close</button>
+      </div>
+      <div class="control-grid">
+        <label>Start date<input id="startDate" type="date"></label>
+        <label>Date format
+          <select id="dateFormat">
+            <option value="weekdayMonthDay">Day of week, Month Date</option>
+            <option value="monthDayYear">Month Date, Year</option>
+            <option value="monthDay">Month Date</option>
+            <option value="numeric">MM/DD/YYYY</option>
+            <option value="iso">YYYY-MM-DD</option>
+          </select>
+        </label>
+        <label>Increment
+          <span class="increment-fields">
+            <input id="incrementValue" type="number" min="1" max="365" value="7" aria-label="Increment amount">
+            <select id="incrementUnit" aria-label="Increment unit">
+              <option value="days">days</option>
+              <option value="weeks">weeks</option>
+              <option value="months">months</option>
+            </select>
+          </span>
+        </label>
+        <label>Number of rows<input id="rowCount" type="number" min="1" max="200" value="26"></label>
+        <label>Shared row height<input id="rowHeight" type="range" min="30" max="120" value="44"></label>
+        <label>Row height (pixels)<input id="rowHeightNumber" type="number" min="30" max="120" value="44"></label>
+        <label>Common column width (pixels)
+          <span class="resize-all-fields">
+            <input id="commonColumnWidth" type="number" min="90" max="800" value="220">
+            <button id="resizeAllColumns" type="button">Resize all</button>
+          </span>
+        </label>
+        <label class="settings-check"><input id="stripedRows" type="checkbox"> <span>Stripe alternating rows</span></label>
+      </div>
+    </aside>
+
+    <section class="table-shell" aria-label="Editable date table">
+      <table id="table">
+        <colgroup id="colgroup"></colgroup>
+        <thead><tr id="headerRow"></tr></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </section>
+    <p class="help">Click any title, heading, or blank cell and type in place. Drag a heading’s dot handle to move its column. Drag dividers or row edges to resize.</p>
+  </main>
+
+  <script>
+    (() => {
+      const STORAGE_KEY = "date-table-v1";
+      const defaults = {
+        title: "Date Table",
+        subtitle: "",
+        startDate: new Date().toISOString().slice(0, 10),
+        dateFormat: "weekdayMonthDay",
+        incrementValue: 7,
+        incrementUnit: "days",
+        rowCount: 26,
+        rowHeight: 44,
+        commonColumnWidth: 220,
+        settingsDrawerOpen: true,
+        stripedRows: false,
+        columns: [
+          { name: "Date", width: 220 },
+          { name: "Input 1", width: 260 },
+          { name: "Input 2", width: 260 },
+          { name: "Input 3", width: 260 }
+        ],
+        cells: []
+      };
+
+      const $ = (id) => document.getElementById(id);
+      const controls = ["title", "subtitle", "startDate", "dateFormat", "incrementValue", "incrementUnit", "rowCount"];
+      let state = load();
+      let saveTimer;
+      let draggedColumnIndex = null;
+      let lastDrawerFocus = null;
+
+      function load() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+          if (!saved) return structuredClone(defaults);
+          const normalized = {
+            ...structuredClone(defaults),
+            ...saved,
+            columns: Array.isArray(saved.columns) && saved.columns.length >= 2 ? saved.columns : structuredClone(defaults.columns),
+            cells: Array.isArray(saved.cells) ? saved.cells : [],
+            settingsDrawerOpen: typeof saved.settingsDrawerOpen === "boolean" ? saved.settingsDrawerOpen : defaults.settingsDrawerOpen,
+            stripedRows: typeof saved.stripedRows === "boolean" ? saved.stripedRows : defaults.stripedRows
+          };
+          return normalized;
+        } catch (_) {
+          return structuredClone(defaults);
+        }
+      }
+
+      function save() {
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(() => {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+          $("status").textContent = "Saved";
+          setTimeout(() => { $("status").textContent = ""; }, 900);
+        }, 120);
+      }
+
+      function clamp(value, min, max) { return Math.min(max, Math.max(min, Number(value) || min)); }
+
+      function readControls() {
+        state.title = $("title").value;
+        state.subtitle = $("subtitle").value;
+        state.startDate = $("startDate").value || defaults.startDate;
+        state.dateFormat = $("dateFormat").value;
+        state.incrementValue = clamp($("incrementValue").value, 1, 365);
+        state.incrementUnit = $("incrementUnit").value;
+        state.rowCount = clamp($("rowCount").value, 1, 200);
+      }
+
+      function writeControls() {
+        controls.forEach((id) => { $(id).value = state[id]; });
+        $("rowHeight").value = state.rowHeight;
+        $("rowHeightNumber").value = state.rowHeight;
+        $("commonColumnWidth").value = state.commonColumnWidth;
+        $("stripedRows").checked = Boolean(state.stripedRows);
+        document.documentElement.style.setProperty("--row-height", `${state.rowHeight}px`);
+      }
+
+      function dateForRow(index) {
+        const [year, month, day] = state.startDate.split("-").map(Number);
+        const date = new Date(year, month - 1, day);
+        const amount = state.incrementValue * index;
+        if (state.incrementUnit === "months") date.setMonth(date.getMonth() + amount);
+        else date.setDate(date.getDate() + amount * (state.incrementUnit === "weeks" ? 7 : 1));
+        return date;
+      }
+
+      function formatDate(date) {
+        if (state.dateFormat === "iso") {
+          const y = date.getFullYear();
+          const m = String(date.getMonth() + 1).padStart(2, "0");
+          const d = String(date.getDate()).padStart(2, "0");
+          return `${y}-${m}-${d}`;
+        }
+        const options = {
+          weekdayMonthDay: { weekday: "long", month: "long", day: "numeric" },
+          monthDayYear: { month: "long", day: "numeric", year: "numeric" },
+          monthDay: { month: "long", day: "numeric" },
+          numeric: { month: "2-digit", day: "2-digit", year: "numeric" }
+        };
+        return new Intl.DateTimeFormat("en-US", options[state.dateFormat] || options.weekdayMonthDay).format(date);
+      }
+
+      function ensureCells() {
+        const dataColumns = state.columns.length - 1;
+        while (state.cells.length < state.rowCount) state.cells.push([]);
+        state.cells.length = state.rowCount;
+        state.cells.forEach((row) => {
+          while (row.length < dataColumns) row.push("");
+          row.length = dataColumns;
+        });
+      }
+
+      function render() {
+        ensureCells();
+        $("table").classList.toggle("striped-rows", Boolean(state.stripedRows));
+        const colgroup = $("colgroup");
+        colgroup.replaceChildren(...state.columns.map((column) => {
+          const col = document.createElement("col");
+          col.style.width = `${clamp(column.width, 90, 800)}px`;
+          return col;
+        }));
+        $("table").style.width = `${state.columns.reduce((sum, column) => sum + clamp(column.width, 90, 800), 0)}px`;
+
+        const headerRow = $("headerRow");
+        headerRow.replaceChildren(...state.columns.map((column, columnIndex) => {
+          const th = document.createElement("th");
+          th.dataset.columnIndex = columnIndex;
+          if (columnIndex > 0) {
+            th.className = "movable-column";
+            th.append(makeColumnDragHandle(columnIndex, column.name));
+            addColumnDropTarget(th, columnIndex);
+          }
+          const columnActions = document.createElement("div");
+          columnActions.className = "column-actions";
+          if (columnIndex > 0 && state.columns.length > 2) {
+            const removeButton = makeColumnActionButton("×", `Remove ${column.name || `column ${columnIndex}`}`, () => removeColumnAt(columnIndex));
+            removeButton.classList.add("remove-column-button");
+            columnActions.append(removeButton);
+          }
+          const editor = document.createElement("div");
+          editor.className = "header-editor";
+          editor.dataset.columnIndex = columnIndex;
+          editor.contentEditable = "plaintext-only";
+          editor.spellcheck = false;
+          editor.textContent = column.name;
+          editor.setAttribute("role", "textbox");
+          editor.setAttribute("aria-label", columnIndex === 0 ? "Date column heading" : `Column ${columnIndex} heading`);
+          editor.addEventListener("input", () => { column.name = editor.textContent.replace(/\s+/g, " ").trimStart(); save(); });
+          editor.addEventListener("keydown", (event) => {
+            if (event.key !== "Enter") return;
+            event.preventDefault();
+            editor.blur();
+          });
+          const addButton = makeColumnActionButton("+", `Add a column after ${column.name || `column ${columnIndex}`}`, () => addColumnAt(columnIndex));
+          addButton.classList.add("add-column-button");
+          columnActions.append(addButton);
+          th.append(editor, columnActions, makeColumnResizer(columnIndex));
+          return th;
+        }));
+
+        const fragment = document.createDocumentFragment();
+        for (let rowIndex = 0; rowIndex < state.rowCount; rowIndex += 1) {
+          const tr = document.createElement("tr");
+          const dateCell = document.createElement("td");
+          dateCell.className = "date-cell";
+          dateCell.textContent = formatDate(dateForRow(rowIndex));
+          dateCell.append(makeRowResizer());
+          tr.append(dateCell);
+
+          for (let columnIndex = 1; columnIndex < state.columns.length; columnIndex += 1) {
+            const td = document.createElement("td");
+            const input = document.createElement("input");
+            input.value = state.cells[rowIndex][columnIndex - 1] || "";
+            input.setAttribute("aria-label", `${state.columns[columnIndex].name || `Column ${columnIndex}`}, ${formatDate(dateForRow(rowIndex))}`);
+            input.addEventListener("input", () => {
+              state.cells[rowIndex][columnIndex - 1] = input.value;
+              save();
+            });
+            td.append(input);
+            tr.append(td);
+          }
+          fragment.append(tr);
+        }
+        $("tableBody").replaceChildren(fragment);
+        updatePrintWarning();
+      }
+
+      function makeColumnActionButton(text, label, action) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "column-action";
+        button.textContent = text;
+        button.setAttribute("aria-label", label);
+        button.title = label;
+        button.addEventListener("click", action);
+        return button;
+      }
+
+      function nextInputName() {
+        const usedNames = new Set(state.columns.map((column) => column.name));
+        let number = 1;
+        while (usedNames.has(`Input ${number}`)) number += 1;
+        return `Input ${number}`;
+      }
+
+      function addColumnAt(index) {
+        if (index < 0 || index >= state.columns.length) return;
+        const insertionIndex = index + 1;
+        state.columns.splice(insertionIndex, 0, { name: nextInputName(), width: state.commonColumnWidth });
+        state.cells.forEach((row) => row.splice(insertionIndex - 1, 0, ""));
+        render();
+        save();
+        requestAnimationFrame(() => {
+          const editor = document.querySelector(`.header-editor[data-column-index="${insertionIndex}"]`);
+          const header = document.querySelector(`th[data-column-index="${insertionIndex}"]`);
+          (editor || header)?.focus();
+        });
+        $("status").textContent = `Added ${state.columns[insertionIndex].name}`;
+      }
+
+      function removeColumnAt(index) {
+        if (index <= 0) return;
+        if (state.columns.length <= 2) {
+          $("status").textContent = "Keep at least one input column";
+          return;
+        }
+        const removedName = state.columns[index].name || `column ${index}`;
+        state.columns.splice(index, 1);
+        state.cells.forEach((row) => row.splice(index - 1, 1));
+        const focusIndex = Math.min(index, state.columns.length - 1);
+        render();
+        save();
+        requestAnimationFrame(() => {
+          document.querySelector(`th[data-column-index="${focusIndex}"] .header-editor`)?.focus();
+        });
+        $("status").textContent = `Removed ${removedName}`;
+      }
+
+      function estimatedPrintPages() {
+        const printableHeight = 995;
+        const tableWidth = state.columns.reduce((sum, column) => sum + column.width, 0);
+        const printScale = Math.min(1, 720 / tableWidth);
+        const repeatedHeaderHeight = ($("headerRow").getBoundingClientRect().height || 42) * printScale;
+        const printedRowHeight = state.rowHeight * printScale;
+        const titleHeight = $("title").getBoundingClientRect().height || 58;
+        const subtitleHeight = $("subtitle").value.trim() ? ($("subtitle").getBoundingClientRect().height || 22) : 0;
+        const firstPageRows = Math.max(1, Math.floor((printableHeight - titleHeight - subtitleHeight - 15 - repeatedHeaderHeight) / printedRowHeight));
+        if (state.rowCount <= firstPageRows) return 1;
+        const laterPageRows = Math.max(1, Math.floor((printableHeight - repeatedHeaderHeight) / printedRowHeight));
+        return 1 + Math.ceil((state.rowCount - firstPageRows) / laterPageRows);
+      }
+
+      function updatePrintWarning() {
+        const pages = estimatedPrintPages();
+        $("printWarning").textContent = pages > 1 ? `Print will use about ${pages} pages.` : "";
+      }
+
+      function clearColumnDragState() {
+        document.querySelectorAll("th.dragging-column, th.drop-before, th.drop-after").forEach((th) => {
+          th.classList.remove("dragging-column", "drop-before", "drop-after");
+        });
+      }
+
+      function moveColumn(sourceIndex, targetIndex) {
+        if (sourceIndex < 1 || targetIndex < 1 || sourceIndex === targetIndex) return;
+        targetIndex = Math.min(targetIndex, state.columns.length - 1);
+        const [column] = state.columns.splice(sourceIndex, 1);
+        state.columns.splice(targetIndex, 0, column);
+        state.cells.forEach((row) => {
+          const [value] = row.splice(sourceIndex - 1, 1);
+          row.splice(targetIndex - 1, 0, value);
+        });
+        render();
+        save();
+      }
+
+      function makeColumnDragHandle(index, name) {
+        const handle = document.createElement("button");
+        handle.type = "button";
+        handle.className = "column-drag-handle";
+        handle.draggable = true;
+        handle.dataset.columnIndex = index;
+        handle.textContent = "⠿";
+        handle.title = `Drag to move ${name || `column ${index}`}`;
+        handle.setAttribute("aria-label", `${handle.title}. Use the left and right arrow keys to move it.`);
+        handle.addEventListener("dragstart", (event) => {
+          draggedColumnIndex = index;
+          event.dataTransfer.effectAllowed = "move";
+          event.dataTransfer.setData("text/plain", String(index));
+          requestAnimationFrame(() => handle.closest("th").classList.add("dragging-column"));
+        });
+        handle.addEventListener("dragend", () => {
+          draggedColumnIndex = null;
+          clearColumnDragState();
+        });
+        handle.addEventListener("keydown", (event) => {
+          if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+          event.preventDefault();
+          const nextIndex = index + (event.key === "ArrowLeft" ? -1 : 1);
+          if (nextIndex < 1 || nextIndex >= state.columns.length) return;
+          moveColumn(index, nextIndex);
+          requestAnimationFrame(() => document.querySelector(`.column-drag-handle[data-column-index="${nextIndex}"]`)?.focus());
+        });
+        return handle;
+      }
+
+      function addColumnDropTarget(th, columnIndex) {
+        th.addEventListener("dragover", (event) => {
+          if (draggedColumnIndex === null || draggedColumnIndex === columnIndex) return;
+          event.preventDefault();
+          event.dataTransfer.dropEffect = "move";
+          clearColumnDragState();
+          document.querySelector(`th[data-column-index="${draggedColumnIndex}"]`)?.classList.add("dragging-column");
+          const after = event.clientX > th.getBoundingClientRect().left + (th.offsetWidth / 2);
+          th.classList.add(after ? "drop-after" : "drop-before");
+        });
+        th.addEventListener("drop", (event) => {
+          if (draggedColumnIndex === null) return;
+          event.preventDefault();
+          const after = event.clientX > th.getBoundingClientRect().left + (th.offsetWidth / 2);
+          let targetIndex = columnIndex + (after ? 1 : 0);
+          if (draggedColumnIndex < targetIndex) targetIndex -= 1;
+          const sourceIndex = draggedColumnIndex;
+          draggedColumnIndex = null;
+          clearColumnDragState();
+          moveColumn(sourceIndex, targetIndex);
+        });
+      }
+
+      function makeColumnResizer(index) {
+        const handle = document.createElement("span");
+        handle.className = "column-resizer";
+        handle.setAttribute("aria-hidden", "true");
+        handle.addEventListener("pointerdown", (event) => {
+          event.preventDefault();
+          const startX = event.clientX;
+          const startWidth = state.columns[index].width;
+          document.body.classList.add("resizing-column");
+          handle.setPointerCapture(event.pointerId);
+          handle.onpointermove = (moveEvent) => {
+            state.columns[index].width = clamp(startWidth + moveEvent.clientX - startX, 90, 800);
+            $("colgroup").children[index].style.width = `${state.columns[index].width}px`;
+            $("table").style.width = `${state.columns.reduce((sum, column) => sum + column.width, 0)}px`;
+          };
+          handle.onpointerup = () => {
+            document.body.classList.remove("resizing-column");
+            handle.onpointermove = null;
+            save();
+          };
+        });
+        return handle;
+      }
+
+      function makeRowResizer() {
+        const handle = document.createElement("span");
+        handle.className = "row-resizer";
+        handle.setAttribute("aria-hidden", "true");
+        handle.addEventListener("pointerdown", (event) => {
+          event.preventDefault();
+          const startY = event.clientY;
+          const startHeight = state.rowHeight;
+          handle.setPointerCapture(event.pointerId);
+          handle.onpointermove = (moveEvent) => setRowHeight(startHeight + moveEvent.clientY - startY, false);
+          handle.onpointerup = () => { handle.onpointermove = null; save(); };
+        });
+        return handle;
+      }
+
+      function setRowHeight(value, shouldSave = true) {
+        state.rowHeight = clamp(value, 30, 120);
+        $("rowHeight").value = state.rowHeight;
+        $("rowHeightNumber").value = state.rowHeight;
+        document.documentElement.style.setProperty("--row-height", `${state.rowHeight}px`);
+        updatePrintWarning();
+        if (shouldSave) save();
+      }
+
+      controls.forEach((id) => {
+        $(id).addEventListener("input", () => {
+          readControls();
+          if (["startDate", "dateFormat", "incrementValue", "incrementUnit", "rowCount"].includes(id)) render();
+          else updatePrintWarning();
+          save();
+        });
+      });
+
+      $("rowHeight").addEventListener("input", (event) => setRowHeight(event.target.value));
+      $("rowHeightNumber").addEventListener("input", (event) => setRowHeight(event.target.value));
+      $("commonColumnWidth").addEventListener("input", (event) => {
+        state.commonColumnWidth = clamp(event.target.value, 90, 800);
+        save();
+      });
+      $("resizeAllColumns").addEventListener("click", () => {
+        state.commonColumnWidth = clamp($("commonColumnWidth").value, 90, 800);
+        state.columns.forEach((column) => { column.width = state.commonColumnWidth; });
+        $("commonColumnWidth").value = state.commonColumnWidth;
+        render();
+        save();
+        $("status").textContent = `All columns set to ${state.commonColumnWidth}px`;
+      });
+
+      $("stripedRows").addEventListener("change", (event) => {
+        state.stripedRows = event.target.checked;
+        render();
+        save();
+      });
+
+      function focusableDrawerElements() {
+        return [...$("settingsDrawer").querySelectorAll("button, input, select, [contenteditable='true'], [tabindex]:not([tabindex='-1'])")]
+          .filter((element) => !element.disabled && element.getClientRects().length > 0);
+      }
+
+      function setDrawerOpen(isOpen, shouldFocus = true) {
+        state.settingsDrawerOpen = Boolean(isOpen);
+        const drawer = $("settingsDrawer");
+        const backdrop = $("settingsBackdrop");
+        const trigger = $("settingsTrigger");
+        drawer.classList.toggle("is-open", state.settingsDrawerOpen);
+        backdrop.classList.toggle("is-open", state.settingsDrawerOpen);
+        drawer.inert = !state.settingsDrawerOpen;
+        drawer.setAttribute("aria-hidden", String(!state.settingsDrawerOpen));
+        trigger.setAttribute("aria-expanded", String(state.settingsDrawerOpen));
+        save();
+        if (!shouldFocus) return;
+        requestAnimationFrame(() => {
+          if (state.settingsDrawerOpen) {
+            focusableDrawerElements()[0]?.focus();
+          } else {
+            (lastDrawerFocus || trigger)?.focus();
+            lastDrawerFocus = null;
+          }
+        });
+      }
+
+      $("settingsTrigger").addEventListener("click", () => {
+        lastDrawerFocus = $("settingsTrigger");
+        setDrawerOpen(true);
+      });
+      $("settingsClose").addEventListener("click", () => setDrawerOpen(false));
+      $("settingsBackdrop").addEventListener("click", () => setDrawerOpen(false));
+      $("settingsDrawer").addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          setDrawerOpen(false);
+          return;
+        }
+        if (event.key !== "Tab") return;
+        const elements = focusableDrawerElements();
+        if (!elements.length) return;
+        const first = elements[0];
+        const last = elements[elements.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      });
+
+      function preparePrint() {
+        readControls();
+        $("subtitle").classList.toggle("print-has-text", Boolean($("subtitle").value.trim()));
+        const tableWidth = state.columns.reduce((sum, column) => sum + column.width, 0);
+        const printScale = Math.min(1, 720 / tableWidth);
+        document.documentElement.style.setProperty("--print-table-width", `${tableWidth}px`);
+        document.documentElement.style.setProperty("--print-scale", printScale.toFixed(4));
+      }
+
+      window.addEventListener("beforeprint", preparePrint);
+      $("print").addEventListener("click", () => { save(); window.print(); });
+
+      writeControls();
+      render();
+      setDrawerOpen(state.settingsDrawerOpen, false);
+    })();
+  </script>
+</body>
+</html>

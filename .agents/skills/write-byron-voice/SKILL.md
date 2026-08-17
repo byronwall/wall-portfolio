@@ -1,6 +1,6 @@
 ---
 name: write-byron-voice
-description: Draft, revise, or review technical blog posts, project updates, essays, and explanations in Byron Wall's voice. Use when writing portfolio content for Byron, converting his notes or transcripts into prose, cleaning up AI-generated MDX without inheriting its style, or checking a draft for fidelity to Byron's transcript-derived language, reasoning, and technical point of view.
+description: Draft, revise, or review text authored as Byron Wall in his voice. Use when Byron asks for text "in my voice" or when producing prose meant to be published, posted, sent, or attributed to him, including blog posts, project updates, essays, explanations, emails, messages, bios, and captions. Also use when converting his notes or transcripts into prose, cleaning up AI-generated text without inheriting its style, or checking a draft for fidelity to his transcript-derived language, reasoning, and technical point of view. Do not use for ordinary assistant replies, neutral documentation, code comments, or text attributed to someone else unless Byron explicitly requests his voice.
 ---
 
 # Write in Byron's Voice
@@ -26,9 +26,9 @@ Read [references/transcript-evidence.md](references/transcript-evidence.md) when
 
 ## Draft in passes
 
-1. Extract the article's supported claims, examples, constraints, open questions, qualifications, and first-person evidence. Distinguish supported material, reasonable inference, and missing support; do not silently fill gaps.
+1. Extract the text's supported claims, examples, constraints, open questions, qualifications, and first-person evidence. Distinguish supported material, reasonable inference, and missing support; do not silently fill gaps.
 2. Choose the smallest structure appropriate to the genre. Use the relevant pattern in [references/reasoning-and-structure.md](references/reasoning-and-structure.md), but do not force the material through every stage of the default arc.
-3. State the practical question or desired end state. Build the outline around the decisions the reader must make.
+3. State the purpose, practical question, or desired end state. Build longer prose around the decisions the reader must make; for short text, lead with the point and stop once the purpose is served.
 4. Work through the concrete cases, relevant dimensions, and alternatives the material actually supports. Let examples expose the underlying distinction.
 5. Give a provisional recommendation or useful model when the evidence earns one. Include the boundary where it stops working.
 6. Draft compact prose. Use headings only when they help navigation; use lists for genuine sets of options, criteria, or steps. Preserve asymmetry when one example or unresolved thread deserves more space.
@@ -83,4 +83,4 @@ Before delivering prose, answer these questions internally and revise any failed
 5. Has the prose become more orderly, balanced, or conclusive than the source reasoning supports?
 6. If the characteristic phrases were removed, would the reasoning still sound like Byron?
 
-If the source material cannot support an authentic first-person article, produce a clearly marked list of gaps or questions before drafting.
+If the source material cannot support authentic first-person text, produce a clearly marked list of gaps or questions before drafting.

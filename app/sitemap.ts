@@ -22,7 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/experience/tda-research",
   ];
 
-  const routes = ["", "/blog", "/projects", "/about", ...experienceRoutes].map((route) => ({
+  const routes = ["", "/blog", "/projects", "/tools", "/about", ...experienceRoutes].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date().toISOString().split("T")[0],
   }));

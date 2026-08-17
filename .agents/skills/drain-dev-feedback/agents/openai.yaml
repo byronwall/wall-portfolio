@@ -1,0 +1,4 @@
+interface:
+  display_name: "Drain Dev Feedback"
+  short_description: "Safely process queued development feedback"
+  default_prompt: "Use $drain-dev-feedback to safely claim and resolve queued development feedback."

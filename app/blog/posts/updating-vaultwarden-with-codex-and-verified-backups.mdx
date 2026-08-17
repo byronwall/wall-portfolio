@@ -1,0 +1,121 @@
+---
+title: Updating Vaultwarden with Codex and a verified rollback path
+publishedAt: 2026-08-09
+summary: 'How Codex inspected an old Vaultwarden deployment, proved the backups were real, completed a guarded update, and got the iOS app working again.'
+type: reflection
+articleHero: false
+image: /images/posts/updating-vaultwarden-with-codex-and-verified-backups/safe-update-path.svg
+---
+
+My Vaultwarden instance was running, the web vault still worked, and the container reported healthy. The iOS app did not work.
+
+This is the kind of maintenance problem that used to turn into an evening of tabs and terminal windows. I would need to identify the running version, find the relevant release notes, remember how the service was deployed, locate the volume, check the backup system, decide whether the database could survive the jump, and then watch the restart closely enough to know whether it actually worked.
+
+Instead, I gave Codex the open Coolify page and asked it to review the instance. The result was much better than the old manual approach, mostly because Codex could follow the problem across every layer without losing the thread.
+
+<VaultwardenUpdatePath />
+
+## Start by inspecting, not updating
+
+Codex did not immediately click redeploy.
+
+It read the live Coolify configuration, inspected the Compose file, checked the persistent storage, read the service logs, and opened a terminal inside the container. That established the important facts:
+
+```text
+Vaultwarden 1.32.7
+Web Vault 2024.6.2c
+image: vaultwarden/server:latest
+volume: vaultwarden-data -> /data
+status: running and healthy
+```
+
+The `latest` tag was misleading. The Compose file asked for the latest release, but the running container was still years behind. Pulling an image and recreating a container are separate actions. A normal restart would have brought back the same old image.
+
+Codex then checked the current Vaultwarden releases and found the compatibility boundary that explained the iOS failure. Vaultwarden 1.37.0 or newer is required for Bitwarden clients 2026.7.0 and newer. The current stable patch was 1.37.1.
+
+That turned a vague client problem into a concrete update target.
+
+## “There should be backups” is not a backup check
+
+Coolify showed no scheduled tasks for the Vaultwarden service. Codex called that out, and I remembered that I had built a separate process to back up every Docker volume.
+
+I asked it to search my projects folder and confirm the process.
+
+It found the `coolify-backup-scripts` project, read the documentation, and traced the actual backup paths. The default Restic job includes:
+
+```text
+/data/coolify
+/var/lib/docker/volumes
+/var/backups/coolify-meta
+```
+
+That should include every named Docker volume, including Vaultwarden. But “the script is supposed to include this directory” was still not enough.
+
+Codex checked the live server. It verified that the systemd timer was enabled and active. It found the latest successful run. It read the repository check, which reported no errors. Then it inspected the latest Restic snapshot by the exact Vaultwarden volume name.
+
+The snapshot contained both SQLite files that mattered:
+
+```text
+db.sqlite3
+db.sqlite3-wal
+```
+
+That second file was important. The main database was about 432 KB, while the write-ahead log was about 4 MB. Copying only `db.sqlite3` could have missed recent data.
+
+This was the part I liked most. Codex did not merely find a backup script and declare the problem solved. It followed the backup from configuration, to timer, to successful job, to Restic repository, to snapshot, to exact database files.
+
+## Create a stronger backup before the risky step
+
+The volume snapshot was real, but it was still a live filesystem backup. The backup project itself warns that live database files may not produce a transaction-consistent restore.
+
+Codex recommended one more safety step: ask Vaultwarden to create its own SQLite backup, then capture that file in a fresh off-server snapshot.
+
+After I approved the update, Codex ran:
+
+```sh
+/vaultwarden backup
+```
+
+Vaultwarden created a 424 KB database snapshot and reported success. Codex checked the file, generated a SHA-256 checksum, and then started the host's Restic backup service.
+
+It waited through the retention and repository-check phases. The new Restic run finished successfully and reported no errors. Codex then inspected the new snapshot and proved that it contained the application-created SQLite backup.
+
+At that point, the rollback path was not theoretical. There was an application-consistent database snapshot inside a verified off-server Restic snapshot.
+
+Only then did Codex redeploy.
+
+## Pull, replace, and verify
+
+Codex used Coolify's **Pull Latest Images & Restart** action. It watched the image layers download, the old container get replaced, and the new container start.
+
+Then it checked the result from several directions:
+
+```text
+Vaultwarden 1.37.1
+Web Vault 2026.6.4
+Coolify: running and healthy
+/api/config: HTTP 200
+/alive: HTTP 200
+```
+
+The startup logs showed no migration or database errors. The backup file still existed in the persistent volume after the container replacement.
+
+Most importantly, the iOS app now works correctly. The original problem is fixed.
+
+## Better than the old maintenance ritual
+
+None of the individual checks were impossible to do manually. I could have opened release notes, inspected Docker Compose, found the container, listed `/data`, checked systemd, loaded the Restic credentials, searched a snapshot, run the backup command, redeployed, and tested the endpoints.
+
+The painful part is carrying the state across all of those steps.
+
+Which version is actually running? Does `latest` mean the image was pulled? Is the volume named or bound to a host path? Does the backup include the volume root or only Coolify's own data? Did the latest job succeed? Does the snapshot contain the WAL? Did the new application backup make it off the server? Did the migration run? Is the public route healthy?
+
+The old approach relies on me remembering every question and not getting tired halfway through. It is easy to verify that a backup system exists and skip proving that the file I care about is inside it.
+
+Codex kept the desired result in view: update Vaultwarden without gambling the vault. It moved between local project documentation, the signed-in Coolify interface, container commands, host services, Restic, upstream release notes, and public health checks. It also stopped before each meaningful mutation. Inspection came first. Backup came next. Redeployment happened only after the safety checks passed.
+
+That is a much better use of an agent than asking it to run one command I already know. The value came from connecting the evidence and continuing until the operational claim was earned.
+
+There are still follow-up items. Vaultwarden warned that the admin token is stored as plain text, and public signups remain enabled. Codex surfaced both issues without quietly changing them. Those are separate decisions for another maintenance pass.
+
+For this pass, the boundary was clear: prove the rollback path, update the server, verify the service, and confirm the client works. Codex handled that whole path. I got the outcome without spending the evening reconstructing a server-maintenance checklist from memory.

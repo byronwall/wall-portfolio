@@ -1,0 +1,64 @@
+.source {
+  margin: 2rem 0;
+  overflow: hidden;
+  border: 1px solid #d8dee9;
+  border-radius: 0.75rem;
+  background: #ffffff;
+}
+
+.source summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.125rem;
+  color: #152238;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.source summary:hover {
+  background: #f7f9fc;
+}
+
+.source summary:focus-visible {
+  outline: 2px solid #2f7d78;
+  outline-offset: -3px;
+}
+
+.source summary small {
+  color: #66748a;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.source.source pre {
+  max-height: 70vh;
+  margin: 0;
+  overflow: auto;
+  border: 0;
+  border-top: 1px solid #d8dee9;
+  border-radius: 0;
+  background: #f6f8fb;
+  padding: 1.125rem;
+  color: #253650;
+  font-size: 0.72rem;
+  line-height: 1.55;
+  white-space: pre;
+}
+
+.source.source pre code {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font-size: inherit;
+}
+
+@media (max-width: 640px) {
+  .source summary {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+}

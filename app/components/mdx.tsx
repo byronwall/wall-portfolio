@@ -16,6 +16,9 @@ import {
   CanvasWholeSystemPreview,
 } from 'app/blog/components/canvas-interactivity-explorer'
 import { GraphLayoutExplorer } from 'app/blog/components/graph-layout-explorer'
+import { VaultwardenUpdatePath } from 'app/blog/components/vaultwarden-update-path'
+import { DiagramReviewSkillSource } from 'app/blog/components/diagram-review-skill-source'
+import { DateTableEmbed } from 'app/blog/components/date-table-embed'
 
 function Table({ data }) {
   let headers = data.headers.map((header, index) => (
@@ -156,6 +159,9 @@ let components = {
   CanvasSceneModelExplorer,
   CanvasWholeSystemPreview,
   GraphLayoutExplorer,
+  VaultwardenUpdatePath,
+  DiagramReviewSkillSource,
+  DateTableEmbed,
 }
 
 export function CustomMDX(props) {

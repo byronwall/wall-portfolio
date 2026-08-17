@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Version one of the Vaultwarden update diagram</title>
+  <desc id="desc">A simple two-step old process sits beside eight Codex steps arranged in two columns. The sequence between the Codex steps is hard to trace.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0 0L8 4L0 8Z" fill="#708198"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#152238" flood-opacity=".08"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="760" rx="22" fill="#f7f8fb"/>
+  <text x="54" y="55" fill="#6b778c" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" font-weight="700" letter-spacing="2">THE SAME UPDATE, TWO VERY DIFFERENT PROCESSES</text>
+  <text x="54" y="98" fill="#152238" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="750">From a hopeful restart to an earned result</text>
+
+  <rect x="40" y="130" width="310" height="590" rx="16" fill="#fffaf8" stroke="#ead8d3"/>
+  <circle cx="78" cy="176" r="21" fill="#f4dfd9"/>
+  <path d="M70 168L86 184M86 168L70 184" stroke="#b35748" stroke-width="4" stroke-linecap="round"/>
+  <text x="112" y="167" fill="#6b778c" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" font-weight="700" letter-spacing="1.6">BEFORE</text>
+  <text x="112" y="194" fill="#152238" font-family="Inter, Arial, sans-serif" font-size="23" font-weight="750">Redeploy and pray</text>
+  <rect x="74" y="284" width="242" height="100" rx="11" fill="#fff" stroke="#da9b8e" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="94" y="312" fill="#b35748" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" font-weight="700">01</text>
+  <text x="94" y="346" fill="#533a36" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="700">Redeploy the container</text>
+  <path d="M195 385V450" stroke="#cb7767" stroke-width="1.5" stroke-dasharray="6 6" marker-end="url(#arrow)"/>
+  <rect x="74" y="454" width="242" height="100" rx="11" fill="#fff" stroke="#da9b8e" stroke-width="1.5" stroke-dasharray="6 5"/>
+  <text x="94" y="483" fill="#b35748" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="15" font-weight="700">?</text>
+  <text x="94" y="517" fill="#533a36" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="700">Hope the vault</text>
+  <text x="94" y="542" fill="#533a36" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="700">comes back</text>
+
+  <rect x="370" y="130" width="790" height="590" rx="16" fill="#ffffff" stroke="#d8dee9"/>
+  <circle cx="410" cy="176" r="21" fill="#dcecea"/>
+  <path d="M400 176L407 183L421 165" fill="none" stroke="#2f7d78" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="444" y="167" fill="#6b778c" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" font-weight="700" letter-spacing="1.6">WITH CODEX</text>
+  <text x="444" y="194" fill="#152238" font-family="Inter, Arial, sans-serif" font-size="23" font-weight="750">Build evidence, then change</text>
+  <text x="1105" y="178" text-anchor="end" fill="#6b778c" font-family="Inter, Arial, sans-serif" font-size="14">Eight checks, one unclear route</text>
+
+  <g font-family="Inter, Arial, sans-serif">
+    <g filter="url(#shadow)">
+      <rect x="410" y="235" width="315" height="88" rx="10" fill="#fbfcfe" stroke="#bbc9d9"/>
+      <text x="430" y="263" fill="#365a78" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" font-weight="700">01</text>
+      <text x="476" y="265" fill="#152238" font-size="18" font-weight="700">Inspect what is running</text>
+      <text x="476" y="292" fill="#52627a" font-size="13">Version · volume · health</text>
+    </g>
+    <path d="M726 279H765" stroke="#708198" stroke-width="2" marker-end="url(#arrow)"/>
+    <g filter="url(#shadow)">
+      <rect x="775" y="235" width="335" height="88" rx="10" fill="#fbfcfe" stroke="#bbc9d9"/>
+      <text x="795" y="263" fill="#365a78" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" font-weight="700">02</text>
+      <text x="841" y="265" fill="#152238" font-size="18" font-weight="700">Find a compatible version</text>
+      <text x="841" y="292" fill="#52627a" font-size="13">Target: 1.37.1</text>
+    </g>
+    <path d="M942 324V347" stroke="#708198" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <g filter="url(#shadow)">
+      <rect x="410" y="353" width="315" height="88" rx="10" fill="#fbfefd" stroke="#9dc9c3"/>
+      <text x="430" y="381" fill="#2f7d78" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" font-weight="700">03</text>
+      <text x="476" y="383" fill="#152238" font-size="18" font-weight="700">Prove the snapshot</text>
+      <text x="476" y="410" fill="#52627a" font-size="13">Database + WAL present</text>
+    </g>
+    <path d="M726 397H765" stroke="#708198" stroke-width="2" marker-end="url(#arrow)"/>
+    <g filter="url(#shadow)">
+      <rect x="775" y="353" width="335" height="88" rx="10" fill="#fbfefd" stroke="#9dc9c3"/>
+      <text x="795" y="381" fill="#2f7d78" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" font-weight="700">04</text>
+      <text x="841" y="383" fill="#152238" font-size="18" font-weight="700">Make a clean backup</text>
+      <text x="841" y="410" fill="#52627a" font-size="13">Application-consistent copy</text>
+    </g>
+    <path d="M942 442V465" stroke="#708198" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <g filter="url(#shadow)">
+      <rect x="410" y="471" width="315" height="88" rx="10" fill="#fffdf9" stroke="#dfb578"/>
+      <text x="430" y="499" fill="#a76b2d" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" font-weight="700">05</text>
+      <text x="476" y="501" fill="#152238" font-size="18" font-weight="700">Copy it off-server</text>
+      <text x="476" y="528" fill="#52627a" font-size="13">Save and verify checksum</text>
+    </g>
+    <path d="M726 515H765" stroke="#708198" stroke-width="2" marker-end="url(#arrow)"/>
+    <g filter="url(#shadow)">
+      <rect x="775" y="471" width="335" height="88" rx="10" fill="#fffdf9" stroke="#dfb578"/>
+      <text x="795" y="499" fill="#a76b2d" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" font-weight="700">06</text>
+      <text x="841" y="501" fill="#152238" font-size="18" font-weight="700">Replace the container</text>
+      <text x="841" y="528" fill="#52627a" font-size="13">First change to the service</text>
+    </g>
+    <path d="M942 560V583" stroke="#708198" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <g filter="url(#shadow)">
+      <rect x="410" y="589" width="315" height="88" rx="10" fill="#fbfcfe" stroke="#bbc9d9"/>
+      <text x="430" y="617" fill="#365a78" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" font-weight="700">07</text>
+      <text x="476" y="619" fill="#152238" font-size="18" font-weight="700">Verify the service</text>
+      <text x="476" y="646" fill="#52627a" font-size="13">Logs · health · version</text>
+    </g>
+    <path d="M726 633H765" stroke="#708198" stroke-width="2" marker-end="url(#arrow)"/>
+    <g filter="url(#shadow)">
+      <rect x="775" y="589" width="335" height="88" rx="10" fill="#fbfefd" stroke="#9dc9c3"/>
+      <text x="795" y="617" fill="#2f7d78" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" font-weight="700">08</text>
+      <text x="841" y="619" fill="#152238" font-size="18" font-weight="700">Confirm the outcome</text>
+      <text x="841" y="646" fill="#52627a" font-size="13">Expected version is live</text>
+    </g>
+  </g>
+</svg>

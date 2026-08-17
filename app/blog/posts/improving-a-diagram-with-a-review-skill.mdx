@@ -1,0 +1,81 @@
+---
+title: Improving a diagram with a diagram-review skill
+publishedAt: 2026-08-12
+summary: 'I ran one Vaultwarden update diagram through a structured review skill, fixed its reading path in three passes, and kept the full skill with the article.'
+image: /images/posts/updating-vaultwarden-with-codex-and-verified-backups/safe-update-path.svg
+type: tooling
+articleHero: false
+---
+
+The [Vaultwarden update post](/blog/updating-vaultwarden-with-codex-and-verified-backups) needed one image near the top. The idea seemed simple: put my old process on the left and the Codex process on the right.
+
+My old process was two steps: redeploy the container, then hope the vault came back. Codex did something much more deliberate. It found the running version, chose a compatible target, checked the existing backup, made a clean backup, copied it off the server, changed the container, and verified the result.
+
+The first diagram contained all of that. It also proved that having the right boxes is not the same as explaining the process.
+
+## Version 1: the idea was clear, but the route was not
+
+![The first diagram, with a short old process beside eight Codex cards arranged without phase bands.](/images/posts/improving-a-diagram-with-a-review-skill/version-1.svg)
+
+*Version 1 had the right contrast and the wrong reading burden.*
+
+The left side worked immediately. It was intentionally sparse and a little uncomfortable. The right side had eight tidy cards with arrows between them. Each card made sense on its own.
+
+The trouble was the sequence. A reader could scan down the columns, move across the rows, or treat the cards as separate checks. The diagram knew the order. The reader had to infer it.
+
+I ran the image and its intended message through a diagram-review skill. The first review scored it at 8.2 out of 10. More useful than the score was the diagnosis: the high-level contrast was clear, but the right side had stronger card pairings than a step-by-step path.
+
+The skill recommended four named phases:
+
+1. Inspect
+2. Prove rollback
+3. Change
+4. Verify
+
+That was the structural fix. The diagram did not need more decoration. It needed a route.
+
+## Version 2: name the phases
+
+![The second diagram, with the Codex steps grouped into four labeled horizontal phase bands.](/images/posts/improving-a-diagram-with-a-review-skill/version-2.svg)
+
+*Version 2 made the process teachable by grouping the eight checks into four phases.*
+
+The phase bands changed the diagram from a list into an argument. Codex did not perform eight equally weighted tasks. It established the current state, proved the rollback path, made the change, and checked the result.
+
+I also made the first mutation explicit. Nothing touched the running service until step 6. That small line carried a lot of the trust story.
+
+The second review scored the revision at 9.1. The main structure now worked. The remaining issues were smaller and more concrete: the handoff between phases was easy to miss, several support lines were too dense, and the final success mark looked attached to a card instead of the whole process.
+
+That is where the review skill became especially useful. A second pass did not repeat the first critique. It found the next layer of friction.
+
+## Version 3: make it work inside the article
+
+![The final compact comparison diagram, with a stacked heading, four clear Codex phases, and a verified result.](/images/posts/updating-vaultwarden-with-codex-and-verified-backups/safe-update-path.svg)
+
+*Version 3 keeps the phase structure, shortens the copy, clarifies each handoff, and fits the article.*
+
+The last pass tightened the diagram instead of redesigning it again. I replaced ordinary handoff arrows with clear transition markers. I shortened the card copy. I moved the success state to the end of the full sequence. I also added the checks Codex intentionally skipped, because the boundary of the verification matters too.
+
+Then I looked at the diagram in the actual blog page. The header was consuming too much of a laptop screen. It had an eyebrow, a two-column title and subtitle, and enough empty space to feel like a second article header.
+
+I removed the eyebrow and stacked the title over the subtitle. I also found a global paragraph margin leaking into the diagram component. Fixing those two things reduced the figure to 783 pixels tall at a 1440 by 900 viewport. The header itself dropped to 110 pixels. The complete comparison now fits in one laptop view.
+
+That final change did not come from studying the SVG by itself. It came from seeing the diagram where a reader would see it.
+
+## What the skill actually changed
+
+The skill reviews diagrams in a useful order: message, structure, reading path, relationships, hierarchy, legibility, consistency, and then polish. That order prevents a common failure mode where a reviewer starts adjusting colors while the reader still cannot tell what connects to what.
+
+It also separates severity from taste. A broken reading path is a high-priority problem. A slightly weak border is not. For this diagram, that meant I could fix one structural issue in each pass:
+
+- Version 1 needed phases.
+- Version 2 needed clearer handoffs and less text.
+- Version 3 needed to fit its real page.
+
+The useful loop was simple: make the diagram, review the interpretation cost, fix the highest-priority issue, and render it again in context. I stopped when the remaining feedback no longer changed the reader's mental model.
+
+## The diagram-review skill
+
+I included the exact Markdown source used for this review. You can [download the skill as a Markdown file](/skills/diagram-and-graphic-review.md), or open it below.
+
+<DiagramReviewSkillSource />

@@ -1,0 +1,51 @@
+---
+title: Building a date table that stays editable until print
+publishedAt: 2026-08-16
+summary: A dependency-free date table for editing recurring schedules in place and printing the same table without moving the work elsewhere.
+type: tooling
+layout: interactive
+articleHero: false
+interactionTime: Interactive tool
+---
+
+I wanted a date table that behaved more like paper than a form. The dates should come from a starting point. The rest of the table should stay open for direct editing.
+
+I should be able to change the cadence, add or remove columns, reorder them, and print the result. I should not need to move the work into another application.
+
+<DateTableEmbed />
+
+The table starts with a date column and a few input columns. Click a title, heading, or blank cell. Then type in place. The date column comes from a start date, a format, an increment, and a row count.
+
+The increment can use days, weeks, or months. This keeps recurring schedules visible without asking the user to calculate each date.
+
+The settings live in a drawer. The table stays as the main object. The drawer controls date settings, row count, shared row height, common column width, and alternating row stripes.
+
+The title and optional subtitle stay above the table. They are part of the printed result, not only setup metadata.
+
+The table shape is editable too. Each heading has controls for adding a column after it or removing it. New columns use the common width. You can then resize each column on its own.
+
+A small drag handle moves a column. The same movement is available with the left and right arrow keys. The cell data moves with the heading. Reordering does not separate a label from its values.
+
+Row height works the same way. Every row shares one height. You can change it in the settings drawer or drag a row edge. The table stays aligned. The printed version gets a predictable shape too.
+
+Saving is quiet. The current title, settings, column definitions, order, widths, and cell values go into `localStorage`. Reopening the file restores the working table. There is no account, server, or separate database. It is one dependency-free HTML file.
+
+Printing is the other important end state. The page uses portrait paper. The controls, drawer, resize handles, and editing affordances disappear in print.
+
+The title remains. The subtitle appears only when it has text. The table scales to the page width. Header rows repeat across pages. The interface warns when the table will take more than one page.
+
+That print behavior changed the editor design. A wide table can be useful on screen. It still needs a clear result on paper. Fixed pixel columns make the screen layout predictable. A shared row height makes printed pages easier to scan.
+
+The print view is not a second version of the table. It is the same table with the editing layer removed.
+
+The implementation came through a long feedback loop. The first version could render the table. That was not enough.
+
+The important checks were ordinary actions: click a cell, edit a heading, open and close the drawer, add and remove a column, drag a column, resize a column, resize a row, reload the file, and print it.
+
+Several fixes only became visible with real mouse input. A control can look correct in a screenshot and still lose the click. It can capture the wrong pointer. It can also leave the table in the wrong state after a drag.
+
+An independent browser pass checked the keyboard paths and focus behavior around the settings drawer and column controls. The tool became useful when those small interactions worked together.
+
+The result is a narrow tool. It keeps the table visible while its structure changes. It keeps saved state local. It treats printing as part of the workflow from the start.
+
+Maybe that is enough for a date table. It does not need to become a spreadsheet to be useful.

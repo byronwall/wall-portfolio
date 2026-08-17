@@ -1,0 +1,142 @@
+.manager {
+  display: grid;
+  gap: 14px;
+  width: min(100%, 360px);
+  color: var(--ink-primary, #141b2b);
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 720;
+  letter-spacing: -0.01em;
+}
+
+.count {
+  color: var(--ink-muted, #68758a);
+  font-size: 11px;
+}
+
+.error {
+  margin: 0;
+  padding: 9px 10px;
+  border: 1px solid #d7aaa4;
+  border-radius: 5px;
+  background: #fff6f4;
+  color: #8c3228;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.section {
+  display: grid;
+  gap: 6px;
+}
+
+.sectionTitle {
+  margin: 0;
+  color: var(--ink-muted, #68758a);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.list {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 8px 9px;
+  border: 1px solid var(--border-quiet, #e1e5eb);
+  border-radius: 5px;
+  background: var(--surface-paper, #fff);
+}
+
+.itemCopy {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.itemQuestion {
+  overflow: hidden;
+  color: var(--ink-primary, #141b2b);
+  font-size: 12px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.itemMeta {
+  color: var(--ink-muted, #68758a);
+  font-size: 10px;
+  line-height: 1.3;
+}
+
+.itemAction {
+  min-height: 27px;
+  padding: 3px 7px;
+  border: 1px solid var(--action-border, #6d899f);
+  border-radius: 4px;
+  background: var(--surface-paper, #fff);
+  color: var(--action-primary, #2f536c);
+  cursor: pointer;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 680;
+  white-space: nowrap;
+}
+
+.itemAction:hover {
+  background: var(--surface-quiet, #f7f9fc);
+}
+
+.itemAction:focus-visible,
+.retry:focus-visible {
+  outline: 3px solid rgba(47, 83, 108, 0.32);
+  outline-offset: 2px;
+}
+
+.empty {
+  margin: 0;
+  color: var(--ink-muted, #68758a);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.retry {
+  width: fit-content;
+  min-height: 28px;
+  padding: 4px 8px;
+  border: 1px solid var(--action-border, #6d899f);
+  border-radius: 4px;
+  background: var(--surface-paper, #fff);
+  color: var(--action-primary, #2f536c);
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+@media (max-width: 760px) {
+  .manager {
+    width: 100%;
+  }
+}

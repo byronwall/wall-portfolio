@@ -8,6 +8,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Footer } from "./components/footer";
 import { baseUrl } from "./sitemap";
 import { getOgImageUrl } from "./og-image";
+import { DevFeedbackOverlay } from "./components/dev-feedback/dev-feedback-overlay";
 
 const siteDescription =
   "Software engineer building full-stack applications, data tools, and developer tooling.";
@@ -98,6 +99,7 @@ export default function RootLayout({
           <Footer />
           <Analytics />
           <SpeedInsights />
+          {process.env.NODE_ENV === "development" ? <DevFeedbackOverlay /> : null}
         </div>
       </body>
     </html>

@@ -9,8 +9,14 @@ export type BaseMetadata = {
   summary: string;
   image?: string;
   tags?: string[];
+  featured?: string;
+  indexTier?: string;
+  indexOrder?: string;
+  indexImage?: string;
   [key: string]: string | string[] | undefined;
 };
+
+export type ProjectIndexTier = "featured" | "medium" | "archive";
 
 function normalizeImageSrc(src: string) {
   try {
@@ -145,6 +151,42 @@ export function getProjects() {
   const projectsDirectory = path.join(process.cwd(), "content/projects");
 
   return getMDXData(projectsDirectory);
+}
+
+export function getProjectIndexTier(metadata: BaseMetadata): ProjectIndexTier {
+  if (metadata.featured === "true") return "featured";
+  if (metadata.indexTier === "medium") return "medium";
+  return "archive";
+}
+
+export function sortProjectsForIndex<T extends { metadata: BaseMetadata; slug: string }>(
+  projects: T[],
+) {
+  const tierOrder: Record<ProjectIndexTier, number> = {
+    featured: 0,
+    medium: 1,
+    archive: 2,
+  };
+
+  return [...projects].sort((a, b) => {
+    const tierDifference =
+      tierOrder[getProjectIndexTier(a.metadata)] -
+      tierOrder[getProjectIndexTier(b.metadata)];
+    if (tierDifference !== 0) return tierDifference;
+
+    const aOrder = Number(a.metadata.indexOrder);
+    const bOrder = Number(b.metadata.indexOrder);
+    const aHasOrder = Number.isFinite(aOrder);
+    const bHasOrder = Number.isFinite(bOrder);
+
+    if (aHasOrder && bHasOrder && aOrder !== bOrder) return aOrder - bOrder;
+    if (aHasOrder !== bHasOrder) return aHasOrder ? -1 : 1;
+
+    const titleDifference = (a.metadata.title || a.slug).localeCompare(
+      b.metadata.title || b.slug,
+    );
+    return titleDifference || a.slug.localeCompare(b.slug);
+  });
 }
 
 export function formatDate(date: string | undefined, includeRelative = false) {

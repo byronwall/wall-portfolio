@@ -1,0 +1,289 @@
+---
+title: The click that became a background click
+publishedAt: 2026-08-13
+summary: 'How pointer capture turned a Route totality node click into a background deselection, why the early tests looked green, and what finally exposed the real event path.'
+image: "/images/posts/the-click-that-became-a-background-click/selection-working.png"
+project: tsx-data-flow
+type: debugging
+---
+
+I had a graph where selection looked like it worked. Clicking a node drew the selected outline. The URL contained the selected node. The emphasis model could produce active and dimmed node sets. Several browser checks reported that connected elements were emphasized.
+
+But the screen was telling a simpler story: nothing changed except the outline.
+
+<figure className="not-prose my-6">
+  <img
+    src="/images/posts/the-click-that-became-a-background-click/selection-without-emphasis.png"
+    alt="Route totality graph with a selected Box node but no visible emphasis on connected nodes or de-emphasis on disconnected nodes"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+  <figcaption>The selected outline was real. The connected-neighborhood display was not.</figcaption>
+</figure>
+
+This took much longer to debug than it should have. The failure crossed four systems that each looked reasonable in isolation: SVG pointer events, a pan-and-zoom controller, Solid's delegated click handling, and controlled selection state stored in the URL.
+
+The important bug was not in the graph traversal or the opacity rules. A click that started on a node stopped being a node click before the browser finished dispatching it.
+
+## The interaction contract had become ambiguous
+
+The Route totality view needed three behaviors on the same SVG:
+
+- click a node or edge to select it,
+- click empty space to clear selection,
+- drag from anywhere, including a node or edge, to pan.
+
+The first camera implementation captured the pointer immediately:
+
+```ts
+const startPan = (event: PointerEvent) => {
+  const svg = options.getSvg();
+  if (event.button !== 0 || !svg) return;
+
+  svg.setPointerCapture(event.pointerId);
+  setPan({
+    pointerId: event.pointerId,
+    startClientX: event.clientX,
+    startClientY: event.clientY,
+    camera: camera(),
+    moved: false,
+  });
+};
+```
+
+That looked like the standard way to make dragging reliable. Once a drag starts, pointer capture keeps movement events flowing even if the pointer leaves the original element.
+
+The mistake was treating every pointerdown as a drag before the user had moved.
+
+The camera also owned the stationary release:
+
+```ts
+const finishPan = (event: PointerEvent) => {
+  const active = pan();
+  if (!active || active.pointerId !== event.pointerId) return;
+
+  if (!active.moved) {
+    options.onTap();
+  } else {
+    commitCamera(camera());
+  }
+
+  // release capture and clean up
+};
+```
+
+That gave two different layers authority over the same gesture. The node wanted a click. The camera wanted either a pan or an empty-space tap. The SVG background also had a click handler that cleared selection.
+
+Any one of those can work. All three together need an explicit ownership rule.
+
+## Why the early tests did not catch it
+
+The existing tests covered graph selection and emphasis logic. They could take a selected node, compute its neighborhood, and prove that unrelated nodes received the dimmed state. Those tests were useful. They proved the graph model.
+
+They did not exercise `createRouteTotalityCamera`.
+
+That distinction matters. The broken path was not:
+
+```text
+selected node
+  -> wrong neighborhood
+```
+
+It was:
+
+```text
+pointerdown on node
+  -> SVG captures pointer
+  -> release is retargeted
+  -> background click clears selection mode
+  -> node click never arrives
+```
+
+A unit test that starts with an already selected node begins after the defect.
+
+The selected outline made this more confusing. Selection state and emphasis state had separate paths through the component. It was possible to retain enough state to draw the outline while resetting the mode that computed connected emphasis. Seeing the outline encouraged us to debug the graph model and CSS instead of asking whether the click had reached the node.
+
+## Browser automation gave me false confidence
+
+The browser checks were supposed to close that gap. Several of them reported sensible counts for selected, active, secondary, and dimmed marks. At one point the result looked very specific: one selected node, several active neighbors, and hundreds of dimmed nodes and edges.
+
+That still was not proof of the interaction I was performing.
+
+Some checks started from URL-restored selection. Others used forced element clicks or inspected state after targeting a DOM element directly. Those are reasonable tools for checking a component, but they can skip the physical event path that failed here. A forced click answers whether the target's click behavior works. It does not necessarily answer what happens when a human presses, moves zero pixels, releases, and lets pointer capture and event delegation decide who owns the click.
+
+There were other sources of noise:
+
+- overlapping SVG edge targets made it easy to click a nearby edge,
+- a service was sometimes changing while another agent verified it,
+- old and fresh local services occupied different ports,
+- DOM class counts looked correct even when the visible screenshot did not,
+- a saved screenshot could represent the state before the latest event fix.
+
+The browser automation was not useless. It was checking the wrong proof boundary. We kept asking, “Can the page reach a selected state?” The actual question was, “What exact events does this physical gesture produce, in order?”
+
+## The missing event was the useful evidence
+
+The investigation finally became concrete when I asked for a short event trace from the browser. The decisive sequence was:
+
+```text
+target:pointerdown
+svg:pointerdown
+svg:pointerup moved:false
+svg:click-capture ignored:false
+svg:click ignored:false
+selection:clear-empty
+emphasis-mode:null
+outbound-selection:null
+```
+
+There was no `target:click` after pointerup.
+
+That missing line did more work than the earlier class counts. The gesture began on the node, but the completed click belonged to the SVG. The SVG then did exactly what its background handler was written to do: clear selection.
+
+The reason was pointer capture. Capturing on pointerdown retargeted the stationary click to the capturing SVG. Solid's delegated node click never got its turn.
+
+## Keep a click as a click until it becomes a drag
+
+The repair was to delay capture until movement crossed a small threshold.
+
+```ts
+const POINTER_MOVE_THRESHOLD = 4;
+
+const startPan = (event: PointerEvent) => {
+  const svg = options.getSvg();
+  if (event.button !== 0 || !svg) return;
+
+  setPan({
+    pointerId: event.pointerId,
+    startClientX: event.clientX,
+    startClientY: event.clientY,
+    camera: camera(),
+    moved: false,
+  });
+};
+
+const movePan = (event: PointerEvent) => {
+  const active = pan();
+  if (!active || active.pointerId !== event.pointerId) return;
+
+  const moved = active.moved || Math.hypot(
+    event.clientX - active.startClientX,
+    event.clientY - active.startClientY,
+  ) > POINTER_MOVE_THRESHOLD;
+
+  if (!moved) return;
+
+  if (!active.moved) {
+    options.getSvg()?.setPointerCapture(event.pointerId);
+  }
+
+  setPan({ ...active, moved: true });
+  // update the camera
+};
+```
+
+Now pointerdown is only a candidate gesture. If the pointer stays within four pixels, the browser keeps the original node or edge as the click target. If movement crosses the threshold, the SVG captures the pointer and owns the rest of the drag.
+
+The completed drag also suppresses the synthetic click that follows pointerup:
+
+```ts
+const finishPan = (event: PointerEvent) => {
+  const active = pan();
+  if (!active || active.pointerId !== event.pointerId) return;
+
+  if (active.moved) {
+    suppressNextClick = true;
+    commitCamera(camera());
+  }
+
+  const svg = options.getSvg();
+  if (svg?.hasPointerCapture(event.pointerId)) {
+    svg.releasePointerCapture(event.pointerId);
+  }
+
+  setPan(null);
+};
+```
+
+Empty-space clearing moved back to the place that can actually identify empty space:
+
+```tsx
+<svg
+  onClick={(event) => {
+    if (event.target === event.currentTarget) {
+      cameraController.clearEmptySelection();
+    }
+  }}
+>
+```
+
+The resulting contract is small:
+
+- stationary target click belongs to the target,
+- stationary SVG click belongs to the background,
+- movement past four pixels belongs to the camera,
+- drag release does not become a click,
+- cancel and lost capture clean up the camera state.
+
+<figure className="not-prose my-6">
+  <img
+    src="/images/posts/the-click-that-became-a-background-click/selection-working.png"
+    alt="Route totality graph after the pointer-capture repair, with selected and connected nodes emphasized while disconnected nodes recede"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+  <figcaption>The selected path is now visually distinct because the node click survives long enough to activate it.</figcaption>
+</figure>
+
+## The test that was actually worth adding
+
+Once the cause was clear, the missing test was also clear. I did not need another broad graph snapshot. I needed one focused camera-controller test file.
+
+The critical assertion is that a stationary press never captures the pointer:
+
+```ts
+it("keeps stationary node and edge presses as click candidates", () => {
+  const { controller, svg, onTap } = cameraFixture();
+  const node = document.createElementNS("http://www.w3.org/2000/svg", "g");
+
+  controller.startPan(pointer(node));
+  controller.movePan(pointer(node, { clientX: 3 }));
+  controller.finishPan(pointer(node));
+
+  expect(svg.setPointerCapture).not.toHaveBeenCalled();
+  expect(onTap).not.toHaveBeenCalled();
+  expect(controller.dragging()).toBe(false);
+});
+```
+
+Two companion tests cover the other side of the boundary:
+
+- movement past the threshold captures, pans, commits, and suppresses one release click,
+- empty click, empty drag, pointer cancel, and lost capture leave the controller clean.
+
+That is enough. The full repository gate now passes 257 tests, including the three camera tests. More tests around SVG styling would add volume without protecting the event ownership rule that failed.
+
+## A better debugging default
+
+I turned this process into a small `debug-ui-event-flow` skill because I do not want to spend this much time on the same class of bug again.
+
+The useful default is to trace the gesture across every owner before changing the final state:
+
+```text
+target pointerdown
+  -> surface pointerdown
+  -> movement threshold
+  -> pointer capture
+  -> pointerup
+  -> click capture
+  -> target or background click
+  -> selection action
+  -> controlled-state reconciliation
+  -> rendered display
+```
+
+Use a fresh service. Reproduce with a real pointer. Treat missing events as evidence. Do not accept a DOM count when the user says the display did not change. Save a screenshot of the actual result. Add logs only long enough to establish ordering, then remove them before they overwhelm the browser.
+
+The final fix was not large. Pointer capture moved from pointerdown to the first real drag movement. The hard part was proving that the click had changed owners before the selection code ever saw it.
+
+Source: [byronwall/tsx-data-flow](https://github.com/byronwall/tsx-data-flow)

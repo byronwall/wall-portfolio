@@ -104,6 +104,14 @@ Do not turn a project update into a grand lesson unless the evidence supports on
 
 Do not manufacture an exploratory journey for material that only needs a direct answer.
 
+### Short message, email, bio, or caption
+
+- State the purpose or useful point immediately.
+- Include only supported personal context.
+- Match the relationship and level of formality in the source material.
+- Keep the natural directness; do not inflate a short note into an essay.
+- End with the requested action, relevant boundary, or clean stopping point.
+
 ## Editing heuristic
 
 For each paragraph, identify its job: scenario, distinction, consequence, alternative, qualification, or recommendation. Merge or remove paragraphs with no distinct job. If a passage lists features, add the decision criterion connecting them. If it states an opinion, add the concrete observation that earned it. Do not make paragraph jobs mechanically alternate or force similar lengths; the reasoning should determine the shape.

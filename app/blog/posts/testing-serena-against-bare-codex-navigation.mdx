@@ -1,0 +1,744 @@
+---
+title: Does Serena make Codex code navigation better?
+publishedAt: 2026-08-15
+updatedAt: 2026-08-16
+project: tsx-data-flow
+type: experiment
+summary: "A repeatable Serena-versus-bare Codex evaluation found useful semantic retrieval, but no overall quality or token-efficiency win from the tested integration."
+seoTitle: "Serena vs Bare Codex: A Code Navigation Evaluation"
+seoDescription: "A detailed method for testing Serena semantic code navigation against bare Codex with frozen repositories, blind scoring, and token accounting."
+---
+
+I wanted a better way for coding agents to follow a TypeScript call path.
+
+The normal workflow uses `rg`, file lists, and bounded source reads. That works, but it can load unrelated code. It can also confuse declarations that share a name. A compiler-aware tool should be able to return one symbol, its references, and its immediate callers without loading whole files.
+
+That sounds useful. It does not mean it is useful in practice.
+
+I tested [Serena](https://github.com/oraios/serena), an open-source semantic code navigation server, in two stages. The first stage asked whether its retrieval tools could solve representative navigation tasks. The second stage compared normal Codex navigation with the same tools plus Serena.
+
+The first test looked good. The controlled comparison did not.
+
+Across eight fresh runs, the Serena condition used 10.1% more uncached input, 59.3% more tool calls, and received fewer blind quality points. The tested Serena wrapper found useful symbols, but agents often used it in addition to their normal searches. It became another surface to explore instead of a replacement for existing work.
+
+This post documents the method because the negative result is only useful if I can repeat it.
+
+## The original signal
+
+I started with a one-day audit of recent Codex work. The fixed corpus contained 24 tasks and 2,074 outer tool events. Most tasks came from TSX Data Flow, so this was a deep TypeScript sample rather than a broad software sample.
+
+Source navigation was still a large part of the work:
+
+| Measure | Count | Share |
+|---|---:|---:|
+| Tasks with at least one source-navigation call | 20 | 83.3% |
+| Shell wrappers that searched or read source | 334 | 51.0% |
+| Strong search-to-read navigation wrappers | 269 | 41.1% |
+| Navigation wrappers combining search and direct reads | 140 | 41.9% |
+
+The upper-bound classifier included ordinary source inventory. A second classifier used a stronger search-to-read rule and reached a similar conclusion. Navigation was close to half of recoverable shell work.
+
+That did not prove waste. Some source reads were necessary. It did give me a concrete place to test a different tool.
+
+The audit also found several cases where compiler semantics might matter:
+
+- Two module-local declarations were both named `Root`.
+- A state bug crossed URL parsing, request state, and response reconciliation.
+- A graph ownership field crossed builders, projections, layout code, and UI code.
+- Hidden SVG marks retained handlers even when their visual state changed.
+
+These cases were useful because they had different boundaries. Symbol references might help with the first three. They could not prove CSS hit testing or runtime timing.
+
+## The question I actually tested
+
+There are at least three separate claims inside “semantic navigation is better.”
+
+1. The tool can retrieve relevant semantic code.
+2. An agent can use that retrieval to produce a correct answer.
+3. The complete agent run is better or cheaper than the normal workflow.
+
+The first Serena evaluation tested the first two claims. It did not test the third.
+
+That distinction mattered. A tool can return a beautiful symbol body and still make the full run worse. The agent may call the semantic tool, run the old searches anyway, and spend more context deciding between both result sets.
+
+## Installing Serena
+
+I installed Serena 1.5.3 through `uv` and selected its language-server backend:
+
+```sh
+uv tool install -p 3.13 'serena-agent==1.5.3'
+serena init -b LSP
+serena --version
+```
+
+The test used the TypeScript version from the target workspace. I did not add Serena to my global Codex MCP configuration. The installation stayed isolated to this evaluation.
+
+I also restricted the project to seven read-only tools:
+
+```yaml
+languages:
+  - typescript
+
+additional_workspace_folders:
+  - ../soccer-pre-350a497/app
+
+read_only: true
+
+fixed_tools:
+  - get_current_config
+  - get_symbols_overview
+  - find_symbol
+  - find_declaration
+  - find_referencing_symbols
+  - find_implementations
+  - get_diagnostics_for_file
+
+default_modes: []
+added_modes:
+  - no-memories
+  - no-onboarding
+
+symbol_info_budget: 10
+```
+
+This removed editing, shell, memory, browser, and basic file-read tools from Serena itself. It also kept the evaluation focused on navigation.
+
+## Freezing the source
+
+I did not run the evaluation against moving working directories. Each case used archived commits under `/private/tmp`.
+
+For the duplicate-identity case, the setup was equivalent to this:
+
+```sh
+mkdir -p /private/tmp/serena-navigation-eval-20260815/pre-aa51657
+mkdir -p /private/tmp/serena-navigation-eval-20260815/soccer-pre-350a497
+
+cd /Users/byronwall/Projects/tsx-data-flow
+git archive 659c41d | \
+  tar -x -C /private/tmp/serena-navigation-eval-20260815/pre-aa51657
+
+cd /Users/byronwall/Projects/soccer-schedule
+git archive 4a0c4d816b8f03d85799bd61877dcf8921da895a | \
+  tar -x -C /private/tmp/serena-navigation-eval-20260815/soccer-pre-350a497
+```
+
+The frozen analyzer needed its normal packages. I linked the existing dependency directory instead of reinstalling it:
+
+```sh
+ln -s /Users/byronwall/Projects/tsx-data-flow/node_modules \
+  /private/tmp/serena-navigation-eval-20260815/pre-aa51657/node_modules
+```
+
+This preserved the source state while avoiding a separate package resolution variable. The evaluation was read-only, so the live repositories remained untouched.
+
+## A small MCP runner
+
+I wrote a Node wrapper around Serena's MCP server. The runner starts the server, performs the JSON-RPC handshake, lists tools, calls one or more tools, and records the result with elapsed time.
+
+One direct query looked like this:
+
+```sh
+node scripts/serena-mcp-eval.mjs \
+  --serena-home /private/tmp/serena-navigation-eval-20260815/serena-home \
+  --project /private/tmp/serena-navigation-eval-20260815/pre-aa51657 \
+  --tool find_symbol \
+  --arguments '{
+    "name_path_pattern": "validateOccurrenceReferences",
+    "relative_path": "src/api/route-occurrence-validation-graph.ts",
+    "include_body": true,
+    "max_answer_chars": 16000
+  }' \
+  --results-only
+```
+
+The result limit is important. Serena's generated default allowed 150,000 characters. I capped normal queries at 16,000 characters. A semantic tool that returns an entire subsystem has missed the point of the experiment.
+
+The wrapper restarted Serena for each direct query. That made the test easy to inspect, but it was not a normal persistent MCP session. I return to that limitation below.
+
+## Did the wrapper change Serena's answers?
+
+This is the first question I would ask about the result. A bad wrapper could make a good server look bad.
+
+The runner was thin by design. It did five things:
+
+1. Started the real `serena start-mcp-server` process.
+2. Sent the MCP `initialize` request with protocol version `2025-06-18`.
+3. Sent `notifications/initialized` and requested `tools/list`.
+4. Forwarded each tool name and argument object through `tools/call`.
+5. Stored Serena's returned MCP result without rewriting its content.
+
+The part that invokes a tool is only this:
+
+```js
+const result = await request("tools/call", {
+  name: call.tool,
+  arguments: call.arguments ?? {},
+});
+
+results.push({
+  tool: call.tool,
+  arguments: call.arguments ?? {},
+  elapsed_ms: Math.round(performance.now() - callStarted),
+  result,
+});
+```
+
+There is no local symbol parser, result ranking, summarizer, or source-code fallback in that path. The `max_answer_chars` value is a Serena tool argument. The wrapper does not truncate a response after receiving it.
+
+I also kept enough evidence to check the transport:
+
+- The initialization response identified the server as Serena.
+- `tools/list` returned the seven expected tool schemas from Serena itself.
+- Every call log stored the exact tool name, arguments, result object, elapsed time, and server error output.
+- All 37 Sol utility calls returned successful MCP results.
+- Luna made two invalid calls, and Serena's errors remained visible instead of being hidden by the wrapper.
+
+I also replayed the same `find_symbol` request twice in one Serena process, then once through a fresh process. The canonical result JSON matched exactly in all three calls. This does not prove that every query is deterministic. It does show that the wrapper's process boundary did not change this central symbol response.
+
+The strongest check is the retrieved code. Both models found the known declarations and validator path. Both received 11/12 in the utility test. One Luna Serena run also received 4/4 in the A/B test. A wrapper that changed symbol identity or broke reference lookup would not normally reproduce those known outcomes.
+
+So I do not see evidence of a semantic transport error. The wrapper appears to have delivered Serena's tool results as intended.
+
+That does not make it identical to native MCP. Restarting the server removed cross-call process state and cold-started additional workspace indexing. The command interface also gave agents shorter instructions than native tool schemas might provide. Those differences can change latency and tool-selection behavior. A cold additional workspace can also make some cross-repository queries less consistent.
+
+This makes the result valid for a precise claim: adding Serena through this wrapper did not improve the tested Codex workflow. It also validates Serena's returned semantic content. It does not prove that a persistent, native MCP integration would behave the same way.
+
+## Stage one: can Serena retrieve useful context?
+
+The first stage used three cases and two model conditions:
+
+- GPT-5.6 Sol with Medium reasoning, in the orchestrator role.
+- GPT-5.6 Luna with High reasoning, in the worker role.
+- Duplicate local `Root` identities.
+- Stale detail data clearing URL-backed state.
+- Hidden graph marks retaining pointer and keyboard behavior.
+
+Each model received only Serena's seven read-only tools. Hidden expected outcomes scored each case from zero to four. The models did not score themselves.
+
+| Case | Sol Medium | Luna High | What Serena established |
+|---|---:|---:|---|
+| Duplicate `Root` identities | 4/4 | 4/4 | Separate declarations and the validator path |
+| Stale detail clears field history | 3/4 | 3/4 | State owner and reconciliation chain, but not the exact guard |
+| Hidden graph marks capture input | 4/4 | 4/4 | Live handlers and the need for browser or CSS proof |
+| Total | 11/12 | 11/12 | Useful static context in both model roles |
+
+Serena was strongest on the same-name symbol problem. It kept the `Root` declaration in `tooltip.tsx` separate from the `Root` declaration in `toast.tsx`. It also found `validateOccurrenceReferences`, `definitionFor`, and the source-identity path.
+
+It was less decisive on the runtime bug. Both agents reached the right state owner, but neither found the historical `detail.loading` guard. On the interaction case, Serena found the JSX handlers but could not inspect the CSS with a TypeScript-only project.
+
+This was good evidence for utility. It was not evidence for efficiency. Both models made 37 Serena calls. Their results contained about 79,000 and 69,000 characters. There was no bare comparison.
+
+## Stage two: compare Serena with the bare workflow
+
+I narrowed the A/B screen to the strongest semantic case: duplicate `Root` identities.
+
+The starting clue was:
+
+```text
+occurrenceSurface.definitions.109 reports duplicate identity "Root"
+```
+
+## What the models were asked to do
+
+The task itself stayed the same across conditions. Only the available navigation instructions changed.
+
+The delegated message is encrypted in the stored rollout, so this is a normalized copy of the task contract rather than a byte-for-byte export. It preserves the clue, requested output, paths, limits, and condition difference:
+
+```text
+You have two frozen, read-only snapshots:
+
+- analyzer: /private/tmp/serena-bare-ab-rep2/analyzer
+- application: /private/tmp/serena-bare-ab-rep2/soccer
+
+Starting clue:
+
+occurrenceSurface.definitions.109 reports duplicate identity "Root"
+
+Investigate the failure. Do not implement a fix.
+
+Determine:
+
+1. Whether the controlling owner is the analyzer or the application.
+2. The relevant files and symbols in both snapshots.
+3. The most likely technical conclusion.
+4. What static navigation can and cannot prove from this clue.
+
+Start with read-only repository status checks. Do not read evaluation
+reports, manifests, prior run transcripts, gold files, or known fixes.
+Do not modify either snapshot.
+
+Use a target budget of 20 navigation calls. In the final answer, report
+the conclusion, evidence, static limits, commands used, and approximate
+inspection volume.
+```
+
+The bare condition then received this tool rule:
+
+```text
+Use normal read-only Codex navigation. You may use file listing, rg,
+bounded source reads, and short read-only TypeScript compiler probes.
+Do not use Serena or its evaluation wrapper.
+```
+
+The Serena condition received the same task plus this rule:
+
+```text
+Normal read-only Codex tools remain available. You may also use the
+Serena evaluation wrapper for semantic retrieval.
+
+Available Serena operations include symbols overview, find symbol,
+find declaration, find references, find implementations, and file
+diagnostics. Cap Serena answers at 16,000 characters and append calls
+to the assigned evidence log.
+```
+
+This is why I call the treatment additive. The Serena agents were not told to solve a different bug. They were not given the gold files or identity rule. They received the same clue and answer contract, plus another retrieval option.
+
+The prompt also did not require a runtime reproduction. It asked for the most likely conclusion and the limit of static evidence. Luna chose to continue into runtime reconstruction. That choice helped one answer reach 4/4, but it also caused much of the 54-call trajectory.
+
+## The code behind the clue
+
+The case crossed two frozen repositories. TSX Data Flow analyzed a Solid application from Soccer Schedule.
+
+| Repository | File | Why it mattered |
+|---|---|---|
+| Soccer Schedule | `app/src/components/ui/tooltip.tsx` | Declared one local component named `Root` |
+| Soccer Schedule | `app/src/components/ui/toast.tsx` | Declared a different local component named `Root` |
+| TSX Data Flow | `src/analysis/route-occurrence-support.ts` | Asked TypeScript for the compiler symbol identity |
+| TSX Data Flow | `src/analysis/route-occurrence-surface-builder.ts` | Combined compiler and source identities into a definition ID |
+| TSX Data Flow | `src/api/route-occurrence-validation-graph.ts` | Reported the duplicate identity |
+
+The application declarations are ordinary local wrapper components:
+
+```tsx
+// tooltip.tsx
+const Root = withRootProvider(ArkTooltip.Root, {
+  defaultProps: () => ({ unmountOnExit: true, lazyMount: true }),
+});
+
+// toast.tsx
+const Root = withProvider(Toast.Root, "root");
+```
+
+They share a text name, but they are different declarations in different files. A broad search for `Root` returns many unrelated wrappers. This is exactly where file-aware symbol navigation should help.
+
+TSX Data Flow resolves the compiler identity this way:
+
+```ts
+export function resolvedSymbol(ts, checker, node) {
+  let symbol = checker.getSymbolAtLocation(node);
+  if (symbol?.flags & ts.SymbolFlags.Alias) {
+    symbol = checker.getAliasedSymbol(symbol);
+  }
+
+  return {
+    symbol,
+    compilerIdentity: checker.getFullyQualifiedName(symbol),
+  };
+}
+```
+
+For these declarations, the relevant compiler identity can be the bare name `Root`. The builder therefore pairs it with a source identity:
+
+```ts
+const compilerIdentity = resolved.compilerIdentity;
+const sourceIdentity = sourceIdentityForNode(this.root, declaration);
+const id = stableIdentity("route-definition", [
+  compilerIdentity,
+  sourceIdentity,
+]);
+```
+
+`sourceIdentityForNode` contains the relative file and source span. The two `Root` declarations therefore receive different definition IDs even when their compiler identities match.
+
+The validator first recognizes that composite rule:
+
+```ts
+uniqueIdentity(
+  surface.definitions,
+  ["definitions"],
+  (value) => `${value.compilerIdentity}:${value.sourceIdentity}`,
+  (value) => value.id,
+  issues,
+);
+```
+
+It then applies two stronger scalar uniqueness checks:
+
+```ts
+uniqueKeys(
+  surface.definitions,
+  ["definitions"],
+  (value) => value.compilerIdentity,
+  issues,
+);
+
+uniqueKeys(
+  surface.definitions,
+  ["definitions"],
+  (value) => value.sourceIdentity,
+  issues,
+);
+```
+
+`uniqueKeys` emits `duplicate identity "Root"` when the compiler identity repeats. That is the controlling contradiction. The builder treats compiler identity plus source identity as the definition key. The validator later requires compiler identity alone to be unique.
+
+This sample also explains the benchmark. The agent had to connect two application declarations to three analyzer responsibilities. Text search could find the strings. The interesting question was whether semantic navigation could reach the correct declarations and identity owners with less unrelated source.
+
+Each agent had to identify the controlling owner, name the relevant files and symbols, state the likely conclusion, and mark the limit of static evidence. The prompt prohibited implementation.
+
+The matrix contained eight fresh runs:
+
+```text
+2 models × 2 conditions × 2 repetitions = 8 runs
+```
+
+The models were GPT-5.6 Sol Medium and GPT-5.6 Luna High. The conditions were:
+
+- **Bare:** normal read-only Codex shell navigation.
+- **Serena additive:** the same normal tools plus the Serena wrapper.
+
+This was intentionally additive. I wanted to know whether Serena improved the workflow I would actually use. I did not force the agent to abandon `rg` or direct reads.
+
+Every run used a fresh agent and the same frozen snapshots. Agents did not receive prior reports, gold files, known fixes, or earlier run transcripts.
+
+The first pair disagreed, so a planned stop rule triggered the second repetition. This avoided treating one lucky or broken trajectory as the result.
+
+## What counted as bare navigation
+
+Bare did not mean “no semantic work.” It meant no new semantic tool.
+
+Agents could use ordinary commands such as:
+
+```sh
+rg -n "compilerIdentity|sourceIdentity|duplicate identity" src/analysis src/api
+sed -n '253,300p' src/api/route-occurrence-validation-graph.ts
+```
+
+They could also run a short read-only TypeScript compiler probe. One useful probe loads the project `tsconfig`, creates a `Program`, locates the relevant JSX declarations, and prints `checker.getFullyQualifiedName(symbol)`.
+
+The shape is roughly:
+
+```js
+const program = ts.createProgram(rootNames, compilerOptions);
+const checker = program.getTypeChecker();
+
+// Locate each local Root declaration.
+// Resolve its symbol at the declaration site.
+console.log(checker.getFullyQualifiedName(symbol));
+```
+
+That is an important detail. Serena was not competing with blind text search. It was competing with agents that could combine text search, small source windows, and one-off compiler scripts.
+
+## What Serena actually searched
+
+Serena did not receive a natural-language request such as “find the duplicate Root bug.” The model selected a Serena tool and supplied a structured symbol query.
+
+One useful sequence was:
+
+```text
+get_symbols_overview
+  relative_path: src/api/route-occurrence-validation-graph.ts
+  depth: 2
+
+find_symbol
+  name_path_pattern: validateOccurrenceReferences
+  relative_path: src/api/route-occurrence-validation-graph.ts
+  include_body: true
+
+find_symbol
+  name_path_pattern: RouteOccurrenceSurfaceBuilder/definitionFor
+  relative_path: src/analysis/route-occurrence-surface-builder.ts
+  include_body: true
+```
+
+The first call returned a compact map of the validator file. It named `uniqueIdentity`, `uniqueKeys`, `validateOccurrenceReferences`, and their nested callbacks. The model then requested only the relevant function or method.
+
+For `definitionFor`, Serena returned a result shaped like this:
+
+```json
+{
+  "name_path": "RouteOccurrenceSurfaceBuilder/definitionFor",
+  "kind": "Method",
+  "relative_path": "src/analysis/route-occurrence-surface-builder.ts",
+  "body_location": {
+    "start_line": 130,
+    "end_line": 150
+  },
+  "body": "public definitionFor(...) { ... }"
+}
+```
+
+The body contained the exact composite identity calculation. Serena returned about 20 lines instead of the surrounding 275-line file section used in one bare run.
+
+The application-side query was even more specific:
+
+```text
+find_referencing_symbols
+  name_path: Root
+  relative_path: app/src/components/ui/toast.tsx
+```
+
+The file path anchors `Root` to one declaration. Serena returned the two JSX references inside `Toaster`, including small excerpts around lines 84 and 118. It did not mix them with `Root` from `tooltip.tsx`.
+
+That is the semantic benefit I was looking for. The query names a symbol and its declaration file. The language server resolves references to that symbol. A text search only knows that the same letters appear in several files.
+
+## How bare asked the same question
+
+The bare agents followed a similar conceptual path, but they expressed it through text and source windows:
+
+```sh
+rg -n \
+  "occurrenceSurface|definitions|duplicate identity|identity" \
+  src test
+
+sed -n '1,340p' \
+  src/api/route-occurrence-validation-graph.ts
+
+rg -n \
+  "definitionFor\(|compilerIdentity|sourceIdentity" \
+  src/analysis
+
+sed -n '1,275p' \
+  src/analysis/route-occurrence-surface-builder.ts
+```
+
+They then searched every application `Root` and used the TypeScript compiler probe to resolve declarations.
+
+So the two conditions were not reasoning about different systems. Both followed roughly this path:
+
+```text
+error text
+  -> validator
+  -> definition builder
+  -> compiler and source identity
+  -> application Root declarations
+```
+
+The difference was retrieval granularity. Serena could request one symbol body or one symbol's references. Bare navigation usually found the owner with `rg`, then loaded a larger source window with `sed`.
+
+On a single call, Serena often did exactly what I wanted. The experiment failed at the complete workflow level.
+
+## What Serena and the agents did badly
+
+The Serena calls were not uniformly good.
+
+One Luna run began with a broad `*identity*` symbol query over `src`. It returned almost nothing. Luna then inspected `src/analysis/identity.ts` and loaded the 11,000-character `buildIdentityIndex` result. That subsystem was related by name but did not own the route-occurrence failure.
+
+Other avoidable calls included:
+
+- Requesting the same builder overview twice.
+- Searching for `validateRouteOccurrenceSurfaceGraph`, which did not match a symbol.
+- Searching for `declarationForResolved` in the wrong file before retrying the correct file.
+- Calling `find_referencing_symbols` with `name_path_pattern` instead of `name_path`.
+- Continuing into route projection and runtime reconstruction after the static contradiction was already visible.
+
+The server handled these cases reasonably. Empty searches returned small results. The invalid reference argument produced an error. The model corrected it on the next call.
+
+The larger problem was search policy. Serena made it cheap to ask another semantic question, and Luna kept asking. It did not have a strong stop rule tied to the requested answer.
+
+Bare navigation also made mistakes. One Luna bare command tried to read analyzer paths from the Soccer Schedule directory. Bare agents also loaded several broad file ranges. The difference was that the bare condition had only one navigation surface, so it reached a stopping point sooner.
+
+## Why Luna used so many tokens
+
+The two Luna Serena runs show the additive behavior directly:
+
+| Run | Total calls | Serena calls | Other calls | Uncached input | Total input |
+|---|---:|---:|---:|---:|---:|
+| Luna bare, rep 1 | 23 | 0 | 23 | 75,401 | 1,253,001 |
+| Luna Serena, rep 1 | 34 | 18 | 16 | 85,432 | 1,899,192 |
+| Luna bare, rep 2 | 18 | 0 | 18 | 71,644 | 983,260 |
+| Luna Serena, rep 2 | 54 | 26 | 28 | 141,554 | 4,503,026 |
+
+The 54-call run did not contain 54 Serena calls. Its mix was:
+
+| Activity | Calls |
+|---|---:|
+| Serena symbol navigation | 26 |
+| Text search and source reads | 14 |
+| Runtime TypeScript probes | 12 |
+| Setup and other checks | 2 |
+
+Luna therefore retained most of the bare search work, added 26 Serena calls, and added a runtime reproduction loop. The Serena result objects contributed about 91,500 characters. The complete run recorded 383,175 tool-result characters.
+
+The repeated turns matter as much as the raw results. Each new tool call continues a conversation containing earlier results. The model repeatedly processed a larger accumulated context. Most of the 4.50 million total input tokens were cached, but 141,554 were still uncached. The comparable bare run used 71,644 uncached input tokens.
+
+The extra work did buy something. Luna's second Serena answer received 4/4, while its second bare answer received 2/4. But this was not an efficient quality gain. The Serena run used three times as many calls and nearly twice the uncached input.
+
+This is why I do not read the result as “Serena responses are too large.” Several Serena responses were compact and excellent. Luna used more tokens because it layered semantic navigation, text search, and runtime proof into one long investigation.
+
+A better Serena policy would look more like this:
+
+```text
+1. Use text search only to locate an unknown owner.
+2. Switch to Serena for exact symbol bodies and references.
+3. Stop when the owner, contradiction, and static limit are established.
+4. Use a runtime probe only when the requested conclusion needs runtime proof.
+```
+
+The tested prompt exposed the tools but did not enforce that substitution rule. That is now the main design change I would test.
+
+## Blind scoring
+
+An independent Luna High worker scored only the final user-visible answers. It used a hidden zero-to-four rubric:
+
+| Score | Meaning |
+|---:|---|
+| 0 | Wrong owner or no usable answer |
+| 1 | A related file, but no controlling path |
+| 2 | Main files found, with a key identity edge missing |
+| 3 | Correct owner and bounded evidence |
+| 4 | Correct outcome, controlling symbols, and a correct static limitation |
+
+This separated investigation activity from answer quality. That distinction affected one run materially. A Sol Serena run found useful evidence internally, but its final answer was only a handoff note. The scorer assigned zero because that was the answer a user would receive.
+
+I think that is the right treatment. Hidden work is not a successful result if the final response drops it.
+
+## Token accounting
+
+I read token totals from the final `token_count` event in each rollout. I did not estimate them from output size.
+
+A simplified extraction command is:
+
+```sh
+jq -s '
+  [.[]
+    | select(.type == "event_msg")
+    | select(.payload.type == "token_count")
+    | .payload.info.total_token_usage
+  ] | last
+' rollout.jsonl
+```
+
+The important operation is selecting the last `token_count` event.
+
+I calculated fresh input as:
+
+```text
+uncached input = input tokens - cached input tokens
+```
+
+I tracked five measures:
+
+- Total input tokens.
+- Uncached input tokens.
+- Output tokens.
+- Tool-call count.
+- Tool-result characters.
+
+Cached input still consumes context and can affect the trajectory. Uncached input better represents fresh token work. I kept both measures instead of choosing the friendlier one.
+
+## The eight runs
+
+| Model | Condition | Rep | Uncached input | Total input | Calls | Result chars | Score |
+|---|---|---:|---:|---:|---:|---:|---:|
+| Sol Medium | Bare | 1 | 108,583 | 1,172,263 | 20 | 211,134 | 4 |
+| Sol Medium | Serena | 1 | 87,617 | 1,342,529 | 21 | 238,753 | 2 |
+| Sol Medium | Bare | 2 | 82,042 | 1,283,962 | 20 | 247,228 | 4 |
+| Sol Medium | Serena | 2 | 57,274 | 1,072,570 | 20 | 149,471 | 0 |
+| Luna High | Bare | 1 | 75,401 | 1,253,001 | 23 | 236,585 | 3 |
+| Luna High | Serena | 1 | 85,432 | 1,899,192 | 34 | 218,848 | 2 |
+| Luna High | Bare | 2 | 71,644 | 983,260 | 18 | 243,188 | 2 |
+| Luna High | Serena | 2 | 141,554 | 4,503,026 | 54 | 383,175 | 4 |
+
+The run-level spread is large. That is why the repeated matrix matters.
+
+Sol used fewer median uncached tokens with Serena, but its median score fell from four to one. Luna gained half a median quality point, but Serena increased its median uncached input by 54.4%. Luna's median tool count rose from 20.5 to 44.
+
+The pooled result was clearer:
+
+| Condition | Uncached input | Total input | Calls | Result chars | Blind score |
+|---|---:|---:|---:|---:|---:|
+| Bare | 337,670 | 4,692,486 | 81 | 938,135 | 13/16 |
+| Serena additive | 371,877 | 8,817,317 | 129 | 990,247 | 8/16 |
+
+Relative to bare navigation, the Serena condition produced:
+
+- 10.1% more uncached input.
+- 87.9% more total input.
+- 59.3% more tool calls.
+- 5.6% more tool-result characters.
+- 38.5% fewer blind quality points.
+
+The predeclared decision rule required equal pooled quality plus an efficiency benefit. Serena failed the quality requirement and the pooled token requirement.
+
+## Why the bare agents did well
+
+The bare agents found the controlling contradiction.
+
+`validateOccurrenceReferences` first checks the composite definition identity. It then requires each bare `compilerIdentity` and each `sourceIdentity` to be globally unique.
+
+The builder does something different. `RouteOccurrenceSurfaceBuilder.definitionFor` creates an identity from both values:
+
+```text
+stableIdentity("route-definition", [compilerIdentity, sourceIdentity])
+```
+
+Distinct local `Root` declarations can share the compiler name while retaining separate source identities. The scalar compiler-identity validation therefore conflicts with the builder's composite identity rule.
+
+Bare agents reached that result with `rg`, bounded reads, and compiler probes. Both Sol bare runs received 4/4.
+
+Serena found the same small symbol bodies. It helped one Luna run produce a precise answer. The problem was substitution. Agents often called Serena and then used the same shell searches and compiler probes.
+
+Adding a tool did not remove a workflow. It added a decision about when to trust the new tool.
+
+## What I would change in a repeat
+
+This test is a screen, not a final benchmark.
+
+First, the Serena treatment used a command wrapper. It restarted the server for each query. A native MCP session would keep its project index alive and expose richer tool schemas. Restarts clearly affect latency. They can also affect cold additional-workspace indexing. Native tool ergonomics could change agent behavior too.
+
+Second, the sample is small. Eight runs can reject an obvious default choice. They cannot establish a stable effect size across repositories and task types.
+
+Third, the A/B used one semantic-positive case. That was deliberate, but it favors Serena's intended strength. A broader benchmark should include:
+
+- same-name declarations and alias chains
+- incoming and outgoing call hierarchy
+- large reference sets that need ranking
+- CSS and browser behavior as negative controls
+- runtime state races where static tools should stop
+
+Fourth, the additional workspace behavior was inconsistent. Serena could inspect some external files, but directory-scoped symbol search rejected the same external root. This increased the need for fallback search.
+
+Fifth, I would add a forced-substitution condition:
+
+```text
+bare tools
+Serena additive
+Serena-first with a strict shell fallback rule
+```
+
+The current test answers whether adding Serena helps normal Codex. It does not answer whether a carefully taught Serena-first policy would help.
+
+## A repeatable checklist
+
+If I repeat this evaluation, I will use this order:
+
+1. Select a real task with a known outcome.
+2. Freeze every repository at an exact commit.
+3. Remove prior reports and fixes from the agent context.
+4. Define the allowed tools for each condition.
+5. Use the same starting clue and terminal question.
+6. Predeclare the quality rubric and decision rule.
+7. Run fresh agents for every cell.
+8. Repeat any first pair that disagrees.
+9. Score final answers with an independent blind reviewer.
+10. Extract tokens from rollout records.
+11. Report run-level results before pooled summaries.
+12. Keep failures, dropped handoffs, and budget overruns in the data.
+
+The last item is easy to miss. A failed trajectory is part of the tool's utility. Removing it because the agent “really found the answer” would measure the investigator I hoped to build, not the system I tested.
+
+## The current decision
+
+Serena remains installed for targeted experiments. I did not enable it as the default Codex navigation layer.
+
+The useful result is not that semantic navigation is bad. Serena clearly retrieved relevant symbols and references. The result is narrower: this additive wrapper did not make the complete workflow better.
+
+The next useful experiment is not another broad tool demo. It is a native persistent MCP test with a strict Serena-first policy. That would test whether semantic retrieval can replace shell work instead of sitting beside it.
+
+Until then, the bare combination of `rg`, bounded reads, and small compiler probes is good enough. It was cheaper, simpler, and more reliable in this screen.
+
+Related: [When static analysis invents a recursive component graph](/blog/static-analysis-component-identity)
+
+Source: [byronwall/tsx-data-flow](https://github.com/byronwall/tsx-data-flow)
