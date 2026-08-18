@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getBlogPosts, getProjects } from "app/blog/utils";
+import { getBlogPosts, getGames, getProjects } from "app/blog/utils";
 
 export const baseUrl = "https://byroni.us";
 
@@ -22,10 +22,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/experience/tda-research",
   ];
 
-  const routes = ["", "/blog", "/projects", "/tools", "/about", ...experienceRoutes].map((route) => ({
+  const routes = ["", "/blog", "/projects", "/games", "/tools", "/about", ...experienceRoutes].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date().toISOString().split("T")[0],
   }));
 
-  return [...routes, ...blogs, ...projects];
+  const games = getGames().map((game) => ({
+    url: `${baseUrl}/games/${game.slug}`,
+    lastModified: game.metadata.publishedAt,
+  }));
+
+  return [...routes, ...blogs, ...projects, ...games];
 }

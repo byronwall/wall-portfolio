@@ -111,6 +111,17 @@ export function getPostsForProject(slug: string) {
     });
 }
 
+export function getPostsForGame(slug: string) {
+  return getBlogPosts()
+    .filter((post) => post.metadata.game === slug)
+    .sort((a, b) => {
+      const dateOrder = (b.metadata.publishedAt ?? "").localeCompare(
+        a.metadata.publishedAt ?? "",
+      );
+      return dateOrder || (a.slug < b.slug ? -1 : 1);
+    });
+}
+
 export function getReadingTime(content: string) {
   const words = content
     .replace(/```[\s\S]*?```/g, " ")
@@ -151,6 +162,12 @@ export function getProjects() {
   const projectsDirectory = path.join(process.cwd(), "content/projects");
 
   return getMDXData(projectsDirectory);
+}
+
+export function getGames() {
+  const gamesDirectory = path.join(process.cwd(), "content/games");
+
+  return getMDXData(gamesDirectory);
 }
 
 export function getProjectIndexTier(metadata: BaseMetadata): ProjectIndexTier {

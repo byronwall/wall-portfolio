@@ -1,0 +1,36 @@
+---
+title: "Making Gunk Patrol from my son's game idea"
+publishedAt: 2026-08-17
+summary: "How a four-minute idea about cleaning a swamp became a small touch-first game with a forgiving goal and a staged route."
+image: "/images/games/gunk-patrol/gameplay.png"
+game: gunk-patrol
+type: reflection
+---
+
+On August 7, I recorded a four-minute memo about a game idea my son had described. The idea was concrete enough to build from: a green, bubbly swamp that turns blue as you clean it, alligators that come out of tubes, a net, a backpack tank, a sewer container, and a truck in the city.
+
+The transcript says, “if you go in the space then it's clean and it turns blue.” There may be a transcription error in “the space,” but the mechanic is clear. Moving through the mess should change the world in a way you can see immediately.
+
+That became the center of Gunk Patrol. The player drags anywhere on the playfield to move. Walking over green gunk cleans it without a second button. The player can tap an alligator when it is close enough to catch it with a net. The interaction is direct because the game should work on a touch screen without explaining a virtual joystick first.
+
+The first swamp slice held those constraints together. Green means unfinished. Blue means the route is clean. The player moves, cleans, avoids an alligator, and decides when to risk getting close enough to catch it. That is a complete loop before the game needs a larger map or a more complicated level system.
+
+## Make progress forgiving
+
+The cleanup target is 90%, not 100%. A child should be able to finish an area without searching for one tiny missed patch at the edge of the map. The HUD can still show the work left, but the game does not turn the last few percent into a scavenger hunt.
+
+There are five hearts. Taking a hit spills some of the collected gunk back onto the ground, so the mistake changes the route instead of ending the run immediately. The player also gets 1.2 seconds of invulnerability after the hit. That gives the player time to understand what happened and move away from the alligator.
+
+The alligator loop is similarly small. An alligator wanders until the player gets close, then notices and chases. The player can create distance or tap it when it is in catching range. Catching removes it from the immediate problem. The alligator is a mischievous obstacle, not a reason to make the game feel harsh.
+
+The game also uses deterministic seeds. A new area can make a fresh route, while Replay Seed brings back the same layout. That keeps the result small and inspectable. A repeatable route is useful when the interesting question is whether a different path cleans the area more effectively.
+
+## The route got smaller
+
+The original idea proposed three areas inside each numbered level: a swamp, a sewer or tunnel, and a city. It also left room for more alligators, Empty and Done interactions, and a visible transfer from one area to the next.
+
+The release is smaller. It currently has three total areas: **Level 1 Swamp → Level 2 Sewer → Level 3 City**. The implementation uses one alligator at a constant speed and staged unload visuals rather than a full transfer system. The white truck and the container still provide a payoff when the cleanup goal is reached, but the game does not need a large progression model to make that moment readable.
+
+That difference is useful. The original brief gives the game a direction, while the first swamp slice gives it a testable center. The release keeps the parts that explain the idea—green becoming blue, the net, the tank, the container, and the truck—and leaves the larger level structure as a boundary rather than pretending it is already implemented.
+
+The truck is the detail I keep coming back to. In the memo, the city was described plainly: “And then in the city it's just like a big old truck.” That is enough direction for the payoff. When the route is clean, the game should not only show a percentage changing. It should show the mess going somewhere.
