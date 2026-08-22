@@ -1,0 +1,320 @@
+#!/bin/bash
+set -euo pipefail
+umask 077
+
+omp_BIN="/Users/byronwall/.local/bin/omp"
+KEYCHAIN_SERVICE="codex-ox-alpha-openrouter"
+KEYCHAIN_ACCOUNT="$(id -un)"
+MODEL_ID="openrouter/stealth/ox-alpha"
+STATE_BASE="${XDG_STATE_HOME:-$HOME/.local/state}"
+LOG_ROOT="$STATE_BASE/ox-alpha-workers"
+QUOTA_FILE="$LOG_ROOT/quota.json"
+
+if [ "$#" -lt 2 ]; then
+  echo "Usage: ox-agent <low|high|max> <prompt>" >&2
+  exit 64
+fi
+
+THINKING_LEVEL="$1"
+shift
+
+case "$THINKING_LEVEL" in
+  low|high|max)
+    ;;
+  *)
+    echo "ox-agent: thinking level must be low, high, or max" >&2
+    exit 64
+    ;;
+esac
+
+if [ ! -x "$omp_BIN" ]; then
+  echo "ox-agent: omp is not installed at $omp_BIN" >&2
+  exit 69
+fi
+
+mkdir -p "$LOG_ROOT/runs"
+
+set +e
+QUOTA_MESSAGE="$(python3 - "$QUOTA_FILE" "$LOG_ROOT/runs" <<'PY'
+import json
+import re
+import sys
+import time
+from datetime import datetime
+from pathlib import Path
+
+quota_path = Path(sys.argv[1])
+runs_path = Path(sys.argv[2])
+now = time.time()
+blocked_until = 0.0
+source = None
+
+try:
+    quota = json.loads(quota_path.read_text(encoding="utf-8"))
+    blocked_until = float(quota.get("blocked_until_epoch", 0))
+    source = quota.get("source_run_id")
+except (OSError, ValueError, TypeError, json.JSONDecodeError):
+    pass
+
+for output_path in runs_path.glob("*/output.log"):
+    try:
+        output = output_path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        continue
+    match = re.search(r"free-models-per-day[^\n]*retry-after-ms=(\d+)", output)
+    if not match:
+        continue
+    detected_at = output_path.stat().st_mtime
+    meta_path = output_path.parent / "meta.json"
+    try:
+        meta = json.loads(meta_path.read_text(encoding="utf-8"))
+        detected_at = datetime.fromisoformat(meta["finished_at"].replace("Z", "+00:00")).timestamp()
+    except (OSError, KeyError, ValueError, TypeError, json.JSONDecodeError):
+        pass
+    candidate = detected_at + int(match.group(1)) / 1000
+    if candidate > blocked_until:
+        blocked_until = candidate
+        source = output_path.parent.name
+
+if blocked_until > now:
+    quota_path.write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "model": "openrouter/stealth/ox-alpha",
+                "blocked_until_epoch": blocked_until,
+                "source_run_id": source,
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    remaining = int(blocked_until - now + 0.999)
+    local_deadline = datetime.fromtimestamp(blocked_until).astimezone().isoformat(timespec="seconds")
+    print(f"ox-agent: daily Ox Alpha quota is unavailable until {local_deadline} ({remaining}s remaining)")
+    raise SystemExit(75)
+PY
+)"
+QUOTA_STATUS="$?"
+set -e
+
+if [ "$QUOTA_STATUS" -eq 75 ]; then
+  echo "$QUOTA_MESSAGE" >&2
+  exit 75
+fi
+if [ "$QUOTA_STATUS" -ne 0 ]; then
+  echo "ox-agent: could not inspect quota state" >&2
+  exit 70
+fi
+
+if ! OPENROUTER_API_KEY="$(security find-generic-password -a "$KEYCHAIN_ACCOUNT" -s "$KEYCHAIN_SERVICE" -w 2>/dev/null)"; then
+  echo "ox-agent: OpenRouter key is not configured in macOS Keychain" >&2
+  exit 78
+fi
+
+export OPENROUTER_API_KEY
+
+WORKER_PRompT="Read all applicable AGENTS.md and README files before work. This is a shared checkout. Preserve unrelated changes. Do not create a git worktree. Stay within the file and action scope in the user prompt. Run the requested project checks. Do not push, deploy, access credentials, run destructive commands, or inspect unrelated private files."
+
+RUN_ID="$(date -u +%Y%m%dT%H%M%SZ)-$$"
+RUN_DIR="$LOG_ROOT/runs/$RUN_ID"
+OUTPUT_FILE="$RUN_DIR/output.log"
+REQUEST_FILE="$RUN_DIR/request.txt"
+META_FILE="$RUN_DIR/meta.json"
+INDEX_FILE="$LOG_ROOT/invocations.jsonl"
+START_MARKER="$RUN_DIR/.started"
+INTERNAL_DIR="$RUN_DIR/omp-internal"
+GIT_BEFORE_FILE="$RUN_DIR/git-before.txt"
+GIT_AFTER_FILE="$RUN_DIR/git-after.txt"
+STARTED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+START_EPOCH="$(date +%s)"
+omp_EXIT=70
+omp_PID=""
+FINALIZED=0
+
+mkdir -p "$INTERNAL_DIR"
+printf '%s\n' "$@" > "$REQUEST_FILE"
+touch "$OUTPUT_FILE" "$START_MARKER"
+if git -C "$PWD" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  git -C "$PWD" status --short > "$GIT_BEFORE_FILE" 2>/dev/null || true
+fi
+printf 'Ox Alpha run log: %s\n' "$RUN_DIR" >&2
+
+finalize_run() {
+  local original_status="$?"
+  if [ "$FINALIZED" -eq 1 ]; then
+    return "$original_status"
+  fi
+  FINALIZED=1
+  set +e
+  unset OPENROUTER_API_KEY
+
+  if git -C "$PWD" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    git -C "$PWD" status --short > "$GIT_AFTER_FILE" 2>/dev/null || true
+  fi
+
+  if [ -n "$omp_PID" ] && [ -d "$HOME/.omp/logs" ]; then
+    for source_file in \
+      "$HOME/.omp/logs/.omp.$omp_PID-audit.json" \
+      "$HOME/.omp/logs"/omp.*."$omp_PID".log; do
+      if [ -f "$source_file" ]; then
+        cp -p "$source_file" "$INTERNAL_DIR/"
+      fi
+    done
+  fi
+
+  rm -f "$START_MARKER"
+
+  local finished_at finished_epoch duration_seconds omp_version
+  finished_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  finished_epoch="$(date +%s)"
+  duration_seconds="$((finished_epoch - START_EPOCH))"
+  omp_version="$($omp_BIN --version 2>/dev/null | head -n 1 || true)"
+
+  python3 - "$META_FILE" "$INDEX_FILE" "$QUOTA_FILE" "$RUN_ID" "$STARTED_AT" "$finished_at" "$duration_seconds" "$omp_EXIT" "$omp_PID" "$PWD" "$MODEL_ID" "$THINKING_LEVEL" "$REQUEST_FILE" "$OUTPUT_FILE" "$INTERNAL_DIR" "$GIT_BEFORE_FILE" "$GIT_AFTER_FILE" "$omp_version" <<'PY'
+import fcntl
+import hashlib
+import json
+import re
+import sys
+import time
+from datetime import datetime, timezone
+from pathlib import Path
+
+(
+    meta_path,
+    index_path,
+    quota_path,
+    run_id,
+    started_at,
+    finished_at,
+    duration_seconds,
+    exit_status,
+    omp_pid,
+    cwd,
+    model,
+    thinking_level,
+    request_path,
+    output_path,
+    internal_dir,
+    git_before_path,
+    git_after_path,
+    omp_version,
+) = sys.argv[1:]
+
+request = Path(request_path).read_bytes()
+output = Path(output_path).read_bytes()
+output_text = output.decode("utf-8", errors="replace")
+exit_code = int(exit_status)
+quota_match = re.search(r"free-models-per-day[^\n]*retry-after-ms=(\d+)", output_text)
+
+if quota_match:
+    status = "quota_exhausted"
+    failure_kind = "daily_free_quota"
+elif exit_code == 0:
+    status = "completed"
+    failure_kind = None
+elif exit_code in {130, 143}:
+    status = "interrupted"
+    failure_kind = "signal"
+else:
+    status = "failed"
+    failure_kind = "worker_error"
+
+retry_after_ms = int(quota_match.group(1)) if quota_match else None
+quota_blocked_until = None
+if retry_after_ms is not None:
+    blocked_until_epoch = time.time() + retry_after_ms / 1000
+    quota_blocked_until = datetime.fromtimestamp(blocked_until_epoch, timezone.utc).isoformat().replace("+00:00", "Z")
+    Path(quota_path).write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "model": model,
+                "detected_at": finished_at,
+                "retry_after_ms": retry_after_ms,
+                "blocked_until_epoch": blocked_until_epoch,
+                "blocked_until": quota_blocked_until,
+                "source_run_id": run_id,
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+internal_files = sorted(str(path) for path in Path(internal_dir).iterdir() if path.is_file())
+record = {
+    "schema_version": 2,
+    "run_id": run_id,
+    "status": status,
+    "failure_kind": failure_kind,
+    "started_at": started_at,
+    "finished_at": finished_at,
+    "duration_seconds": int(duration_seconds),
+    "exit_status": exit_code,
+    "omp_pid": int(omp_pid) if omp_pid else None,
+    "cwd": cwd,
+    "model": model,
+    "thinking_level": thinking_level,
+    "omp_version": omp_version,
+    "request_file": request_path,
+    "request_bytes": len(request),
+    "request_sha256": hashlib.sha256(request).hexdigest(),
+    "output_file": output_path,
+    "output_bytes": len(output),
+    "output_lines": output.count(b"\n"),
+    "git_before_file": git_before_path if Path(git_before_path).exists() else None,
+    "git_after_file": git_after_path if Path(git_after_path).exists() else None,
+    "omp_internal_files": internal_files,
+    "retry_after_ms": retry_after_ms,
+    "quota_blocked_until": quota_blocked_until,
+}
+
+Path(meta_path).write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
+with Path(index_path).open("a", encoding="utf-8") as index:
+    fcntl.flock(index.fileno(), fcntl.LOCK_EX)
+    index.write(json.dumps(record, separators=(",", ":")) + "\n")
+    index.flush()
+    fcntl.flock(index.fileno(), fcntl.LOCK_UN)
+PY
+
+  printf 'Ox Alpha run complete: status=%s exit=%s duration=%ss log=%s\n' \
+    "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["status"])' "$META_FILE" 2>/dev/null || echo unknown)" \
+    "$omp_EXIT" "$duration_seconds" "$RUN_DIR" >&2
+  return "$original_status"
+}
+
+forward_signal() {
+  local signal_name="$1"
+  local exit_code="$2"
+  if [ -n "$omp_PID" ]; then
+    kill "-$signal_name" "$omp_PID" 2>/dev/null || true
+  fi
+  omp_EXIT="$exit_code"
+  exit "$exit_code"
+}
+
+trap finalize_run EXIT
+trap 'forward_signal INT 130' INT
+trap 'forward_signal TERM 143' TERM
+
+set +e
+"$omp_BIN" \
+  --print \
+  --no-session \
+  --no-title \
+  --model "$MODEL_ID" \
+  --thinking "$THINKING_LEVEL" \
+  --cwd "$PWD" \
+  --auto-approve \
+  --append-system-prompt "$WORKER_PRompT" \
+  "$@" > >(tee "$OUTPUT_FILE") 2>&1 &
+omp_PID="$!"
+wait "$omp_PID"
+omp_EXIT="$?"
+wait 2>/dev/null || true
+set -e
+
+exit "$omp_EXIT"

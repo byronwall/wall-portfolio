@@ -1,0 +1,151 @@
+---
+title: What 57.7 million free tokens taught me about Ox Alpha and omp
+publishedAt: 2026-08-21
+summary: 'I turned a tweet about free Ox Alpha coding agents into a Codex-driven omp worker pool, burned through 57.7 million tokens, reviewed the evidence, and simplified the final skill.'
+image: "/images/posts/testing-ox-alpha-through-omp/openrouter-usage.png"
+type: experiment
+---
+
+I saw [a tweet from Jeffrey Emanuel](https://x.com/doodlestein/status/2090855048204972038) with a fairly tempting coding-agent recipe:
+
+<TweetEmbed
+  id="2090855048204972038"
+  url="https://x.com/doodlestein/status/2090855048204972038"
+/>
+
+1. Install [omp](https://omp.sh/).
+2. Connect it to OpenRouter.
+3. Select the free `stealth/ox-alpha` model.
+4. Install MCP Agent Mail.
+5. Run several omp agents in the same project.
+
+The immediate appeal was the free model. The more useful question was whether I could make those agents into extra workers controlled by my normal Codex workflow. I did not want three terminal windows that I had to babysit. I wanted Codex to decide when an outside worker was useful, give it a bounded job, and then review the result.
+
+That worked. It also consumed 57.7 million tokens and about 1,010 model requests before the daily allowance stopped.
+
+![OpenRouter usage showing 1.01K Ox Alpha requests and 57.7M tokens.](/images/posts/testing-ox-alpha-through-omp/openrouter-usage.png)
+
+*The final OpenRouter usage view: roughly 1,010 requests and 57.7 million tokens, all attributed to Ox Alpha.*
+
+## The first setup
+
+I installed omp 17.4.2 and connected it to OpenRouter. The API key went into the macOS Keychain rather than a repository file or shell profile. omp selected `openrouter/stealth/ox-alpha` as the model.
+
+I also installed MCP Agent Mail 0.3.29. It ran as a local service on `127.0.0.1:8765` and stored its mailbox on disk. The idea was that parallel workers could register under one project, reserve files, and send messages about conflicts.
+
+Then I wrapped omp with one command:
+
+```sh
+ox-agent <low|high|max> "<complete worker prompt>"
+```
+
+The wrapper did a few important things:
+
+- Read the OpenRouter key from Keychain.
+- Fixed the model to Ox Alpha.
+- Required an explicit reasoning level.
+- Ran omp without an interactive session.
+- Streamed output into a durable run directory.
+- Recorded metadata for later review.
+
+Each run received a bundle under `~/.local/state/ox-alpha-workers/runs/`. The bundle included the exact request, final output, timing, exit status, and omp logs.
+
+The first smoke test returned the expected text. Three concurrent smoke tests did the same thing. At that point, the wiring worked well enough to try real code.
+
+## Choosing a reasoning level
+
+omp accepts a broad set of thinking values. Ox Alpha advertised only `low`, `high`, and `max`. It also rejected requests that disabled reasoning.
+
+The first wrapper did not pin a level. That left omp to choose automatically. I changed the interface so every caller had to make the choice:
+
+- `low` for a small review, focused discovery, or simple edit.
+- `high` for normal implementation and debugging.
+- `max` for broad changes or ambiguous failures.
+
+`high` became the default decision when the task did not clearly belong at either edge. This was less about forcing more reasoning and more about making the orchestration decision visible. The calling agent already knew the rough shape of the job. It should pass that judgment through.
+
+## What the workers actually did
+
+The pool worked across two active repositories.
+
+In a Solid state-machine project, workers implemented examples 04 through 15, wrote focused tests, repaired asynchronous test harnesses, and created a Vite demo scaffold. A later local verification showed that the core, example, and Solid example typechecks passed. All 132 tests passed. The demo still had three `getGraph` type errors when the quota stopped the graph repair.
+
+In a reading-practice application, workers first investigated the interface and then split the implementation into three non-overlapping areas: the shared visual foundation, the core practice flow, and secondary application surfaces. The assembled result passed TypeScript. ESLint had no errors and two unused-import warnings. The current test suite passed 37 of 38 tests; the remaining curriculum-count failure appeared unrelated to the UI edits. The important missing check was browser verification.
+
+The prompts were the strongest part of the system. Each worker received exact file ownership, forbidden actions, expected checks, and a required report. Parallel workers generally stayed inside those boundaries.
+
+The run ledger contained 33 directories:
+
+- 31 finalized records.
+- 26 successful process exits.
+- Four daily-quota failures.
+- One interrupted early run.
+- Two completed workers whose launcher died before writing metadata.
+- About 4.1 combined worker-hours in the finalized records, much of it overlapping.
+
+That is a lot of useful code from a free preview. It is also enough activity to expose every weak assumption in the wrapper.
+
+## The first review changed the model
+
+The process exit was not a reliable success signal.
+
+The wrapper used omp's `write` approval mode in a noninteractive session. Workers could edit files, but many could not run shell commands. Several reports said that tests, typechecks, or even `git status` were blocked because no person was available to approve the command.
+
+The agents were mostly honest about this. The launcher was not. A worker could finish with exit code zero after writing code that it never executed.
+
+The logs had two other problems. A run copied every omp log created after its start time, so parallel workers collected each other's internal logs. Two launchers also died after the model finished but before metadata finalization. Their output was still present, but the log viewer called the bundles unreadable.
+
+The free allowance created a different failure. The first 429 response arrived after a worker had already spent 427 seconds on a partially completed graph task. Three more workers launched after that known quota failure. They could not possibly succeed, but the wrapper had no shared cooldown state.
+
+The title generator added noise too. omp tried to generate titles with reasoning disabled. Ox Alpha requires reasoning, so those requests returned HTTP 400. I found 12 captured title-generation failures. They did not fail the main worker, but they made the logs harder to trust.
+
+## Agent Mail was mostly machinery
+
+Agent Mail did not become the coordination layer from the tweet.
+
+The archive had two project records, one registered worker, seven unique reservations, and 33 automated Air Traffic Control messages. It had no useful peer conversation. The reading-application workers did not register at all.
+
+The actual coordination mechanism was much simpler: each prompt named the files that worker owned. Workers with disjoint file scopes did not need a mailbox.
+
+I removed Agent Mail from the final skill. I left the local installation alone, but the Ox launcher no longer checks it, mentions it, or depends on it.
+
+## The smaller final workflow
+
+The revised workflow keeps the useful pieces and removes most of the implied swarm machinery.
+
+I run a small wave of workers with disjoint scopes. Ox handles implementation or one focused investigation. Codex then inspects the changes and runs the project checks locally. I do not spend another Ox call on verification when the main orchestrator can do that work directly.
+
+The launcher now:
+
+- Requires `low`, `high`, or `max` reasoning.
+- Automatically approves omp tools so noninteractive workers can run their checks.
+- Keeps the worker inside a narrow prompt and file scope.
+- Records Git status before and after the run.
+- Copies logs only for the current omp process.
+- Finalizes metadata after normal exits and handled interruptions.
+- Classifies quota failures separately from worker failures.
+- Stores the OpenRouter retry deadline after a daily-quota response.
+- Stops later calls locally until that deadline.
+
+Automatic approval is a real tradeoff. The worker can run project commands without a human approval prompt. I only use that mode with explicit repository boundaries and prompts that forbid pushes, deployments, credential access, destructive commands, and unrelated external actions.
+
+The quota guard was testable even after the allowance was gone. I invoked the launcher again, and it stopped locally with exit 75. It showed the reset time and made no OpenRouter request.
+
+This is probably the right level of orchestration for me. I do not need a miniature organization chart for three agents. I need clear ownership, usable logs, a hard stop when the free service is unavailable, and an independent check after the work lands.
+
+## Final skill files
+
+These are the exact files from the final local skill snapshot:
+
+<OxAlphaSkillFileBrowser />
+
+The scripts currently contain my local omp path and Keychain service name. Replace those values before using them on another machine. The skill also contains my standing OpenRouter authorization, so another user should replace that section with their own privacy and approval rules.
+
+The core invocation is intentionally small:
+
+```sh
+ox-agent high "Implement this bounded change. Own only these files. Run these checks. Report the result."
+ox-agent-log 5
+```
+
+That is the part I would carry forward: one explicit reasoning choice, one bounded prompt, one durable run record, and a local verifier that does not trust the worker's summary by itself.

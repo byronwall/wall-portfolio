@@ -19,6 +19,11 @@ import { GraphLayoutExplorer } from 'app/blog/components/graph-layout-explorer'
 import { VaultwardenUpdatePath } from 'app/blog/components/vaultwarden-update-path'
 import { DiagramReviewSkillSource } from 'app/blog/components/diagram-review-skill-source'
 import { DateTableEmbed } from 'app/blog/components/date-table-embed'
+import { TweetEmbed } from 'app/blog/components/tweet-embed'
+import {
+  CodeFileBrowser,
+  OxAlphaSkillFileBrowser,
+} from 'app/components/code-file-browser'
 
 function Table({ data }) {
   let headers = data.headers.map((header, index) => (
@@ -162,6 +167,9 @@ let components = {
   VaultwardenUpdatePath,
   DiagramReviewSkillSource,
   DateTableEmbed,
+  TweetEmbed,
+  CodeFileBrowser,
+  OxAlphaSkillFileBrowser,
 }
 
 export function CustomMDX(props) {

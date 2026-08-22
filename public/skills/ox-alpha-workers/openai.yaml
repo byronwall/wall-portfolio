@@ -1,0 +1,3 @@
+interface:
+  display_name: "Ox Alpha Workers"
+  short_description: "Run free Ox Alpha coding workers through omp"
