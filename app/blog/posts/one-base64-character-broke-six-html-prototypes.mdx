@@ -1,0 +1,194 @@
+---
+title: 'ChatGPT Pro delivered one wrong Base64 character, broke six HTML prototypes, and spent 124 minutes fixing them'
+publishedAt: 2026-08-22
+summary: 'ChatGPT Pro published one wrong Base64 character, broke six table variants, and spent another 124 minutes recovering its compressed payload.'
+image: "/images/posts/one-base64-character-broke-six-html-prototypes/compressed-payload-failure.png"
+type: debugging
+---
+
+I asked ChatGPT Pro to build six different versions of an interactive data table. It worked for 121 minutes and 21 seconds. The result included six distinct interfaces, eight test states per interface, keyboard checks, state restoration across variants, and 53 screenshot comparisons with zero mismatched pixels.
+
+It also published one wrong Base64 character. That single character broke all six examples. ChatGPT Pro then spent another 123 minutes and 58 seconds finding the character, rebuilding the payload, verifying the repair, and pushing it. The full visible saga took 245 minutes and 19 seconds: a little more than four hours.
+
+Then I opened the published HTML.
+
+<figure className="not-prose my-6">
+  <img
+    src="/images/posts/one-base64-character-broke-six-html-prototypes/compressed-payload-failure.png"
+    alt="Published interactive table page showing the alert that the table runtime could not load the compressed payload"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+  <figcaption>The HTML shell loaded. The table runtime did not.</figcaption>
+</figure>
+
+The page showed a heading, a little bit of unstyled copy, and one red error:
+
+```text
+The table runtime could not load the compressed payload.
+```
+
+This was supposed to be a collection of static HTML examples. Somehow, getting those HTML files onto GitHub had produced a small software-distribution system inside the page.
+
+## Why the HTML needed a compressed runtime
+
+The six pages were thin shells around one shared table engine. A bootstrap script loaded seven JavaScript files in order. Each file pushed one Base64 fragment onto a global array.
+
+Once all seven arrived, the bootstrap did this:
+
+```text
+seven JavaScript fragments
+  -> concatenate 46,412 Base64 characters
+  -> decode 34,809 gzip bytes
+  -> decompress 170,275 JSON bytes
+  -> parse { css, app }
+  -> inject the stylesheet and application script
+```
+
+The packaging came from an awkward publication boundary. The original agent could build and test locally, but its shell could not push through the normal Git path. It used the authenticated GitHub connector instead. That meant carrying the generated runtime through a text-oriented publication path, splitting it into file-sized pieces, creating Git blobs, assembling trees, and updating the branch.
+
+It worked well enough to create a valid repository. It was also a terrible place to have one unverified character.
+
+Every easy layer accepted the published files:
+
+- The seven JavaScript wrappers parsed.
+- Every character was legal Base64.
+- Base64 decoding returned bytes.
+- Git stored the bytes exactly as ordinary text.
+- Raw DEFLATE could even decompress the result.
+
+The payload was still wrong.
+
+## The first fixes made the failure less obvious
+
+The initial diagnosis found the gzip CRC failure quickly. Concatenating the fragments and calling `gzip.decompress` produced a CRC error. Stripping the gzip header and trailer let raw DEFLATE emit 170,255 bytes, but JSON parsing then failed on an invalid escape near byte 25,987.
+
+At that point, the payload still contained recognizable pieces of the intended engine. Names such as `FIXED_TODAY`, `PAGE_SIZE = 12`, `AUTHORED_FIELDS`, `VARIANTS`, `SCENARIOS`, and `FIELD_DEFS` survived. This was damaged data, not an unrelated file.
+
+One tempting repair was to make a fresh payload from the root `app.js` and `styles.css`. That produced valid gzip and valid JSON. It also packed the wrong application. The red error disappeared, but the variant pages failed because the root app expected DOM elements that did not exist.
+
+Another repair proposed adding forty legacy element IDs, hiding the designed variant markup, and mounting the old table in its place. Mechanically, that would have made something appear. It would also have destroyed the six variants that the page was meant to demonstrate.
+
+That is a useful distinction in agent work. Removing the error is not the same as restoring the product.
+
+Git history did not provide a clean copy either. The corrupt stream was already present in the first commit that introduced it, `648d1e3`. Every later commit inherited the same bytes.
+
+So I sent the problem back to ChatGPT Pro, which had published the bad stream in the first place. It still had the earlier build context and could reconstruct the intended runtime rather than substitute a different one.
+
+## The whole failure was one character
+
+The recovery rebuilt the authoritative `{ css, app }` JSON, compressed it deterministically, encoded it, and compared that stream with the published seven-part stream.
+
+The first difference was also the only difference.
+
+At zero-based Base64 offset 6,701:
+
+```text
+Published:      y
+Authoritative:  l
+```
+
+The surrounding four-character group was:
+
+```text
+Authoritative:  wl45
+Published:      wy45
+```
+
+Both strings are valid Base64. That is why the outer checks did nothing. But each Base64 character carries six bits:
+
+| Character | Base64 index | Bits |
+| --- | ---: | --- |
+| `l` | 37 | `100101` |
+| `y` | 50 | `110010` |
+
+Base64 groups four six-bit values into three bytes. Changing one character can therefore change portions of two decoded bytes. Here the gzip bytes changed from:
+
+```text
+Authoritative: c2 5e 39
+Published:     c3 2e 39
+```
+
+The two changed bytes sat around gzip offsets 5,025 and 5,026.
+
+## Why decompression almost worked
+
+The changed bits landed inside the DEFLATE stream. By bad luck, they did not form an illegal instruction. They formed a different valid set of Huffman codes and back-reference data.
+
+Raw DEFLATE therefore kept going. It just produced the wrong output.
+
+The authoritative stream expanded to 170,275 bytes. The damaged stream expanded to 170,255 bytes. A changed back-reference removed 20 bytes from the output, and the first meaningful text divergence appeared around byte 25K. One damaged section looked roughly like this:
+
+```text
+border-left:rong);
+ dtlier-lane ...
+```
+
+That broken text eventually created the invalid JSON escape.
+
+Gzip caught what the lower-level decoder could not. Its trailer declared both the checksum and expected size:
+
+```text
+CRC32: bef0e8a0
+ISIZE: 170275
+```
+
+The damaged output matched neither value. The compression grammar was valid, but the content was not. This is exactly what the checksum is for.
+
+## What we know about the flip
+
+The mechanical failure is established down to the bit level. The repository also shows where it first existed. ChatGPT Pro delivered the corrupt payload. That is an observed output failure.
+
+The exact action that changed `l` to `y` is not recoverable from Git history. The most plausible boundary is ChatGPT Pro's original publication path, when a long generated Base64 string moved through model output, connector calls, and GitHub file creation. There is no evidence that gzip, the browser, Git, or a later commit changed it on their own.
+
+I do not think it is useful to pretend we know which specific layer made the substitution. The better conclusion is that this transport had no end-to-end integrity check. A legal Base64 character could change, and every step before gzip would report success.
+
+## What did the repair cost?
+
+The timing is exact. The first repair run took 112 minutes and 3 seconds. The authorized push and full explanation took another 11 minutes and 55 seconds. Together, ChatGPT Pro spent 123 minutes and 58 seconds recovering from the bad character after I reported it.
+
+The token cost is not exact because the Pro thread does not expose a token ledger. [OpenAI's current ChatGPT usage guide](https://learn.chatgpt.com/docs/pricing) says GPT-5.6 messages average 5–30 credits. Two named repair turns therefore suggest about 10–60 credits. Including the original build gives a rough total of 15–90 credits for the three visible turns.
+
+Credits are plan allowance, not a cash invoice. This ran inside a ChatGPT Pro subscription, so the likely marginal charge was zero unless it crossed an included limit or used purchased credits. Wall-clock time is not compute time either. Hidden tool calls, cached context, reasoning, and output length can all change actual usage.
+
+If I force the estimate into API prices, [GPT-5.6 Sol's published rates](https://developers.openai.com/api/docs/models/gpt-5.6-sol) put the two repair turns at a rough no-cache equivalent of $0.40–$2.40. The full visible saga is roughly $0.60–$3.60 on the same simple assumption. Those are comparisons, not measured charges. An exact token or dollar claim would be fiction.
+
+## The payload was not the only publication defect
+
+Once the real runtime loaded, the audit found more gaps between the tested build and the published repository:
+
+- The V3 Chip-First HTML page and stylesheet were missing.
+- The variant index showed only V1 and V2.
+- The shared manifest, plus inline manifests in V4 and V5, did not list all six pages.
+- The Playwright support suite covered fewer variants than the final report claimed.
+- One field-search selector was malformed.
+- The cross-variant persistence test used a deliberately non-persistent scenario seed.
+
+This part matters as much as the one-character mystery. The compressed payload produced the loud failure, but fixing it did not prove that publication had preserved the tested product.
+
+The final repair restored the missing files, corrected the manifests and tests, and added two checks at the boundary that had failed.
+
+The payload test now concatenates the seven checked-in fragments, validates Base64, checks gzip CRC and size, parses JSON, and confirms the expected variant-engine markers. The static-server test loads the actual HTML, bootstrap, manifest, and fragments over HTTP.
+
+The final verification covered:
+
+- seven published pages and sixteen HTTP resources;
+- six styled tables with no console or page errors;
+- 48 required variant states;
+- two V6 Report/Explore cases;
+- three V3-to-V6-to-V3 restoration cases;
+- 53 visual comparisons with zero mismatched pixels.
+
+The fix landed on `main` as commit [`08c7b26`](https://github.com/byronwall/interactive-data-table-prototypes/commit/08c7b26a8dd53d8704027a16fef927d6733d5b27).
+
+Only `payload-part-01.js` changed among the seven fragments. Parts 2–7 already matched the reconstructed source byte for byte. Rewriting them would have produced the same Git blobs.
+
+## The useful boundary to test
+
+The original tests proved that the table engine and screenshots were correct before publication. They did not prove that the published fragments could reconstruct that engine.
+
+For generated assets, especially opaque ones, the useful test starts with the files you plan to ship. Read those exact files. Reassemble them through the same path as the browser. Validate the checksum. Then load the page from a static server.
+
+That is more expensive than checking whether each fragment contains legal text. It is much cheaper than asking two agents, one Pro thread, a gzip trailer, a raw DEFLATE decoder, and Git history to explain why six static HTML pages are blank.
+
+Source: [byronwall/interactive-data-table-prototypes](https://github.com/byronwall/interactive-data-table-prototypes)
