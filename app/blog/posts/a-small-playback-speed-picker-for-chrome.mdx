@@ -1,0 +1,25 @@
+---
+title: A small playback speed picker for Chrome
+publishedAt: 2026-08-23
+summary: 'A small Chrome extension that lets me select embedded media and set its playback speed up to 3×.'
+image: "/images/posts/a-small-playback-speed-picker-for-chrome/picker.png"
+type: tooling
+---
+
+I wanted one simple control: click a toolbar button, pick the media player on the page, and choose a playback speed. The useful range for me goes up to 3×. I did not need a settings page or a larger media tool.
+
+<figure className="not-prose my-6">
+  <img
+    src="/images/posts/a-small-playback-speed-picker-for-chrome/picker.png"
+    alt="Playback Speed Picker open over a neutral embedded media player with speed choices from 0.5× to 3×"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+  <figcaption>Pick the player, then choose a speed.</figcaption>
+</figure>
+
+My first attempt was a bookmarklet. It worked when the media belonged to the main page. It stopped working when the player lived inside an iframe from another origin. The picker could outline the iframe, but browser security kept the bookmarklet from reaching the media inside it.
+
+The fix was a small Manifest V3 Chrome extension. Its toolbar button starts the picker in each permitted frame. I can hover over a video, audio element, or a container around one, click it, and then choose the speed from a compact panel. The extension updates both the current and default playback rates, with a maximum of 3×.
+
+I kept the permissions limited to the sites where I need the control. The extension does one thing, stays out of the way until I click it, and works well. That is probably enough.
