@@ -1,0 +1,51 @@
+---
+title: "User Flow Workbench"
+description: "A schema-first workbench for product and user flows, with an agent-friendly DSL and focused canvas views"
+date: "2026-08-28"
+publishedAt: "2026-08-29"
+summary: "A schema-first workbench for product and user flows, with an agent-friendly DSL and focused canvas views"
+tags: ["SolidStart", "SolidJS", "TypeScript", "Diagramming", "DSL", "Developer Tools"]
+image: "/images/projects/user-flow-workbench/flow-workbench.svg"
+status: "active"
+repo: "https://github.com/byronwall/user-flow-workbench"
+---
+
+User Flow Workbench is a diagramming tool for describing how actors, inputs, processes, handoffs, and deliverables become an outcome. It keeps the underlying graph easy to inspect while giving the rendered canvas enough structure to stay readable.
+
+- Source: [byronwall/user-flow-workbench](https://github.com/byronwall/user-flow-workbench)
+- Related post: [Building a flow tool that agents can edit](/blog/building-a-flow-tool-agents-can-edit)
+
+## Interface
+
+<div className="not-prose mt-6">
+  <img
+    src="/images/projects/user-flow-workbench/flow-workbench.svg"
+    alt="User Flow Workbench with a compact operational flow, variant tabs, and a detail inspector"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+</div>
+
+## How it works
+
+The project separates four concerns that diagram tools often collapse into one structure:
+
+- A line-based Flow DSL stores semantic nodes, typed edges, and ordered variants.
+- Optional layout hints suggest an initial structure without becoming required graph data.
+- Optional positions preserve manual placement when exact coordinates matter.
+- A canvas projection shows the operational path while the inspector keeps needs and UX context available.
+
+Variants apply ordered changes to one base graph. They can add, remove, or change nodes and edges without copying the complete document. The app materializes each variant and renders it as a separate tab.
+
+Automatic layout uses ELK for placement. A local Manhattan router creates rectilinear routes around nodes. Manual movement remains available, and the app keeps a local fallback when ELK cannot load.
+
+## Highlights
+
+- Compact Flow DSL designed for direct agent edits
+- Typed operational and semantic relationships
+- Base graph plus ordered variant operations
+- Title-only canvas nodes with full inspector details
+- Automatic layout, manual positioning, pan, zoom, and fit controls
+- Rectilinear routes with separate lanes and obstacle avoidance
+- Canonical formatting and semantic checks for `.flow` files
+- SolidStart, SolidJS, and TypeScript application

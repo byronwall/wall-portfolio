@@ -1,0 +1,127 @@
+---
+title: Building a flow tool that agents can edit
+publishedAt: 2026-08-29
+summary: 'How a single-file diagram prototype became a schema-first workbench by separating graph meaning, layout, variants, and visible flow.'
+image: "/images/projects/user-flow-workbench/flow-workbench.svg"
+project: user-flow-workbench
+type: reflection
+---
+
+User Flow Workbench started as a generated `index.html` file. It already had draggable nodes, pan and zoom, automatic layout, a JSON editor, an inspector, local persistence, and a resume-tailoring example.
+
+That was enough to prove the interface. It was not yet a good way to keep changing the diagram.
+
+The useful question became: what does the source need to look like if both a person and an agent will revise it repeatedly?
+
+![User Flow Workbench showing an operational flow and its supporting inspector](/images/projects/user-flow-workbench/flow-workbench.svg)
+
+## Preserve the prototype, then change the ownership
+
+The first step was unusually literal. I moved the exact downloaded HTML into its own repository and preserved it as the starting point. The repository also captured the product decisions that had accumulated around the prototype: show only titles on the canvas, keep full details in the inspector, make drag and pan dependable, and route edges around nodes.
+
+Then I moved the application to SolidStart, SolidJS, and TypeScript. The preserved HTML remained in `docs/prototype/index.html`, but the live application gained components, typed graph records, a server route, and a place for the model to develop without editing one 64 KB file.
+
+The migration was useful, but the framework was not the main design decision. The main decision was where authority should live. The graph needed one source that an agent could inspect and change without reverse-engineering canvas state.
+
+## JSON was explicit but still painful
+
+The prototype stored nodes and edges as JSON. That made the graph portable, but small changes still required a lot of punctuation and repeated field names.
+
+I asked for a quick text DSL where each node fits on one line and edges follow the nodes:
+
+```text
+flow 3
+
+graph signup "New user signup"
+node visitor actor "Visitor"
+node details input "Signup details"
+node form process "Complete form"
+node account deliverable "Account"
+
+edge visitor-details visitor -> details
+edge details-form details -> form
+edge form-account form -> account emphasis=true
+```
+
+That format is easier for an agent to scan because the stable IDs, types, titles, and connections remain visible without a large nested object.
+
+The tricky part was position. A diagram needs coordinates eventually, but coordinates should not be required to describe the flow. The DSL therefore treats both layout hints and exact positions as optional:
+
+```text
+node form process "Complete form" layout=2,0
+position form 620,154
+```
+
+If positions do not exist, the renderer creates a useful initial layout. If I drag nodes into a better arrangement, the application can write those positions back into the DSL. Semantic graph data does not own canvas state.
+
+That distinction sounds small. It lets an agent create a complete diagram without pretending to be a layout engine, while preserving human changes when exact placement does matter.
+
+## Variants are changes, not copied diagrams
+
+The resume example made another modeling problem obvious. I wanted to compare different product directions: one resume per job posting, a durable career evidence corpus, a guided evidence interview, and an independent claim audit.
+
+The early prototype had a variant lane inside the graph. That mixed alternate ideas into the same canvas as the base flow. A copied graph for every option would have created a different problem because most nodes would be duplicated and would drift over time.
+
+The current model keeps one base graph. Each variant stores ordered operations:
+
+```text
+variant evidence-corpus "Resume as an evidence projection" {
+  set node source-resume title="Career evidence sources"
+  add node corpus deliverable "Career evidence corpus"
+  add edge inventory-corpus inventory -> corpus emphasis=true
+}
+```
+
+The application applies those changes, materializes a complete graph, and shows the result in a tab. A replacement variant can start with `clear all`, but ordinary variants only describe what changed.
+
+What this gives me is a stable starting model and several inspectable arguments about how the product could work. The canvas is a view of those arguments. It is not the storage format.
+
+## The graph was still mixing different meanings
+
+Once variants worked, the resume diagram exposed a deeper issue. It contained the operational path, user needs, UX ideas, intermediate artifacts, and a final goal. Every relationship looked like an arrow in one directed graph.
+
+But the arrows did not mean the same thing.
+
+`Current resume → Inventory evidence` describes flow. `Inventory evidence → Stay truthful` means that a process addresses a need. `Diff + approval gate → Human approval` means that a UX response appears at one process moment.
+
+Those relationships are all useful. Drawing them as one flow made the diagram harder to read.
+
+The fix was to keep one semantic model while projecting only the operational spine onto the canvas:
+
+```text
+actor + inputs → processes → handoff → deliverable
+```
+
+Needs and UX remain first-class records. Typed relations such as `addresses`, `supports`, and `appears-at` connect them to the operational graph. The inspector shows that context when it matters. The default canvas does not pretend that a user need is another step in the pipeline.
+
+Outcomes also became derived. A deliverable with no outgoing flow edge is an outcome. The model does not need a separate goal node merely to give the last box a different visual treatment.
+
+This is probably the most important change in the project so far. The problem was not too much information. The problem was using one visual grammar for different kinds of meaning.
+
+## Readability moved into the model and the router
+
+After the semantic split, most of the remaining work was about making the operational path dependable.
+
+Long flows wrap into rows that match the viewport. Same-row edges leave on the right and enter on the left. Row transitions use bottom and top ports. Parallel routes run through centered gutter bundles instead of spreading across all available space. The router avoids nodes and keeps nearby edges in separate lanes.
+
+The node cards became simpler at the same time. They show a large type icon and a title. Borders and internal decoration were removed where they added noise. Selection exposes full details in the sidebar and emphasizes connected nodes without losing the rest of the graph.
+
+These details do not change the schema, but they determine whether the schema becomes a diagram someone can actually read.
+
+## Where the project is now
+
+The repository now has a SolidStart application, Flow DSL parser and formatter, semantic checks, ordered variants, automatic layout, manual position write-back, and a repository-local skill that teaches agents how to author diagrams that render well.
+
+The model has also reached a useful boundary:
+
+- Graph data says what exists and how it relates.
+- Layout hints suggest a good initial arrangement.
+- Positions preserve deliberate manual placement.
+- Variants describe changes to shared starting data.
+- Views decide which part of the semantic model belongs on the canvas.
+
+There are still open questions. Large documents may need variant groups. Common variant operations may need structured controls. Handoffs and the artifacts they produce should probably read as a tighter unit.
+
+For now, the smallest useful result is there. I can write a flow in a compact text file, let the application arrange it, move the parts that need judgment, and compare product directions without copying the whole graph.
+
+Source: [byronwall/user-flow-workbench](https://github.com/byronwall/user-flow-workbench)
