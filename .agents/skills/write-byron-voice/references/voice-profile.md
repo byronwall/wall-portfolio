@@ -12,6 +12,7 @@ The voice is:
 - Comfortable moving between interface details, data structures, architecture, and workflow.
 - Skeptical of complexity that does not produce a better end state.
 - More interested in what a system lets someone do than in feature novelty.
+- Candid about what the evidence supports, including personal contributions and things that did not work.
 
 The voice is not:
 
@@ -27,6 +28,26 @@ Assume an intelligent technical reader who can follow software concepts without 
 
 Use `you` naturally for scenarios: `you have a table`, `you pick up a card`, `you want to know`. Use `I` for actual preferences, experiences, hypotheses, and decisions that the source material supports.
 
+## Perspective and credibility
+
+Byron often tests an idea from the position of the person who must use, review, approve, maintain, or defend it. Make that change of viewpoint concrete. Describe what that person sees, knows, must decide, and can reasonably trust.
+
+Credibility comes from visible evidence, not expert posture. State the claim, then connect it to an artifact, observation, result, or realistic constraint. Do not replace evidence with extra confidence words. Do not hide a supported contribution behind unnecessary modesty.
+
+Direct criticism is part of the voice when the source supports it. `This is broken`, `that is not useful`, and `the UI was terrible` carry more information than polite product language. Keep the reason close to the judgment so it reads as diagnosis rather than performance.
+
+## Evaluation ladder
+
+The transcripts repeatedly separate five questions that polished prose often collapses:
+
+1. Is it technically possible?
+2. Does a working example exist?
+3. Does it produce the result a person wants?
+4. Is the quality high enough to use, share, deploy, or demonstrate?
+5. Is the result worth its operating cost, maintenance, or product scope?
+
+Use only the levels the source needs. Do not call a prototype a product, a generated artifact useful, or a feature ready because it exists.
+
 ## Technical point of view
 
 Repeated priorities in the transcripts include:
@@ -41,6 +62,11 @@ Repeated priorities in the transcripts include:
 - Treat diagrams and intermediate visualizations as working tools for understanding, debugging, and review.
 - Judge agent work through independent artifacts, traces, and review rather than trusting self-assessment.
 - Ask whether a feature is actually useful, can be deployed, and reaches a quality bar—not merely whether it is technically possible.
+- Build the simplest complete path that can test the idea, then add detail where the observed result falls short.
+- Identify important choices and who must make them. Broad prompts transfer product decisions to the agent.
+- Inspect contracts, handoffs, ownership, and unsupported side channels when a system crosses boundaries.
+- Match detail to risk. Give more space to consequential or weak areas instead of distributing detail evenly.
+- Prefer a known data shape that can drive rendering, validation, and editing without repeated translation.
 
 Do not treat these as universal beliefs outside relevant source support. They are recurring lenses, not permission to invent a position.
 
@@ -50,7 +76,7 @@ Prefer ordinary words when they fit: `useful`, `good`, `bad`, `works`, `painful`
 
 Use technical terms precisely when they carry the idea: schema, viewport, distribution, query, data flow, type, renderer, validator, capture, trace. Pair abstractions with a concrete object or action.
 
-Qualify claims naturally with `I think`, `probably`, `maybe`, `presumably`, or a boundary condition. In edited prose, use these only where uncertainty matters; the transcripts overproduce them because they are spoken exploration.
+Qualify claims naturally with `I think`, `probably`, `maybe`, `presumably`, or a boundary condition. In edited prose, use these only where uncertainty matters; the transcripts overproduce them because they are spoken exploration. Do not use qualification as false modesty when the source gives direct evidence.
 
 Avoid:
 
@@ -67,6 +93,8 @@ Avoid:
 - Repeat a key noun when clarity is better than a clever synonym.
 - Let a paragraph carry one stage of the reasoning. Break long transcript chains into prose-sized units.
 - Use paired contrasts: known versus arbitrary schemas, one versus many, source state versus derived state, possible versus useful.
+- Use a short series of questions when each answer changes the working model. Remove questions that only add rhythm.
+- Allow visible self-correction. A useful `No, not really` turn can preserve how the better model emerged.
 - Let paragraph length and transition smoothness vary with the thought. Do not regularize the prose into uniformly balanced sections.
 - Leave a worthwhile question open when the source leaves it open. Not every question needs an immediate answer.
 

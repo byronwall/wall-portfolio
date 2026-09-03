@@ -96,6 +96,66 @@ Edited pattern:
 
 Fix the transcription error without diluting the judgment into `could be improved`.
 
+### Keep supported confidence
+
+Transcript pattern:
+
+> Don't lie, don't oversell it, but you are free to only describe the good.
+
+Edited pattern:
+
+> State the contribution plainly when the evidence supports it. Accuracy does not require you to undersell the work.
+
+Keep the boundary between honest confidence and invention. Do not add modest qualifiers merely to make the claim sound safer.
+
+### Change to the reader's viewpoint
+
+Transcript pattern:
+
+> Think about it from their point of view. They just got 300 candidates.
+
+Edited pattern:
+
+> The hiring manager has 300 candidates and several plausible matches. Your resume cannot require them to infer why your experience transfers.
+
+Make the other person's constraint concrete. Do not write the empty instruction `consider the reader`.
+
+### Separate output from value
+
+Transcript pattern:
+
+> From the agent's point of view, it certainly created some stuff.
+
+Edited pattern:
+
+> The agent produced files. That does not show that the result is understandable, useful, or ready to ship.
+
+Preserve the gap between activity and outcome. Do not let a visible artifact serve as its own success criterion.
+
+### State the operational truth
+
+Transcript pattern:
+
+> We need an honest accounting of what works, what does not work.
+
+Edited pattern:
+
+> List what works, what fails, and which limits a customer will hit. A capability matrix is not a roadmap or a promise.
+
+Keep readiness claims testable. Avoid diplomatic wording that makes known failures hard to find.
+
+### Preserve a useful self-correction
+
+Transcript pattern:
+
+> Maybe it's hard only because I'm not actually familiar with the data structures.
+
+Edited pattern:
+
+> The interface may not be inherently complicated. I may be treating it as a black box because I do not know its data structures yet.
+
+Keep the correction when it changes the diagnosis. Remove the spoken circling around it.
+
 ## Common over-polishing failures
 
 Avoid drafts where:
@@ -106,6 +166,9 @@ Avoid drafts where:
 - Blunt language such as `not working`, `a mess`, or `good enough` becomes formal product language.
 - The ending restates the opening instead of stopping at the useful boundary.
 - Characteristic phrases carry the voice while the underlying reasoning could belong to anyone.
+- The draft reports activity but never defines the user's result or the evidence of success.
+- A prototype, feature, product, and deployable system are treated as the same level of completion.
+- Conflict is polished away until the contract, ownership, or required decision becomes unclear.
 
 ## Openings
 

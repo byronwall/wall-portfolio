@@ -14,7 +14,7 @@ Produce readable prose that thinks like Byron without reproducing raw dictation 
 - Never infer voice, preferred phrasing, opinions, or personal experience from existing blog or MDX files. Existing prose may be an editing target or a source of topic facts, but it is not voice evidence.
 - Use user-supplied notes, code, research, and drafts to ground article-specific claims. Keep that topical evidence separate from the voice model.
 - Never invent a first-person anecdote, tool usage claim, result, preference, or strong opinion.
-- Preserve uncertainty. Do not upgrade `maybe`, `I think`, or an open question into certainty unless another source supports it.
+- Preserve real uncertainty. Do not upgrade `maybe`, `I think`, or an open question into certainty unless another source supports it. Do not add hedges that weaken a claim the evidence supports.
 
 ## Load the voice references
 
@@ -26,14 +26,16 @@ Read [references/transcript-evidence.md](references/transcript-evidence.md) when
 
 ## Draft in passes
 
-1. Extract the text's supported claims, examples, constraints, open questions, qualifications, and first-person evidence. Distinguish supported material, reasonable inference, and missing support; do not silently fill gaps.
+1. Extract the text's supported claims, examples, constraints, open questions, qualifications, and first-person evidence. Distinguish supported material, reasonable inference, and missing support. For exploratory sources, also distinguish options, decisions, experiments, and completed work. Do not silently fill gaps or turn a possibility into a commitment.
 2. Choose the smallest structure appropriate to the genre. Use the relevant pattern in [references/reasoning-and-structure.md](references/reasoning-and-structure.md), but do not force the material through every stage of the default arc.
 3. State the purpose, practical question, or desired end state. Build longer prose around the decisions the reader must make; for short text, lead with the point and stop once the purpose is served.
-4. Work through the concrete cases, relevant dimensions, and alternatives the material actually supports. Let examples expose the underlying distinction.
-5. Give a provisional recommendation or useful model when the evidence earns one. Include the boundary where it stops working.
-6. Draft compact prose. Use headings only when they help navigation; use lists for genuine sets of options, criteria, or steps. Preserve asymmetry when one example or unresolved thread deserves more space.
-7. Remove speech debris: `um`, `uh`, repeated setup, false starts, duplicated intensifiers, and recording sign-offs.
-8. Run the voice-fidelity check below separately from technical fact-checking.
+4. Test the idea from the relevant person's viewpoint. State what the user, reader, reviewer, maintainer, customer, or other team can see and decide.
+5. Work through the concrete cases, relevant dimensions, and alternatives the material actually supports. Let examples expose the underlying distinction.
+6. Separate technical possibility, a working artifact, practical usefulness, operational readiness, and product value when those levels matter.
+7. Give a provisional recommendation or useful model when the evidence earns one. Include the boundary where it stops working.
+8. Draft compact prose. Use headings only when they help navigation; use lists for genuine sets of options, criteria, or steps. Preserve asymmetry when one example or unresolved thread deserves more space.
+9. Remove speech debris: `um`, `uh`, repeated setup, false starts, duplicated intensifiers, and recording sign-offs.
+10. Run the voice-fidelity check below separately from technical fact-checking.
 
 ## Translate speech into prose
 
@@ -43,7 +45,10 @@ Keep:
 - Concrete scenarios and realistic quantities.
 - Question-driven exploration.
 - Reframing from a surface feature to the constraint that matters.
+- Changes of viewpoint that test what another person can see, trust, or do.
 - Comparisons across scale, data shape, user intent, and operational cost.
+- Distinctions between possible, working, useful, ready, and worth maintaining.
+- Meaningful self-corrections that change the diagnosis or recommendation.
 - Honest uncertainty and willingness to leave a thread open.
 - Plain, conversational technical language.
 
@@ -61,11 +66,14 @@ Clean up:
 Flag and revise:
 
 - Generic AI framing, promotional language, or polished-but-empty transitions.
+- Claims such as `That mattered` or `The order mattered`. State the concrete effect instead.
 - A suspiciously complete structure in which every section follows the same scenario, contrast, and recommendation pattern.
 - Repeated rhetorical questions, `not X but Y` reframes, tidy groups of three, or uniformly sized paragraphs used as mannerisms rather than reasoning.
 - Excessive headings, em dashes, abstract nouns, or transitions such as `This is where...` that make the prose feel smoother than the underlying thought.
 - A thesis announced without the concrete path that justifies it.
 - Universal prescriptions where the evidence supports only a default.
+- Hedges that undersell a supported contribution, result, or direct judgment.
+- Possibilities presented as decisions, or proposed work presented as complete.
 - Toy examples when a realistic application or data-flow example is available.
 - Lists of features without explaining what changes with scale, data, or user intent.
 - Formal vocabulary that Byron would state more plainly.
@@ -82,5 +90,9 @@ Before delivering prose, answer these questions internally and revise any failed
 4. Are qualifications attached to real uncertainty rather than sprinkled in to imitate speech?
 5. Has the prose become more orderly, balanced, or conclusive than the source reasoning supports?
 6. If the characteristic phrases were removed, would the reasoning still sound like Byron?
+7. Does the draft distinguish activity and output from the result the person actually needs?
+8. Does each readiness or quality claim name evidence that a reader could inspect?
+9. Did the draft preserve important choices, ownership boundaries, and disagreements?
+10. Did it give detail according to consequence, or flatten every topic into equal sections?
 
 If the source material cannot support authentic first-person text, produce a clearly marked list of gaps or questions before drafting.

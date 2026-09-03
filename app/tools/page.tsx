@@ -59,7 +59,6 @@ export default function ToolsPage() {
   return (
     <main className={styles.page}>
       <header className={styles.intro}>
-        <p className={styles.kicker}>A small collection</p>
         <h1>Tools</h1>
         <p className={styles.lede}>
           Tools are small, focused utilities for making one practical task
@@ -68,12 +67,7 @@ export default function ToolsPage() {
         </p>
       </header>
 
-      <section className={styles.collection} aria-labelledby="tools-heading">
-        <div className={styles.collectionHeader}>
-          <h2 id="tools-heading">Available now</h2>
-          <span>{tools.length} utility</span>
-        </div>
-
+      <section>
         <div className={styles.grid}>
           {tools.map((tool, index) => (
             <article className={styles.card} key={tool.title}>
@@ -86,10 +80,6 @@ export default function ToolsPage() {
                 <TablePreview />
               </a>
               <div className={styles.cardBody}>
-                <div className={styles.cardMeta}>
-                  <span>Browser utility</span>
-                  <span>Standalone</span>
-                </div>
                 <h3>
                   <Link href={tool.toolHref}>
                     {tool.title} <span aria-hidden="true">↗</span>

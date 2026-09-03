@@ -7,21 +7,8 @@
   padding-bottom: 44px;
 }
 
-.kicker,
-.cardMeta,
-.collectionHeader span {
-  margin: 0;
-  color: var(--ink-muted);
-  font-family: var(--font-geist-mono);
-  font-size: 10px;
-  font-weight: 650;
-  letter-spacing: .08em;
-  line-height: 1.4;
-  text-transform: uppercase;
-}
-
 .intro h1 {
-  margin: 12px 0 0;
+  margin: 0;
   color: var(--ink-primary);
   font-size: clamp(46px, 5vw, 62px);
   line-height: 1;
@@ -34,26 +21,6 @@
   color: var(--ink-body);
   font-size: 18px;
   line-height: 1.52;
-}
-
-.collection {
-  border-top: 1px solid var(--border-quiet);
-}
-
-.collectionHeader {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 26px 0 18px;
-}
-
-.collectionHeader h2 {
-  margin: 0;
-  color: var(--ink-primary);
-  font-size: 16px;
-  font-weight: 680;
-  letter-spacing: -.02em;
 }
 
 .grid {
@@ -183,24 +150,8 @@
   padding: 31px 34px 34px;
 }
 
-.cardMeta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 16px;
-}
-
-.cardMeta span + span::before {
-  display: inline-block;
-  width: 3px;
-  height: 3px;
-  margin: 0 9px 2px 0;
-  border-radius: 50%;
-  background: var(--ink-tertiary);
-  content: "";
-}
-
 .cardBody h3 {
-  margin: 16px 0 11px;
+  margin: 0 0 11px;
   color: var(--ink-primary);
   font-size: clamp(28px, 3.4vw, 42px);
   line-height: 1.04;
@@ -250,7 +201,6 @@
 }
 
 @media (max-width: 460px) {
-  .collectionHeader { align-items: flex-start; flex-direction: column; gap: 6px; }
   .cardVisual { min-height: 220px; }
   .tablePreview { width: 84%; }
 }
