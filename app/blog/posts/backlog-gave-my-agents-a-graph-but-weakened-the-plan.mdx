@@ -1,0 +1,89 @@
+---
+title: Backlog gave my agents a graph, but weakened the plan
+publishedAt: 2026-09-08
+type: failure
+summary: "Backlog.md gave coding agents a useful dependency graph, but its tickets became a lossy summary of the detailed implementation plan they were supposed to execute."
+---
+
+I wanted a better way to turn one detailed implementation plan into several agent-sized work streams.
+
+The plan itself was not the problem. My planning workflow already produced an intent brief, a shape brief, an implementation plan, and an initiative map. Those artifacts were detailed enough to explain what the product should do, which parts of the repository mattered, what could run in parallel, and what evidence would prove the work.
+
+The weak point came next. A large plan is still a large plan. I wanted agents to divide it into smaller pieces, track dependencies, and hand each piece to a worker without losing the context that made the plan useful.
+
+I tried [Backlog.md](https://github.com/MrLesk/Backlog.md) for that step. It gave the agents a local ticket system, Markdown files in the repository, stable IDs, statuses, and a dependency graph. Those are almost exactly the properties I wanted.
+
+It still did not work for me.
+
+## The graph was useful
+
+Backlog did several things well.
+
+Agents were good at creating dependency trees. They used ticket IDs consistently, found the ready work, respected real prerequisites, and closed tickets as implementation and verification finished. In User Flow Workbench, one initiative became an epic with four implementation tickets. The graph gave the orchestrator a clear first ticket, then exposed later work as its dependencies became available.
+
+I also liked the storage model. The tickets lived in `.tickets` as normal Markdown. An agent could read them without another account, connector, or hosted service. That matters because I move between many small projects. I do not want every repository to depend on an external tracker that must remain configured and synchronized.
+
+The IDs helped the graph make sense too. Agents could say that `ufw-lozf` was ready while `ufw-w2gh` remained blocked. I never remembered those IDs, but the agents did not need me to. They gave the execution system stable objects to discuss.
+
+Even the dependency constraints were mostly correct. I sometimes asked the orchestrator to find more parallel work because I was impatient. Looking back, the graph was usually describing real sequencing rather than inventing a reason to wait.
+
+So the problem was not that Backlog could not track work. It tracked work reasonably well.
+
+## The ticket was weaker than its source
+
+The failure was in the transition from implementation plan to ticket.
+
+I expected each ticket to preserve the details a worker needed for one slice of the plan. Instead, the tickets often felt like stubs beside the plan. They named an outcome, included some acceptance language, then pointed back to the same large implementation plan I was trying to divide.
+
+That left an awkward choice for a worker. It could trust the ticket and work from a reduced description, or it could reopen the full plan and recover the missing context. The first option lost detail. The second option weakened the reason for making tickets at all.
+
+This was not mainly a file-size problem. Across User Flow Workbench and Family Finances, I ended up with 44 ticket files containing about 3,900 lines. The related implementation plans and initiative maps contained about 6,400 lines. Some tickets were long. Project clutter was real, but large Markdown files did not bother me much because the agents handled them.
+
+The issue was that length did not equal fidelity. A ticket could repeat intent, constraints, tests, rollback notes, and provenance while still failing to carry the specific detail that made its slice independently executable. It was a lot of text around a weak handoff.
+
+Backlog became a filter at the end of my planning process. It summarized a plan that was already good enough, but it did not add enough machinery to make the summary more useful than the source.
+
+## I was not the user of the tracker
+
+There was another mismatch. The agents used the tracker. I mostly did not.
+
+I looked at the dependency tree to get a rough feel for how the work was arranged. I did not manage tickets, remember IDs, or follow status changes. My instructions stayed at the outcome level:
+
+- implement the outstanding work;
+- look for parallel slices;
+- start the server so I can inspect the result;
+- commit the work when it passes.
+
+That can be a good division of responsibility. I do not need to operate every tool an agent uses. But if the tracker is mainly for agents, it has to make their handoffs materially better. A graph alone was not enough when the ticket bodies weakened the plan.
+
+Backlog includes a web interface, but it did not become a useful visual in my actual workflow. The agents queried and explained the graph through the CLI. I could not quickly see the work streams, their boundaries, and the critical path. The most useful part of the tool remained largely agent-facing.
+
+## What I want to keep
+
+I do not want to go back to one plan with no execution structure.
+
+The desired workflow is still straightforward:
+
+```text
+detailed implementation plan
+  -> slice into independently useful work streams
+  -> connect real dependencies
+  -> give each worker all details for its slice
+  -> track implementation and verification in the repository
+```
+
+I want the graph. I want stable ticket identities. I want agents to find ready work and coordinate parallel workers. I want plain Markdown stored beside the code, with no external system to configure across projects.
+
+What I do not want is a ticket format that decides how much of my plan survives the split. If the implementation plan contains an important constraint, example, edge case, or proof requirement, the ticket should be able to carry it directly. The file can be long. The agent is the reader. Detail is useful when it prevents the worker from reconstructing the plan.
+
+Completed tickets probably do not need to remain forever. I expect to remove them after some useful window. That is repository hygiene, not the central product question.
+
+## I am trying `ticket` next
+
+I removed Backlog from my agent instructions and uninstalled it. I am now trying `ticket` as the next version of this experiment.
+
+The requirement is not a larger tracker. It is a less restrictive handoff. I want to put whatever the work needs into each Markdown file, preserve the detail from the implementation plan, and still arrange those files as a dependency graph.
+
+The test is whether a worker can receive one ticket and execute that work stream without reopening the full plan to discover what the ticket left out. If `ticket` can do that while keeping the local Markdown graph, it adds something useful to the planning process.
+
+If it produces another summarized copy of the plan, then the simpler answer may be to stop translating plans into tickets at all.
