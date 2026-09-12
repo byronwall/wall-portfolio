@@ -29,7 +29,8 @@ const radii = Array.from({ length: 15 }, (_, i) => 14 + i * 5);
 const wall = 500;
 const playTop = 100;
 const pick = () => Math.min(5, Math.floor(-Math.log2(Math.random())));
-const makeNext = () => ({ level: pick(), hue: Math.floor(Math.random() * 360) });
+const hues = Array.from({ length: 15 }, () => Math.floor(Math.random() * 360));
+const makeNext = () => ({ level: pick() });
 const next = Array.from({ length: 4 }, makeNext);
 let aim = wall / 2;
 let drag;
@@ -40,7 +41,8 @@ let soundOn = localStorage.getItem("orbs-sound") !== "off";
 ctx.textAlign = "center";
 ctx.textBaseline = "middle";
 
-function drawBall(x, y, r, level, hue) {
+function drawBall(x, y, r, level) {
+  const hue = hues[level];
   ctx.save();
   ctx.beginPath();
   ctx.arc(x, y, r, 0, Math.PI * 2);
@@ -119,7 +121,7 @@ function moveAim(x) {
 function drop() {
   const item = next.shift();
   next.push(makeNext());
-  const { level, hue } = item;
+  const { level } = item;
   const r = radii[level];
   balls.push({
     x: aim,
@@ -127,7 +129,6 @@ function drop() {
     vx: 0,
     vy: 1,
     level,
-    hue,
     r
   });
   if (level === radii.length - 1) winner.showModal();
@@ -187,7 +188,7 @@ function frame() {
   ctx.setLineDash([]);
 
   const current = next[0];
-  drawBall(aim, playTop - radii[current.level], radii[current.level], current.level, current.hue);
+  drawBall(aim, playTop - radii[current.level], radii[current.level], current.level);
 
   for (const ball of balls) {
     ball.vy += .18;
@@ -230,7 +231,6 @@ function frame() {
           vx: (a.vx + b.vx) / 2,
           vy: Math.min(a.vy, b.vy) - 2,
           level,
-          hue: Math.floor(Math.random() * 360),
           r: radii[level]
         });
         if (level === radii.length - 1) winner.showModal();
@@ -257,7 +257,7 @@ function frame() {
   }
 
   for (const ball of balls) {
-    drawBall(ball.x, ball.y, ball.r, ball.level, ball.hue);
+    drawBall(ball.x, ball.y, ball.r, ball.level);
   }
 
   ctx.fillStyle = "white";
@@ -270,7 +270,7 @@ function frame() {
   for (let i = 1; i < next.length; i++) {
     const r = radii[next[i].level];
     const y = 190 + (i - 1) * 80;
-    drawBall(590, y, r, next[i].level, next[i].hue);
+    drawBall(590, y, r, next[i].level);
   }
 
   requestAnimationFrame(frame);
