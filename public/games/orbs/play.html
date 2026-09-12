@@ -37,6 +37,8 @@ let drag;
 let audio;
 let lastPling = 0;
 let soundOn = localStorage.getItem("orbs-sound") !== "off";
+let animation;
+let quietFrames = 30;
 
 ctx.textAlign = "center";
 ctx.textBaseline = "middle";
@@ -106,6 +108,7 @@ winner.querySelector("button").addEventListener("click", () => {
   next.splice(0, next.length, makeNext(), makeNext(), makeNext(), makeNext());
   aim = wall / 2;
   winner.close();
+  wake();
 });
 
 function pointerX(event) {
@@ -113,9 +116,15 @@ function pointerX(event) {
   return (event.clientX - box.left) * canvas.width / box.width;
 }
 
+function wake() {
+  quietFrames = 0;
+  if (!animation) animation = requestAnimationFrame(frame);
+}
+
 function moveAim(x) {
   const r = radii[next[0].level];
   aim = Math.max(r, Math.min(wall - r, x));
+  wake();
 }
 
 function drop() {
@@ -175,6 +184,7 @@ document.addEventListener("keydown", event => {
 });
 
 function frame() {
+  animation = undefined;
   ctx.fillStyle = "#081b45";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.strokeStyle = "rgba(255, 255, 255, .55)";
@@ -273,7 +283,10 @@ function frame() {
     drawBall(590, y, r, next[i].level);
   }
 
-  requestAnimationFrame(frame);
+  const moving = balls.some(ball => Math.abs(ball.vx) > .03 || Math.abs(ball.vy) > .25);
+  quietFrames = moving ? 0 : quietFrames + 1;
+  if (moving || quietFrames < 30) animation = requestAnimationFrame(frame);
+  else for (const ball of balls) ball.vx = ball.vy = 0;
 }
 
 frame();
