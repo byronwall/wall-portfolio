@@ -10,7 +10,11 @@
   canvas { display: block; width: min(700px, calc(100vw - 24px), calc(100vh - 64px)); height: auto; margin: 0 auto; touch-action: none; }
   dialog { border: 0; border-radius: 16px; text-align: center; }
   button { padding: 10px 18px; font: inherit; }
-  #sound { position: fixed; right: 12px; bottom: 12px; border: 1px solid #ffffff66; border-radius: 999px; background: #102858; color: white; }
+  #controls { position: fixed; right: 12px; bottom: 12px; display: grid; width: min(220px, calc(100vw - 24px)); gap: 8px; padding: 12px; border: 1px solid #ffffff55; border-radius: 12px; background: #071735e8; }
+  #controls label { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; font-size: 13px; }
+  #controls input { grid-column: 1 / -1; width: 100%; }
+  #controls div { display: flex; flex-wrap: wrap; gap: 5px; }
+  #controls button { padding: 6px 9px; border: 1px solid #ffffff55; border-radius: 999px; background: #102858; color: white; font-size: 12px; }
 </style>
 <p>Click the box to drop a ball.</p>
 <canvas id="game" width="700" height="700"></canvas>
@@ -18,12 +22,28 @@
   <h1>You made 32,768! You win!</h1>
   <button>Start over</button>
 </dialog>
-<button id="sound" type="button">Sound: On</button>
+<section id="controls" aria-label="Physics controls">
+  <strong>Physics</strong>
+  <label>Bounce <output id="bounce-value"></output><input id="bounce" type="range" min="0.2" max="0.9" step="0.05"></label>
+  <label>Damping <output id="damping-value"></output><input id="damping" type="range" min="0" max="0.02" step="0.001"></label>
+  <div>
+    <button type="button" data-preset="floaty">Floaty</button>
+    <button type="button" data-preset="jupiter">Jupiter</button>
+    <button type="button" data-preset="stiff">Stiff</button>
+    <button type="button" data-preset="random">Random</button>
+    <button type="button" data-preset="reset">Reset</button>
+    <button id="sound" type="button">Sound: On</button>
+  </div>
+</section>
 <script>
 const canvas = document.querySelector("#game");
 const ctx = canvas.getContext("2d");
 const winner = document.querySelector("#winner");
 const soundButton = document.querySelector("#sound");
+const bounceInput = document.querySelector("#bounce");
+const dampingInput = document.querySelector("#damping");
+const bounceValue = document.querySelector("#bounce-value");
+const dampingValue = document.querySelector("#damping-value");
 const balls = [];
 const radii = Array.from({ length: 15 }, (_, i) => 14 + i * 5);
 const wall = 500;
@@ -39,6 +59,7 @@ let lastPling = 0;
 let soundOn = localStorage.getItem("orbs-sound") !== "off";
 let animation;
 let quietFrames = 30;
+const physics = {};
 
 ctx.textAlign = "center";
 ctx.textBaseline = "middle";
@@ -88,6 +109,33 @@ soundButton.addEventListener("click", () => {
 });
 
 showSound();
+
+function setPhysics(bounce, damping) {
+  bounceInput.value = bounce;
+  dampingInput.value = damping;
+  physics.bounce = Number(bounceInput.value);
+  physics.damping = Number(dampingInput.value);
+  bounceValue.textContent = physics.bounce.toFixed(2);
+  dampingValue.textContent = `${(physics.damping * 100).toFixed(1)}%`;
+  localStorage.setItem("orbs-bounce", physics.bounce);
+  localStorage.setItem("orbs-damping", physics.damping);
+  wake();
+}
+
+setPhysics(localStorage.getItem("orbs-bounce") ?? .55, localStorage.getItem("orbs-damping") ?? .002);
+bounceInput.addEventListener("input", () => setPhysics(bounceInput.value, dampingInput.value));
+dampingInput.addEventListener("input", () => setPhysics(bounceInput.value, dampingInput.value));
+
+document.querySelectorAll("[data-preset]").forEach(button => button.addEventListener("click", () => {
+  const presets = {
+    floaty: [.85, .001],
+    jupiter: [.5, .006],
+    stiff: [.25, .015],
+    reset: [.55, .002],
+    random: [.2 + Math.random() * .7, Math.random() * .02]
+  };
+  setPhysics(...presets[button.dataset.preset]);
+}));
 
 function pling(speed, level) {
   const now = performance.now();
@@ -201,18 +249,20 @@ function frame() {
   drawBall(aim, playTop - radii[current.level], radii[current.level], current.level);
 
   for (const ball of balls) {
+    ball.vx *= 1 - physics.damping;
+    ball.vy *= 1 - physics.damping;
     ball.vy += .18;
     ball.x += ball.vx;
     ball.y += ball.vy;
 
     if (ball.x < ball.r || ball.x > wall - ball.r) {
       ball.x = Math.max(ball.r, Math.min(wall - ball.r, ball.x));
-      ball.vx *= -.7;
+      ball.vx *= -physics.bounce;
     }
     if (ball.y > canvas.height - ball.r) {
       ball.y = canvas.height - ball.r;
-      ball.vy *= -.55;
-      ball.vx *= .98;
+      ball.vy *= -physics.bounce;
+      ball.vx *= Math.max(0, 1 - physics.damping * 10);
     }
   }
 
@@ -258,10 +308,11 @@ function frame() {
       const speed = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
       if (speed < 0) {
         pling(-speed, (a.level + b.level) / 2);
-        a.vx += speed * nx;
-        a.vy += speed * ny;
-        b.vx -= speed * nx;
-        b.vy -= speed * ny;
+        const impulse = speed * (1 + physics.bounce) / 2;
+        a.vx += impulse * nx;
+        a.vy += impulse * ny;
+        b.vx -= impulse * nx;
+        b.vy -= impulse * ny;
       }
     }
   }
