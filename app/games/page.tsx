@@ -31,7 +31,7 @@ function GamePlaceholder({ game }: { game: ReturnType<typeof getGames>[number] }
 function GameVisual({ game }: { game: ReturnType<typeof getGames>[number] }) {
   return (
     <div className={styles.visual}>
-      {hasGameImage(game) ? <img src={game.thumbnail} alt="Gunk Patrol swamp cleanup gameplay" /> : <GamePlaceholder game={game} />}
+      {hasGameImage(game) ? <img src={game.thumbnail} alt={`${game.metadata.title || game.slug} gameplay`} /> : <GamePlaceholder game={game} />}
     </div>
   );
 }

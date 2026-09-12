@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orbs</title>
+<style>
+  body { margin: 0; overflow: hidden; background: #071735; color: white; font-family: system-ui; user-select: none; -webkit-user-select: none; }
+  p { margin: 10px 14px; }
+  canvas { display: block; max-width: 100vw; height: auto; touch-action: none; }
+  dialog { border: 0; border-radius: 16px; text-align: center; }
+  button { padding: 10px 18px; font: inherit; }
+</style>
+<p>Click the box to drop a ball.</p>
+<canvas id="game" width="700" height="700"></canvas>
+<dialog id="winner">
+  <h1>You made 32,768! You win!</h1>
+  <button>Start over</button>
+</dialog>
+<script>
+const canvas = document.querySelector("#game");
+const ctx = canvas.getContext("2d");
+const winner = document.querySelector("#winner");
+const balls = [];
+const radii = Array.from({ length: 15 }, (_, i) => 14 + i * 5);
+const wall = 500;
+const playTop = 100;
+const pick = () => Math.min(5, Math.floor(-Math.log2(Math.random())));
+const makeNext = () => ({ level: pick(), hue: Math.floor(Math.random() * 360) });
+const next = Array.from({ length: 4 }, makeNext);
+let aim = wall / 2;
+let drag;
+let audio;
+let lastPling = 0;
+
+ctx.textAlign = "center";
+ctx.textBaseline = "middle";
+
+function drawBall(x, y, r, level, hue) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  const fill = ctx.createRadialGradient(x - r * .35, y - r * .4, r * .08, x, y, r);
+  fill.addColorStop(0, `hsl(${hue} 95% 88%)`);
+  fill.addColorStop(.3, `hsl(${hue} 90% 62%)`);
+  fill.addColorStop(1, `hsl(${hue} 85% 38%)`);
+  ctx.fillStyle = fill;
+  ctx.shadowColor = "rgba(0, 0, 0, .45)";
+  ctx.shadowBlur = 10;
+  ctx.shadowOffsetY = 5;
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255, 255, 255, .55)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.shadowColor = "rgba(0, 0, 0, .7)";
+  ctx.shadowBlur = 3;
+  ctx.shadowOffsetY = 1;
+  ctx.fillStyle = "white";
+  ctx.font = `700 ${Math.min(24, r * 1.1)}px system-ui`;
+  ctx.fillText(2 ** (level + 1), x, y);
+  ctx.restore();
+}
+
+function enableAudio() {
+  audio ||= new (window.AudioContext || window.webkitAudioContext)();
+  if (audio.state === "suspended") audio.resume();
+}
+
+function pling(speed) {
+  const now = performance.now();
+  if (!audio || speed < .7 || now - lastPling < 140) return;
+  const tone = audio.createOscillator();
+  const volume = audio.createGain();
+  tone.frequency.value = 520 + Math.min(speed, 8) * 35;
+  volume.gain.setValueAtTime(.025, audio.currentTime);
+  volume.gain.exponentialRampToValueAtTime(.0001, audio.currentTime + .09);
+  tone.connect(volume).connect(audio.destination);
+  tone.start();
+  tone.stop(audio.currentTime + .09);
+  lastPling = now;
+}
+
+winner.querySelector("button").addEventListener("click", () => {
+  balls.length = 0;
+  next.splice(0, next.length, makeNext(), makeNext(), makeNext(), makeNext());
+  aim = wall / 2;
+  winner.close();
+});
+
+function pointerX(event) {
+  const box = canvas.getBoundingClientRect();
+  return (event.clientX - box.left) * canvas.width / box.width;
+}
+
+function moveAim(x) {
+  const r = radii[next[0].level];
+  aim = Math.max(r, Math.min(wall - r, x));
+}
+
+function drop() {
+  const item = next.shift();
+  next.push(makeNext());
+  const { level, hue } = item;
+  const r = radii[level];
+  balls.push({
+    x: aim,
+    y: playTop + r,
+    vx: 0,
+    vy: 1,
+    level,
+    hue,
+    r
+  });
+  if (level === radii.length - 1) winner.showModal();
+  moveAim(aim);
+}
+
+canvas.addEventListener("pointerdown", event => {
+  enableAudio();
+  const x = pointerX(event);
+  if (x > wall) return;
+  drag = { id: event.pointerId, start: x, moved: false };
+  canvas.setPointerCapture(event.pointerId);
+});
+
+canvas.addEventListener("pointermove", event => {
+  if (!drag || drag.id !== event.pointerId) {
+    if (event.pointerType === "mouse") moveAim(pointerX(event));
+    return;
+  }
+  const x = pointerX(event);
+  if (Math.abs(x - drag.start) > 10) drag.moved = true;
+  if (drag.moved) moveAim(x);
+});
+
+canvas.addEventListener("pointerup", event => {
+  if (!drag || drag.id !== event.pointerId) return;
+  if (!drag.moved) drop();
+  drag = undefined;
+});
+
+canvas.addEventListener("pointercancel", () => drag = undefined);
+
+document.addEventListener("keydown", event => {
+  if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+    event.preventDefault();
+    aim += event.key === "ArrowLeft" ? -10 : 10;
+    moveAim(aim);
+  }
+  if (event.key === " " || event.key === "Enter") {
+    event.preventDefault();
+    enableAudio();
+    drop();
+  }
+});
+
+function frame() {
+  ctx.fillStyle = "#081b45";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.strokeStyle = "rgba(255, 255, 255, .55)";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(0, playTop, wall, canvas.height - playTop);
+  ctx.setLineDash([5, 5]);
+  ctx.beginPath();
+  ctx.moveTo(aim, playTop);
+  ctx.lineTo(aim, canvas.height);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  const current = next[0];
+  drawBall(aim, playTop - radii[current.level], radii[current.level], current.level, current.hue);
+
+  for (const ball of balls) {
+    ball.vy += .18;
+    ball.x += ball.vx;
+    ball.y += ball.vy;
+
+    if (ball.x < ball.r || ball.x > wall - ball.r) {
+      ball.x = Math.max(ball.r, Math.min(wall - ball.r, ball.x));
+      ball.vx *= -.7;
+    }
+    if (ball.y > canvas.height - ball.r) {
+      ball.y = canvas.height - ball.r;
+      ball.vy *= -.55;
+      ball.vx *= .98;
+    }
+  }
+
+  for (let i = 0; i < balls.length; i++) {
+    for (let j = i + 1; j < balls.length; j++) {
+      const a = balls[i];
+      const b = balls[j];
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const distance = Math.hypot(dx, dy) || 1;
+      const overlap = a.r + b.r - distance;
+      if (overlap <= 0) continue;
+
+      if (Math.abs(dx) < 1 && Math.abs(a.vx - b.vx) < .005) {
+        const nudge = (Math.random() < .5 ? -1 : 1) * .01;
+        a.vx -= nudge;
+        b.vx += nudge;
+      }
+
+      if (a.level === b.level && a.level < radii.length - 1) {
+        const level = a.level + 1;
+        balls.splice(j, 1);
+        balls.splice(i, 1, {
+          x: (a.x + b.x) / 2,
+          y: (a.y + b.y) / 2,
+          vx: (a.vx + b.vx) / 2,
+          vy: Math.min(a.vy, b.vy) - 2,
+          level,
+          hue: Math.floor(Math.random() * 360),
+          r: radii[level]
+        });
+        if (level === radii.length - 1) winner.showModal();
+        i--;
+        break;
+      }
+
+      const nx = dx / distance;
+      const ny = dy / distance;
+      a.x -= nx * overlap / 2;
+      a.y -= ny * overlap / 2;
+      b.x += nx * overlap / 2;
+      b.y += ny * overlap / 2;
+
+      const speed = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
+      if (speed < 0) {
+        pling(-speed);
+        a.vx += speed * nx;
+        a.vy += speed * ny;
+        b.vx -= speed * nx;
+        b.vy -= speed * ny;
+      }
+    }
+  }
+
+  for (const ball of balls) {
+    drawBall(ball.x, ball.y, ball.r, ball.level, ball.hue);
+  }
+
+  ctx.fillStyle = "white";
+  ctx.font = "700 16px system-ui";
+  ctx.fillText("Next", 590, 125);
+  ctx.fillStyle = "rgba(255, 255, 255, .05)";
+  ctx.fillRect(530, 140, 120, 260);
+  ctx.strokeStyle = "rgba(255, 255, 255, .4)";
+  ctx.strokeRect(530, 140, 120, 260);
+  for (let i = 1; i < next.length; i++) {
+    const r = radii[next[i].level];
+    const y = 190 + (i - 1) * 80;
+    drawBall(590, y, r, next[i].level, next[i].hue);
+  }
+
+  requestAnimationFrame(frame);
+}
+
+frame();
+</script>
+</html>

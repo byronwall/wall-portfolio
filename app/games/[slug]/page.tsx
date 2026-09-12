@@ -59,7 +59,7 @@ export default async function GamePage({ params }: GamePageProps) {
           <div className={styles.status}>{game.metadata.status || "Game"} · {areas.join(" · ")}</div>
           {tags.length > 0 && <ul className={styles.detailTags} aria-label="Game details">{tags.map((tag) => <li key={tag}>{tag}</li>)}</ul>}
           <nav className={styles.detailActions} aria-label={`${title} actions`}>
-            <a className={styles.playLink} href={playHref} target="_blank" rel="noreferrer">Play Gunk Patrol ↗</a>
+            <a className={styles.playLink} href={playHref} target="_blank" rel="noreferrer">Play {title} ↗</a>
             {typeof game.metadata.repo === "string" && <a href={game.metadata.repo} target="_blank" rel="noreferrer">Source ↗</a>}
           </nav>
         </div>
