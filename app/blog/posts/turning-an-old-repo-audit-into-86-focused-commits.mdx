@@ -1,0 +1,161 @@
+---
+title: "Turning an old repo audit into 86 focused commits"
+publishedAt: 2026-09-14
+summary: "I reopened a two-week sprint project, found 54 concrete problems, and used an agent orchestration loop to repair the library and demo without supervising every change."
+image: "/images/posts/turning-an-old-repo-audit-into-86-focused-commits/audit-scoreboard.svg"
+type: tooling
+---
+
+explorEDA started as a two-week sprint. It had a strong core idea: combine linked charts, tables, calculations, and data controls in one analysis workspace. Then I stopped touching it.
+
+The project still had real potential. It also had rushed decisions, abandoned ideas, and code written by older coding models. I did not know whether I had a good library under a layer of debt or a demo that only looked convincing.
+
+I reopened the repository with a simple request: audit everything that would make development painful, put the findings in one document, then repair the list.
+
+The result was 54 findings and 86 commits after the audit baseline.
+
+<div className="not-prose my-8">
+  <figure>
+    <img
+      src="/images/posts/turning-an-old-repo-audit-into-86-focused-commits/audit-scoreboard.svg"
+      alt="Audit baseline with 136 TypeScript errors, 15 failed tests, 258 lint warnings, and 94 runtime dependencies, compared with zero errors, 118 passing tests, zero warnings, and 46 runtime dependencies"
+      className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    />
+    <figcaption className="mt-3 text-sm text-neutral-500 dark:text-neutral-400">
+      The production builds passed before the repair. The other checks showed what that green build concealed.
+    </figcaption>
+  </figure>
+</div>
+
+## Start with evidence, not a rewrite
+
+My first instinct with an old project is often to imagine the clean version I would build today. That is usually the expensive answer.
+
+This pass began with inspection. I ran TypeScript, Vitest, ESLint, the library build, the demo build, package packing, bundle checks, and browser checks. I also reviewed the product as a user instead of treating compilation as the finish line.
+
+The builds passed. The repository did not.
+
+The library had 125 TypeScript errors. The demo had 11 more. Library tests had 15 failures, 83 passes, and 22 TODO cases. The demo had no tests. ESLint reported 258 warnings across both packages while still returning success. The demo shipped 1.99 MB of JavaScript, or 580 KB gzip. The library declared 94 runtime dependencies and no peer dependencies.
+
+The UI review scored 18 out of 32. It failed six of eight cognitive-load checks.
+
+Those numbers gave me a much better starting point than “this code feels old.” They also showed why a rewrite was unnecessary. The product already had useful chart, table, calculation, and workspace behavior. The task was to keep the working core and remove the uncertainty around it.
+
+The historical product image still shows why I wanted to return to the idea. It combines a data summary with linked charts, filters, sampling, and color controls in one analysis surface.
+
+<div className="not-prose my-8">
+  <figure>
+    <img
+      src="/images/posts/turning-an-old-repo-audit-into-86-focused-commits/historical-workspace.png"
+      alt="Historical explorEDA workspace with a data summary table, sampling controls, linked row charts, and a scatter plot"
+      className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+      loading="lazy"
+    />
+    <figcaption className="mt-3 text-sm text-neutral-500 dark:text-neutral-400">
+      A historical product screenshot, not the audit baseline. The underlying idea was still worth protecting.
+    </figcaption>
+  </figure>
+</div>
+
+## Turn the audit into a work queue
+
+`AUDIT.md` became the control surface for the repair. It grouped every finding into seven categories:
+
+- build, release, and package health
+- correctness and state flow
+- data and statistical correctness
+- UX and accessibility
+- architecture and maintainability
+- dependencies and performance
+- documentation and product truth
+
+Each item had a priority and direct evidence. That made the file more useful than a broad “technical debt” list. It also created safe seams for parallel work.
+
+The first three workers received separate areas. One handled imports, parsing, loading, and first-run UX. One handled provider state, calculated columns, caches, and saved-data restore. One handled table filtering, export, resize behavior, and accessibility.
+
+As a worker finished, the orchestrator reviewed the result and filled that slot with another bounded area. Later lanes covered chart runtime, responsive layout, pivot correctness, dead code, registry types, package release, documentation, and browser verification.
+
+The loop looked like this:
+
+```text
+findings in AUDIT.md
+  -> assign a narrow file area
+  -> implement one coherent fix
+  -> run the smallest useful check
+  -> review the diff
+  -> commit the issue
+  -> update the ledger
+  -> refill the open worker slot
+```
+
+This is what made the cleanup mostly unattended from my side. The loop did not need a new prompt after every bug. The orchestrator owned the queue, worker boundaries, review, and final gates.
+
+It was not unreviewed automation. That distinction matters.
+
+## Different tools found different problems
+
+No single audit tool was enough.
+
+Srcly gave me a compact view of the repository and its code-quality hotspots. Its first ranking placed too much weight on old Markdown plans, so I treated that ranking as a weak signal. It was useful for structure, not for deciding the repair order.
+
+Impeccable supplied separate UX and UI-detector passes. It found hierarchy, accessibility, and mobile issues that TypeScript could never report. One mechanical detector also flagged a spinner border that was intentional. I kept that result in the audit as a documented false positive instead of changing valid UI to satisfy a detector.
+
+Ponytail supplied the deletion-first constraint. The workers removed 3,278 lines across 20 unused primitives and disconnected controls. They also removed 48 runtime dependency entries. Deleting inactive surface area reduced risk faster than designing replacements.
+
+The normal repository tools did most of the proof: `rg`, TypeScript, Vitest, ESLint, tsup, Vite, and pnpm. A pnpm 9 pin initially conflicted with pnpm 11 on the machine. The pnpm upgrade pass removed that mismatch and made the root `pnpm check` command a real gate.
+
+The in-app browser found another class of defect. A source-focused worker leaked a `handleAxis` property onto a DOM element. Later, browser history removed the example from the URL but left the workspace visible. Both defects passed earlier code checks. Both were repaired after clean-room browser workers reproduced them.
+
+## Small commits made the agent work legible
+
+I asked for a commit after each issue. The history contains 86 commits after the audit baseline.
+
+That sounds excessive until the work runs in parallel. Small commits made each result easy to inspect and made regressions easier to place. They also exposed a coordination failure.
+
+At one point, two workers touched the shared Git index at the same time. One dependency commit accidentally included six files from another worker. No code was lost, but the commit boundary was wrong. The orchestrator inspected the staged hunks and changed the worker instructions to verify the cached paths before every later commit.
+
+Another worker stalled at a native file chooser during browser testing. The orchestrator stopped that path and sent a second verifier through a narrower flow. One root gate exited early. The next run completed and exposed a Turbo compatibility issue, invalid test markup, and an oversized chunk.
+
+These were not reasons to abandon orchestration. They were reminders that an orchestrator is a supervisor, not a task launcher.
+
+## The bugs were concrete
+
+The audit was not a formatting exercise. It found behavior that could corrupt state or mislead a user.
+
+The line chart increased its saved margins every time it rendered. The main provider ignored changed `data` and `savedData` props. Calculated columns walked dependencies in the wrong direction, so results could depend on render order. Async restore code used `forEach`, so it continued before calculations finished.
+
+The table body, pagination, and export used different filter logic. Resize handlers captured stale state and did nothing. JSON import silently cut arrays to three entries. CSV import ignored parser errors. Pivot keys could collide, and invalid numeric values became zero. New 3D charts started with a degenerate camera and rebuilt scenes after camera changes.
+
+The interface had its own failures. Example cards did not work from a keyboard. The workspace overflowed at a 390-pixel viewport. Charts had no accessible summary or data-table fallback.
+
+These defects came from several layers. Source review found state bugs. Tests found calculation and table bugs. UI review found workload and accessibility problems. Browser review found real navigation and DOM problems. The combination mattered more than any one tool.
+
+## The repaired repo is smaller and easier to trust
+
+At the end, all 54 findings had an outcome. Fifty-three were fixed in code or documentation. One remained as the intentional spinner false positive.
+
+The library now passes 114 tests. The demo passes four focused tests. Both TypeScript checks pass. Both lint commands pass with zero warnings. The builds, package pack, lean consumer entry, and browser checks pass.
+
+The lean library entry is 534 KB, or 116 KB gzip, and excludes Three.js and Tiptap. The demo landing entry fell to 329 KB, or 103 KB gzip. Large systems load in deferred chunks, and every chunk stays below 500 KB. Runtime dependencies fell from 94 to 46. React and React DOM are now peer dependencies.
+
+The current Lorenz example shows coordinated 2D and 3D views in the repaired demo. The browser pass checked example selection, Back and Forward behavior, mobile width, filtering, pagination, chart-data fallbacks, and the console. Brush behavior was still inconclusive, so the final audit says that instead of claiming more proof than it has.
+
+<div className="not-prose my-8">
+  <figure>
+    <img
+      src="/images/posts/turning-an-old-repo-audit-into-86-focused-commits/lorenz-after.png"
+      alt="Repaired explorEDA demo showing instructions, a linked 2D chart, and coordinated faceted 3D Lorenz attractor charts"
+      className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+      loading="lazy"
+    />
+    <figcaption className="mt-3 text-sm text-neutral-500 dark:text-neutral-400">
+      The post-audit Lorenz example. Browser verification covered navigation, responsive layout, tables, filters, and accessible chart fallbacks.
+    </figcaption>
+  </figure>
+</div>
+
+The useful result is not that agents can generate a large diff. They have been able to do that for a while.
+
+The useful result is a repeatable maintenance loop: measure the repo, convert evidence into bounded work, keep each change reviewable, refill the queue, and verify the result through a path that did not write the code.
+
+That loop turned an old two-week sprint into a project I can develop again. It also did the boring work without requiring me to babysit every commit. The audit stayed visible, the workers stayed bounded, and the final technical claims had checks behind them.
