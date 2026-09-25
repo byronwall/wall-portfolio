@@ -1,0 +1,33 @@
+---
+title: Seeing the ticket graph, planning at the frontier
+publishedAt: 2026-09-24
+type: tooling
+summary: "A live view of my ticket dependency graph and a two-pass fan-out process that waits to write implementation detail until work can start."
+image: "/images/posts/live-ticket-graph-and-frontier-planning/graph.png"
+---
+
+I want to know what work can start, what it depends on, and whether the ticket still describes the code that exists today. A list of Markdown files can hold that information, but it is hard to see the shape of the work from a list.
+
+I added `tk view` to my local [ticket tracker](https://github.com/byronwall/ticket). It reads the current project's `.tickets` folder and shows the dependency graph in a browser. Tickets at the frontier sit on the left. Work that depends on them extends to the right. Epics stay in the legend, where they can group and filter tickets without becoming extra boxes in the graph.
+
+![The live ticket graph for Evidence First Resume Studio, with active work on the left and dependent work to the right.](/images/posts/live-ticket-graph-and-frontier-planning/graph.png)
+
+This is the current graph for Evidence First Resume Studio. The viewer hides closed work by default, so this screenshot shows 12 of 64 tickets. I can pan, zoom, or press `F` to fit the visible graph. The page checks for ticket changes every second and keeps the layout steady when a ticket's text changes.
+
+Clicking a ticket opens its full Markdown body and front matter. The inspector links dependencies and the parent epic, and it can copy a prompt for an agent to execute that ticket. The viewer is read only; the Markdown files remain the source of truth.
+
+![A selected ticket with its dependency path highlighted and its full body open in the inspector.](/images/posts/live-ticket-graph-and-frontier-planning/inspector.png)
+
+## Plan the graph first, then plan the work
+
+The viewer makes another problem easier to spot: a ticket can have no unfinished dependencies and still be too vague to implement. Previously, I tried to write detailed implementation tickets for the whole graph up front. That detail could go stale before a worker reached the ticket. A dependency might change, the code might move, or an earlier ticket might resolve the problem in a different way.
+
+After [finding that my earlier tickets weakened the plan](/blog/backlog-gave-my-agents-a-graph-but-weakened-the-plan), I changed the ticket fan-out process to work in two passes. The first pass creates a coarse graph for the full outcome. Each `open` ticket names its outcome, likely steps, known dependencies, proof, and a provisional ready gate. It can name likely components, but it does not prescribe line numbers, code samples, or exact edits for work that may happen later.
+
+The second pass happens when a ticket reaches the frontier: its dependencies are closed and it can be considered for work. At that point, the agent checks the current repository, decisions, prerequisites, and test environment. It can split the ticket or add a newly discovered prerequisite. Then it writes the implementation detail that a worker actually needs.
+
+The status change is deliberate. `Open` means the ticket still needs that refinement. `Ready` means it has passed the gate and can start. `tk frontier` shows both kinds of unblocked ticket; `tk ready` shows only executable work. `tk start` requires `ready` status and closed dependencies.
+
+The ready gate keeps the first pass useful. It records what the later pass must confirm: the current code shape, unresolved decisions, required inputs, and a runnable way to prove the result. If things have moved unexpectedly, the agent has a place to notice and repair the plan before implementation starts.
+
+The graph gives me the whole route. The frontier pass gives the next worker a ticket grounded in the repository as it exists now. I still want to test whether this produces better handoffs across a full initiative; the viewer and the new status gate make that test easier to inspect.
