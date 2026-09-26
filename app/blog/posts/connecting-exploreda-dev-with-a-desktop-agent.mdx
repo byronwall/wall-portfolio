@@ -1,0 +1,23 @@
+---
+title: Connecting exploreda.dev with an OpenAI desktop agent
+publishedAt: 2026-09-25
+summary: 'A desktop agent connected Namecheap DNS, GitHub Pages, and the demo build, then checked the live result.'
+project: exploreda
+type: tooling
+---
+
+I bought [exploreda.dev](https://exploreda.dev) and asked the desktop agent to connect it to the project's GitHub Pages site. Namecheap and the GitHub repository were already open in Chrome.
+
+The request was short: “Wire it up so that my new domain points to the GitHub page.”
+
+This session ran in the Codex desktop app. If you think of ChatGPT as a place to ask for instructions, this is a concrete example of what an OpenAI desktop agent can do with browser and terminal access.
+
+It changed the Namecheap records, set the custom domain in GitHub Pages, and handled a detail that DNS instructions alone would miss. The demo expected to live under `/explorEDA/`. On the new domain, it needed to load from `/`. That affected both the built scripts and the sample datasets.
+
+The agent changed those paths, ran `pnpm check`, and created and merged [a small pull request](https://github.com/byronwall/explorEDA/pull/30). It then checked the deployment and waited for GitHub to issue the certificate. Once the certificate was available, it enabled HTTPS.
+
+The final checks went beyond a successful settings save. The domain returned the deployed page, `www.exploreda.dev` redirected to the root domain, and the penguin example opened in Chrome with all 344 rows.
+
+The useful part was carrying the task across the browser, repository, deployment, and certificate state. I supplied the desired result and the open pages. The agent followed through until the site worked.
+
+This used an existing signed-in browser session and an existing GitHub Pages deployment. Those were the starting conditions for this example.
