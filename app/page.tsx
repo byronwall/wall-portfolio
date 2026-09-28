@@ -99,15 +99,9 @@ export default function Home() {
         </Link>
         <div className="content-preview-grid">
           {featuredProjects.map((project) => (
-            <Link className="content-preview-card" href={`/projects/${project.slug}`} key={project.slug}>
-              {project.thumbnail ? (
+            <Link className={`content-preview-card${project.thumbnail ? "" : " content-preview-card-text"}`} href={`/projects/${project.slug}`} key={project.slug}>
+              {project.thumbnail && (
                 <img src={project.thumbnail} alt="" className="content-preview-image" loading="lazy" />
-              ) : (
-                <div className="content-preview-fallback" aria-hidden="true">
-                  <span className="content-preview-fallback-mark">
-                    BW / {project.metadata.title.slice(0, 2).toUpperCase()}
-                  </span>
-                </div>
               )}
               <div className="content-preview-copy">
                 <h2>{project.metadata.title}</h2>
@@ -125,8 +119,8 @@ export default function Home() {
         </Link>
         <div className="content-preview-grid">
           {featuredPosts.map((post) => (
-            <Link className="content-preview-card" href={`/blog/${post.slug}`} key={post.slug}>
-              {post.thumbnail ? (
+            <Link className={`content-preview-card${post.thumbnail ? "" : " content-preview-card-text"}`} href={`/blog/${post.slug}`} key={post.slug}>
+              {post.thumbnail && (
                 <Image
                   src={post.thumbnail}
                   alt=""
@@ -134,12 +128,6 @@ export default function Home() {
                   height={400}
                   className="content-preview-image"
                 />
-              ) : (
-                <div className="content-preview-fallback" aria-hidden="true">
-                  <span className="content-preview-fallback-mark">
-                    BW / {post.metadata.title.slice(0, 2).toUpperCase()}
-                  </span>
-                </div>
               )}
               <div className="content-preview-copy">
                 <h2>{post.metadata.title}</h2>

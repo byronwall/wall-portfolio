@@ -5,6 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import styles from "../projects.module.css";
 import { getOgImageUrl } from "app/og-image";
+import { getProjectStatus } from "../status";
 
 type ProjectPageProps = { params: Promise<{ slug: string }> };
 
@@ -67,6 +68,8 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   if (!project) notFound();
   const headings = getHeadings(project.content);
   const relatedPosts = getPostsForProject(project.slug);
+  const status = getProjectStatus(project.metadata.status);
+  const year = project.metadata.publishedAt?.slice(0, 4);
   const projectLinks = [
     ["Live demo", project.metadata.demo],
     ["Source", project.metadata.repo],
@@ -77,15 +80,17 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   return (
     <main className={styles.detailPage}>
       <Link href="/projects" className={styles.backLink}>← Projects</Link>
-      <header className={styles.hero}>
+      <header className={`${styles.hero}${project.thumbnail ? "" : ` ${styles.heroTextOnly}`}`}>
         <div className={styles.heroCopy}>
           <h1>{project.metadata.title}</h1>
           <p>{project.metadata.description ?? project.metadata.summary}</p>
           <div className={styles.heroDetails}>
-            <div className={styles.status}>
-              <span>{project.metadata.status ?? "Content coming soon"}</span>
-              {project.metadata.publishedAt && <span>{project.metadata.publishedAt.slice(0, 4)}</span>}
-            </div>
+            {(status || year) && (
+              <div className={styles.status}>
+                {status && <span>{status}</span>}
+                {year && <time dateTime={project.metadata.publishedAt}>{year}</time>}
+              </div>
+            )}
             {project.metadata.tags?.length ? (
               <ul className={styles.tags} aria-label="Technologies">
                 {project.metadata.tags.map((tag) => <li key={tag}>{tag}</li>)}
@@ -100,22 +105,16 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             </nav>
           )}
         </div>
-        <div className={styles.heroMedia}>
-          {project.thumbnail ? (
+        {project.thumbnail && (
+          <div className={styles.heroMedia}>
             <img src={project.thumbnail} alt={`${project.metadata.title} interface`} />
-          ) : (
-            <div className={styles.heroPlaceholder} aria-hidden="true">
-              <span>{project.metadata.title.slice(0, 2).toUpperCase()}</span>
-              <small>Project artifact forthcoming</small>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
       </header>
 
       <div className={styles.story}>
         <aside className={styles.storyNav}>
-          <span>Project story</span>
-          {headings.length > 0 && (
+          {headings.length > 1 && (
             <nav aria-label="On this page">
               {headings.map((heading) => <a href={`#${heading.id}`} key={heading.id}>{heading.label}</a>)}
             </nav>
@@ -126,22 +125,15 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         </article>
       </div>
 
-      <section className={styles.relatedPosts} aria-labelledby="related-posts-heading">
-        <div className={styles.relatedHeading}>
-          <h2 id="related-posts-heading">Related posts</h2>
-          <p>Updates, decisions, experiments, and lessons connected to this project.</p>
-        </div>
-        {relatedPosts.length > 0 ? (
+      {relatedPosts.length > 0 && (
+        <section className={styles.relatedPosts} aria-labelledby="related-posts-heading">
+          <div className={styles.relatedHeading}>
+            <h2 id="related-posts-heading">Related posts</h2>
+          </div>
           <div className="content-preview-grid">
             {relatedPosts.map((post) => (
-              <Link className="content-preview-card" href={`/blog/${post.slug}`} key={post.slug}>
-                {post.thumbnail ? (
-                  <img src={post.thumbnail} alt="" className="content-preview-image" loading="lazy" />
-                ) : (
-                  <div className={styles.relatedPlaceholder} aria-hidden="true">
-                    BW / {post.metadata.title.slice(0, 2).toUpperCase()}
-                  </div>
-                )}
+              <Link className={`content-preview-card${post.thumbnail ? "" : " content-preview-card-text"}`} href={`/blog/${post.slug}`} key={post.slug}>
+                {post.thumbnail && <img src={post.thumbnail} alt="" className="content-preview-image" loading="lazy" />}
                 <div className="content-preview-copy">
                   <p className={styles.relatedMeta}>{formatDate(post.metadata.publishedAt)} · {getPostCategory(post.metadata)}</p>
                   <h2>{post.metadata.title}</h2>
@@ -150,10 +142,8 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               </Link>
             ))}
           </div>
-        ) : (
-          <div className={styles.emptyRelated}>Content coming soon.</div>
-        )}
-      </section>
+        </section>
+      )}
 
       <footer className={styles.nextProject}>
         <Link href="/projects">All projects →</Link>

@@ -69,25 +69,24 @@ export default function ToolsPage() {
 
       <section>
         <div className={styles.grid}>
-          {tools.map((tool, index) => (
+          {tools.map((tool) => (
             <article className={styles.card} key={tool.title}>
               <a
                 className={styles.cardVisual}
                 href={tool.toolHref}
                 aria-label={`Open ${tool.title} tool`}
               >
-                <span className={styles.cardNumber}>0{index + 1}</span>
                 <TablePreview />
               </a>
               <div className={styles.cardBody}>
                 <h3>
                   <Link href={tool.toolHref}>
-                    {tool.title} <span aria-hidden="true">↗</span>
+                    {tool.title}
                   </Link>
                 </h3>
                 <p>{tool.description}</p>
                 <nav className={styles.cardActions} aria-label={`${tool.title} links`}>
-                  <Link href={tool.permanentHref}>Read the story <span aria-hidden="true">↗</span></Link>
+                  <Link href={tool.permanentHref}>Read the story</Link>
                   <a href={tool.toolHref} target="_blank" rel="noreferrer">
                     Open tool <span aria-hidden="true">↗</span>
                   </a>

@@ -166,7 +166,7 @@ export default async function Blog({ params }: BlogPageProps) {
       />
       {isInteractive && (
         <div className={styles.interactiveTopbar}>
-          <Link className={styles.interactiveBackLink} href="/blog">← All notes</Link>
+          <Link className={styles.interactiveBackLink} href="/blog">← Blog</Link>
           <div className={styles.interactiveMeta} aria-label="Article details">
             <span>{formatDate(post.metadata.publishedAt)}</span>
             <span>{readingTime}</span>
@@ -182,7 +182,7 @@ export default async function Blog({ params }: BlogPageProps) {
             tableOfContents.length > 0 && <ArticleToc items={tableOfContents} variant="compact" />
           ) : (
             <>
-              <Link className={styles.backLink} href="/blog">← All notes</Link>
+              <Link className={styles.backLink} href="/blog">← Blog</Link>
               <dl className={styles.railMeta}>
                 <div><dt>Published</dt><dd>{formatDate(post.metadata.publishedAt)}</dd></div>
                 {typeof post.metadata.updatedAt === "string" &&
@@ -209,9 +209,9 @@ export default async function Blog({ params }: BlogPageProps) {
             </h1>
             <p className={styles.articleSummary}>{post.metadata.summary}</p>
             <p className={styles.articleMobileMeta}>{formatDate(post.metadata.publishedAt)} · {readingTime}{interactionTime ? ` · ${interactionTime}` : ""} · {category}{relatedProject ? ` · ${relatedProject.metadata.title}` : ""}</p>
-            {post.metadata.articleHero !== "false" && (
+            {post.metadata.articleHero !== "false" && post.thumbnail && (
               <div className={styles.articleHero}>
-                {post.thumbnail ? <img className={styles.articleHeroImage} src={post.thumbnail} alt="" /> : <div className={`${styles.fallbackVisual} ${styles.articleFallback}`}><span className={styles.fallbackMark}>BW / {post.metadata.title.slice(0, 2).toUpperCase()}</span></div>}
+                <img className={styles.articleHeroImage} src={post.thumbnail} alt="" />
               </div>
             )}
           </header>
