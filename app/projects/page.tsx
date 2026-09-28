@@ -1,6 +1,7 @@
 import { getProjectIndexTier, getProjects, sortProjectsForIndex, type ProjectIndexTier } from "app/blog/utils";
 import { baseUrl } from "app/sitemap";
 import Link from "next/link";
+import { getProjectStatus } from "./status";
 
 export const metadata = {
   title: "Projects",
@@ -24,8 +25,7 @@ function getProjectTitle(project: Project) {
 function getProjectDescription(project: Project) {
   return (
     project.metadata.description?.trim() ||
-    project.metadata.summary?.trim() ||
-    "Project details are being documented."
+    project.metadata.summary?.trim()
   );
 }
 
@@ -35,17 +35,6 @@ function getOptionalMetadataText(value: string | string[] | undefined) {
 
 function getProjectYear(project: Project) {
   return project.metadata.publishedAt?.match(/\d{4}/)?.[0];
-}
-
-function getProjectInitials(title: string) {
-  const initials = title
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((word) => word[0])
-    .join("");
-
-  return (initials || title.slice(0, 2)).toUpperCase();
 }
 
 function getProjectLinks(project: Project) {
@@ -62,43 +51,26 @@ function getProjectLinks(project: Project) {
 }
 
 function ProjectMedia({ project, eager }: { project: Project; eager: boolean }) {
-  const title = getProjectTitle(project);
-  const usePlaceholder = project.metadata.indexImage === "placeholder";
-  const hasImage = !usePlaceholder && Boolean(project.thumbnail);
-  const imageState = hasImage
-    ? "provided"
-    : project.metadata.indexImage === "placeholder"
-      ? "placeholder-tracked"
-      : "placeholder-untracked";
-
   return (
-    <div
-      className={`project-index-media${hasImage ? "" : " project-index-media-placeholder"}`}
-      data-image-state={imageState}
-    >
-      {hasImage ? (
-        <img
-          src={project.thumbnail}
-          alt=""
-          loading={eager ? "eager" : "lazy"}
-        />
-      ) : (
-        <span className="project-index-placeholder" aria-hidden="true">
-          <strong>BW / {getProjectInitials(title)}</strong>
-          <small>Visual placeholder</small>
-        </span>
-      )}
+    <div className="project-index-media">
+      <img
+        src={project.thumbnail}
+        alt=""
+        loading={eager ? "eager" : "lazy"}
+      />
     </div>
   );
 }
 
 function ProjectMeta({ project }: { project: Project }) {
   const year = getProjectYear(project);
-  const status = getOptionalMetadataText(project.metadata.status) || "Project";
+  const status = getProjectStatus(project.metadata.status);
+
+  if (!status && !year) return null;
 
   return (
     <div className="project-index-meta">
-      <span>{status}</span>
+      {status && <span>{status}</span>}
       {year && <time dateTime={project.metadata.publishedAt}>{year}</time>}
     </div>
   );
@@ -133,29 +105,32 @@ function ProjectCard({
   const description = getProjectDescription(project);
   const links = tier === "featured" ? getProjectLinks(project) : [];
   const isFeaturedLead = tier === "featured" && position === 0;
+  const hasImage = Boolean(project.thumbnail) && project.metadata.indexImage !== "placeholder";
 
   return (
     <article
       className={`project-index-card project-index-card-${tier}${
         isFeaturedLead ? " project-index-card-lead" : ""
-      }`}
+      }${hasImage ? "" : " project-index-card-text"}`}
       data-tier={tier}
     >
-      <Link
-        className="project-index-media-link"
-        href={`/projects/${project.slug}`}
-        aria-label={`Open ${title}`}
-      >
-        <ProjectMedia project={project} eager={tier === "featured" && position < 2} />
-      </Link>
+      {hasImage && (
+        <Link
+          className="project-index-media-link"
+          href={`/projects/${project.slug}`}
+          aria-label={`Open ${title}`}
+        >
+          <ProjectMedia project={project} eager={tier === "featured" && position < 2} />
+        </Link>
+      )}
       <div className="project-index-copy">
         <ProjectMeta project={project} />
         <h3>
           <Link href={`/projects/${project.slug}`}>
-            {title} <span aria-hidden="true">↗</span>
+            {title}
           </Link>
         </h3>
-        <p>{description}</p>
+        {description && <p>{description}</p>}
         {tier === "featured" && links.length > 0 && (
           <nav className="project-index-links" aria-label={`${title} links`}>
             {links.map(([label, href]) => (
@@ -186,7 +161,6 @@ function ProjectGroup({
     <section className={`project-index-group project-index-group-${tier}`} aria-labelledby={headingId}>
       <div className="project-index-group-heading">
         <h2 id={headingId}>{tierLabels[tier]}</h2>
-        <span>{projects.length} projects</span>
       </div>
       <div className={`project-index-grid project-index-grid-${tier}`}>
         {projects.map((project, index) => (
@@ -210,7 +184,6 @@ export default function ProjectsPage() {
   return (
     <main className="project-index-page">
       <header className="project-index-intro">
-        <p className="project-index-kicker">Selected work</p>
         <h1>Projects</h1>
         <p>
           Products, experiments, and developer tools built to make complex work

@@ -48,49 +48,43 @@ export default async function GamePage({ params }: GamePageProps) {
   const localImage = hasGameImage(game);
   const areas = getGameAreas(game);
   const tags = getGameTags(game);
+  const statusLine = [game.metadata.status, ...areas].filter((part): part is string => typeof part === "string" && part.length > 0);
 
   return (
     <main className={styles.detailPage}>
       <Link href="/games" className={styles.back}>← Games</Link>
-      <header className={styles.hero}>
+      <header className={`${styles.hero}${localImage ? "" : ` ${styles.heroTextOnly}`}`}>
         <div className={styles.heroCopy}>
           <h1>{title}</h1>
           <p>{game.metadata.description || game.metadata.summary}</p>
-          <div className={styles.status}>{game.metadata.status || "Game"} · {areas.join(" · ")}</div>
+          {statusLine.length > 0 && <div className={styles.status}>{statusLine.join(" · ")}</div>}
           {tags.length > 0 && <ul className={styles.detailTags} aria-label="Game details">{tags.map((tag) => <li key={tag}>{tag}</li>)}</ul>}
           <nav className={styles.detailActions} aria-label={`${title} actions`}>
             <a className={styles.playLink} href={playHref} target="_blank" rel="noreferrer">Play {title} ↗</a>
             {typeof game.metadata.repo === "string" && <a href={game.metadata.repo} target="_blank" rel="noreferrer">Source ↗</a>}
           </nav>
         </div>
-        <div className={styles.heroMedia}>
-          {localImage ? <img src={game.thumbnail} alt={`${title} gameplay`} /> : <GamePlaceholder game={game} />}
-        </div>
+        {localImage && (
+          <div className={styles.heroMedia}>
+            <img src={game.thumbnail} alt={`${title} gameplay`} />
+          </div>
+        )}
       </header>
 
       <div className={styles.story}>
         <aside className={styles.storyNav}>
-          <span>Game notes</span>
-          {headings.length > 0 && <nav aria-label="On this page">{headings.map((heading) => <a href={`#${heading.id}`} key={heading.id}>{heading.label}</a>)}</nav>}
+          {headings.length > 1 && <nav aria-label="On this page">{headings.map((heading) => <a href={`#${heading.id}`} key={heading.id}>{heading.label}</a>)}</nav>}
         </aside>
         <article className={`prose ${styles.prose}`}><CustomMDX source={game.content} /></article>
       </div>
 
-      <section className={styles.related} aria-labelledby="related-posts-heading">
-        <h2 id="related-posts-heading">Related posts</h2>
-        <p>Build notes and experiments connected to this game.</p>
-        {relatedPosts.length > 0 ? <ul>{relatedPosts.map((post) => <li key={post.slug}><Link href={`/blog/${post.slug}`}>{post.metadata.title}</Link> <span>· {formatDate(post.metadata.publishedAt)}</span></li>)}</ul> : <div className={styles.relatedEmpty}>Build notes will appear here when a post is filed with <code>game: {game.slug}</code>.</div>}
-      </section>
+      {relatedPosts.length > 0 && (
+        <section className={styles.related} aria-labelledby="related-posts-heading">
+          <h2 id="related-posts-heading">Related posts</h2>
+          <ul>{relatedPosts.map((post) => <li key={post.slug}><Link href={`/blog/${post.slug}`}>{post.metadata.title}</Link> <span>· {formatDate(post.metadata.publishedAt)}</span></li>)}</ul>
+        </section>
+      )}
       <footer className={styles.footer}><Link href="/games">All games →</Link></footer>
     </main>
-  );
-}
-
-function GamePlaceholder({ game }: { game: ReturnType<typeof getGames>[number] }) {
-  return (
-    <div className={`${styles.placeholder} ${styles.heroPlaceholder}`} aria-label="Gameplay screenshot placeholder">
-      <div className={styles.placeholderTop}><span>Gameplay still / expected asset</span><span className={styles.placeholderSignal} /></div>
-      <div className={styles.placeholderBottom}><div><strong>GUNK<br />PATROL</strong><small>Screenshot placeholder<br />{game.thumbnail || "/images/games/gunk-patrol/gameplay.png"}</small></div><span>90%</span></div>
-    </div>
   );
 }

@@ -7,7 +7,7 @@ export function getGame(slug: string) {
 }
 
 export function getGameAreas(game: ReturnType<typeof getGames>[number]) {
-  return Array.isArray(game.metadata.areas) ? game.metadata.areas : ["Swamp", "Sewer / tunnel", "City"];
+  return Array.isArray(game.metadata.areas) ? game.metadata.areas.filter(Boolean) : [];
 }
 
 export function getGameTags(game: ReturnType<typeof getGames>[number]) {
