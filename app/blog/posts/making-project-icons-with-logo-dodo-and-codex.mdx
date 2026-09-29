@@ -1,13 +1,13 @@
 ---
 title: Making project icons with Logo Dodo and Codex
 publishedAt: 2026-09-28
-summary: 'I set the visual direction, then let Codex run Logo Dodo and carry the chosen icon into the project.'
+summary: 'The explorEDA icon worked. A second run for my resume site exposed where Logo Dodo still falls short.'
 image: /images/projects/exploreda/logo-stacked.svg
 project: exploreda
 type: tooling
 ---
 
-I use [Logo Dodo](https://logododo.com), a site I own, when a project needs an icon. In the recent [explorEDA](/projects/exploreda) session, I let Codex operate the site in my browser. I still made the design calls.
+I own [Logo Dodo](https://logododo.com), and I tried letting Codex drive it when [explorEDA](/projects/exploreda) needed an icon. I still made the design calls.
 
 The first request was simply to make a logo for explorEDA. Logo Dodo generated concepts, but the early direction looked like a network diagram. That was the wrong visual model for this project. explorEDA is a workspace of charts, tables, and selected data, so I asked for something closer to a chart or grid.
 
@@ -20,3 +20,13 @@ I also asked Codex to separate the icon from the wordmark. A combined logo works
 Codex handled the rest of the path. It drove Logo Dodo, used the chosen concept to make separate SVGs for the icon and wordmark, and added horizontal and stacked layouts. It put the icon in the favicon and paired it with the wordmark in the demo header. It also added social and touch images, checked the demo at several widths, ran the project checks, and opened [a pull request](https://github.com/byronwall/explorEDA/pull/79). The [portfolio project page](/projects/exploreda) and this blog use the same assets.
 
 The useful division of work is fairly clear in this example. I supplied the product context and rejected a shape that felt wrong. Codex drove the controls and carried the result through the asset and site work. The output was an icon I could use, rather than another concept image sitting in a download folder.
+
+## Follow-up: the resume site
+
+I tried the same approach for Evidence-First Resume Studio. Logo Dodo generated a board, Codex refined a favorite, and Codex saved a candidate PNG. The result had plum layers and a clay point. Codex read those as work evidence and its source, but the mark looked like a generic stack without that explanation. The record and stamp alternatives each carried part of the idea. None gave me the icon I wanted.
+
+I then asked Codex to try the imagegen skill for a contact sheet of different motifs. That was simpler than another Logo Dodo round. One sheet let me compare a citation frame, a source-to-line shape, a traveler notch, and an open imprint. I picked the citation frame. Codex drew it as an SVG and used it for the site favicon and navigation rail.
+
+![Four resume-site icon concepts from imagegen: citation frame, source-to-line, traveler notch, and open imprint](/images/posts/making-project-icons-with-logo-dodo-and-codex/resume-icon-motifs.png)
+
+Logo Dodo did make concepts and a candidate file. It did not get the resume-site icon across the line. The second run showed where my tool still needs work: it was easier to ask imagegen for distinct shapes than to steer another Logo Dodo board away from familiar motifs.
