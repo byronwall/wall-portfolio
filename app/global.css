@@ -495,6 +495,7 @@ input[type='email'] {
 .project-index-copy h3 { margin: 0 0 9px; color: var(--ink-primary); font-size: 21px; line-height: 1.13; letter-spacing: -.035em; overflow-wrap: anywhere; }
 .project-index-meta + h3 { margin-top: 12px; }
 .project-index-copy h3 a { color: inherit; text-decoration: none; }
+.project-index-title-logo { display: inline-block; width: 1em; height: 1em; margin-right: .25em; vertical-align: -.1em; }
 .project-index-copy > p { margin: 0; color: var(--ink-body); font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
 .project-index-links { display: flex; flex-wrap: wrap; gap: 8px 17px; margin-top: 18px; }
 .project-index-links a { color: var(--action-primary); font-size: 12px; font-weight: 620; text-decoration: none; }

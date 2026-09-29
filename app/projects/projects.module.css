@@ -26,6 +26,8 @@
 .heroTextOnly .heroDetails { justify-content: flex-start; }
 .heroTextOnly .heroDetails .tags { justify-content: flex-start; }
 .heroCopy h1 { font-size: clamp(42px, 4.6vw, 58px); }
+.heroTitle { display: flex; align-items: center; gap: 16px; }
+.heroTitle img { width: 48px; height: 48px; flex: none; }
 .heroCopy > p { margin: 25px 0 0; color: var(--ink-body); font-size: 17px; line-height: 1.55; }
 .heroDetails { display: flex; gap: 20px; align-items: flex-end; justify-content: space-between; margin-top: 26px; }
 .heroDetails .tags { justify-content: flex-end; margin-top: 0; }

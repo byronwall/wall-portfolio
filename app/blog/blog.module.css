@@ -35,6 +35,8 @@
 .postCopy { display: flex; flex-direction: column; align-self: center; min-width: 0; }
 .postMeta { display: flex; flex-wrap: wrap; gap: 7px 14px; margin-bottom: 15px; color: var(--ink-muted); font-family: var(--font-geist-mono); font-size: 11px; line-height: 1.4; text-transform: uppercase; letter-spacing: .045em; }
 .postMeta span + span { position: relative; }
+.projectLabel { display: inline-flex; align-items: center; gap: 5px; }
+.projectLabel img { width: 14px; height: 14px; }
 .postMeta span + span::before { content: ""; position: absolute; left: -8px; top: 50%; width: 2px; height: 2px; border-radius: 50%; background: var(--ink-tertiary); }
 .postTitle { margin: 0; color: var(--ink-primary); font-size: clamp(24px, 2.5vw, 34px); line-height: 1.08; letter-spacing: -.035em; transition: color 150ms ease; }
 .postSummary { max-width: 620px; margin: 16px 0 0; color: var(--ink-body); font-size: 15px; line-height: 1.58; }

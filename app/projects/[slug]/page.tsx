@@ -82,7 +82,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       <Link href="/projects" className={styles.backLink}>← Projects</Link>
       <header className={`${styles.hero}${project.thumbnail ? "" : ` ${styles.heroTextOnly}`}`}>
         <div className={styles.heroCopy}>
-          <h1>{project.metadata.title}</h1>
+          <h1 className={styles.heroTitle}>{typeof project.metadata.logo === "string" && <img src={project.metadata.logo} alt="" />}{project.metadata.title}</h1>
           <p>{project.metadata.description ?? project.metadata.summary}</p>
           <div className={styles.heroDetails}>
             {(status || year) && (

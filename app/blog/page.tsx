@@ -24,7 +24,7 @@ export default function BlogPage() {
     return dates || a.slug.localeCompare(b.slug);
   });
   const projects = new Map(
-    getProjects().map((project) => [project.slug, project.metadata.title]),
+    getProjects().map((project) => [project.slug, project.metadata]),
   );
 
   return (
@@ -35,7 +35,7 @@ export default function BlogPage() {
       </header>
       <div className={styles.postList}>
         {posts.map((post) => {
-          const projectTitle = typeof post.metadata.project === "string"
+          const project = typeof post.metadata.project === "string"
             ? projects.get(post.metadata.project)
             : undefined;
           return (
@@ -50,7 +50,7 @@ export default function BlogPage() {
                   <span>{formatDate(post.metadata.publishedAt)}</span>
                   <span>{getReadingTime(post.content)}</span>
                   <span>{getPostCategory(post.metadata)}</span>
-                  {projectTitle && <span>{projectTitle}</span>}
+                  {project && <span className={styles.projectLabel}>{typeof project.logo === "string" && <img src={project.logo} alt="" />}{project.title}</span>}
                 </div>
                 <h2 className={styles.postTitle}>{post.metadata.title}</h2>
                 <p className={styles.postSummary}>{post.metadata.summary}</p>

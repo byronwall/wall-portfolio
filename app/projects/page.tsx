@@ -127,7 +127,7 @@ function ProjectCard({
         <ProjectMeta project={project} />
         <h3>
           <Link href={`/projects/${project.slug}`}>
-            {title}
+            {typeof project.metadata.logo === "string" && <img src={project.metadata.logo} alt="" className="project-index-title-logo" />} {title}
           </Link>
         </h3>
         {description && <p>{description}</p>}
