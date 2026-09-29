@@ -1,0 +1,22 @@
+---
+title: Making project icons with Logo Dodo and Codex
+publishedAt: 2026-09-28
+summary: 'I set the visual direction, then let Codex run Logo Dodo and carry the chosen icon into the project.'
+image: /images/projects/exploreda/logo-stacked.svg
+project: exploreda
+type: tooling
+---
+
+I use [Logo Dodo](https://logododo.com), a site I own, when a project needs an icon. In the recent [explorEDA](/projects/exploreda) session, I let Codex operate the site in my browser. I still made the design calls.
+
+The first request was simply to make a logo for explorEDA. Logo Dodo generated concepts, but the early direction looked like a network diagram. That was the wrong visual model for this project. explorEDA is a workspace of charts, tables, and selected data, so I asked for something closer to a chart or grid.
+
+That correction mattered more than adding another long prompt. We chose a three-by-three grid with one teal cell. It reads as data at icon size, and the selected cell gives it a point of focus. The [short project update](/blog/exploreda-grid-logo) shows the final mark.
+
+![The explorEDA grid icon above its wordmark](/images/projects/exploreda/logo-stacked.svg)
+
+I also asked Codex to separate the icon from the wordmark. A combined logo works in a header, but it does not fit a favicon. A wordmark alone is useful when the name needs to be readable. Those are separate assets, not one image cropped in different ways.
+
+Codex handled the rest of the path. It drove Logo Dodo, used the chosen concept to make separate SVGs for the icon and wordmark, and added horizontal and stacked layouts. It put the icon in the favicon and paired it with the wordmark in the demo header. It also added social and touch images, checked the demo at several widths, ran the project checks, and opened [a pull request](https://github.com/byronwall/explorEDA/pull/79). The [portfolio project page](/projects/exploreda) and this blog use the same assets.
+
+The useful division of work is fairly clear in this example. I supplied the product context and rejected a shape that felt wrong. Codex drove the controls and carried the result through the asset and site work. The output was an icon I could use, rather than another concept image sitting in a download folder.
