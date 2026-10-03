@@ -1,0 +1,1148 @@
+{
+ "name": "The Workbook",
+ "license": "CC0-1.0",
+ "puzzles": [
+  {
+   "id": "wb:back-rank",
+   "fen": "6k1/r4ppp/8/8/8/8/5PPP/4R1K1 w - - 0 1",
+   "line": [
+    "e1e8"
+   ],
+   "alts": [],
+   "rating": 400,
+   "skills": [
+    "mateIn1"
+   ],
+   "title": "The back rank",
+   "objective": "Find checkmate.",
+   "hints": [
+    "Look for a rook check on the back rank."
+   ],
+   "explanation": "The rook covers the back rank. The king’s own pawns block its escape."
+  },
+  {
+   "id": "wb:queen-and-king",
+   "fen": "7k/7p/5KQ1/8/8/8/8/8 w - - 0 1",
+   "line": [
+    "g6g7"
+   ],
+   "alts": [],
+   "rating": 400,
+   "skills": [
+    "mateIn1"
+   ],
+   "title": "Working together",
+   "objective": "Find checkmate.",
+   "hints": [
+    "Your king can protect the queen when she moves close."
+   ],
+   "explanation": "The queen and king work together: the queen gives check, and your king protects her."
+  },
+  {
+   "id": "wb:rook-wall",
+   "fen": "4k3/R7/4K3/8/8/8/8/8 w - - 0 1",
+   "line": [
+    "a7a8"
+   ],
+   "alts": [],
+   "rating": 400,
+   "skills": [
+    "mateIn1"
+   ],
+   "title": "A wall of squares",
+   "objective": "Find checkmate.",
+   "hints": [
+    "Your king already covers the squares in front of the other king."
+   ],
+   "explanation": "The rook covers the back rank while your king guards the escape squares."
+  },
+  {
+   "id": "wb:bishop-support",
+   "fen": "5rk1/5pp1/8/7Q/8/3B4/8/6K1 w - - 0 1",
+   "line": [
+    "h5h7"
+   ],
+   "alts": [],
+   "rating": 400,
+   "skills": [
+    "mateIn1"
+   ],
+   "title": "A little support",
+   "objective": "Find checkmate.",
+   "hints": [
+    "Follow your bishop’s diagonal toward the king."
+   ],
+   "explanation": "The bishop protects the queen. The king cannot capture her or move to safety."
+  },
+  {
+   "id": "wb:smothered",
+   "fen": "6rk/6pp/8/6N1/8/8/5PPP/6K1 w - - 0 1",
+   "line": [
+    "g5f7"
+   ],
+   "alts": [],
+   "rating": 400,
+   "skills": [
+    "mateIn1"
+   ],
+   "title": "Nowhere to go",
+   "objective": "Find checkmate.",
+   "hints": [
+    "A knight can jump over the pieces around the king."
+   ],
+   "explanation": "The knight gives check. The king is boxed in by its own pieces."
+  },
+  {
+   "id": "wb:two-rooks",
+   "fen": "4k3/7R/8/8/8/8/8/R5K1 w - - 0 1",
+   "line": [
+    "a1a8"
+   ],
+   "alts": [],
+   "rating": 400,
+   "skills": [
+    "mateIn1"
+   ],
+   "title": "Two rooks, one plan",
+   "objective": "Find checkmate.",
+   "hints": [
+    "One rook already cuts off the seventh rank. Use the other rook."
+   ],
+   "explanation": "One rook gives check along the back rank. The other blocks every escape to the seventh rank."
+  },
+  {
+   "id": "wb:pawn-mate",
+   "fen": "7k/7p/5KP1/8/2B5/8/8/8 w - - 0 1",
+   "line": [
+    "g6g7"
+   ],
+   "alts": [],
+   "rating": 400,
+   "skills": [
+    "mateIn1"
+   ],
+   "title": "The smallest piece",
+   "objective": "Find checkmate.",
+   "hints": [
+    "Even a pawn can give checkmate. Look one square ahead."
+   ],
+   "explanation": "The pawn gives check, your king protects it, and the bishop covers the last escape square."
+  },
+  {
+   "id": "wb:promotion-mate",
+   "fen": "7k/P4K1p/8/8/8/8/8/8 w - - 0 1",
+   "line": [
+    "a7a8q"
+   ],
+   "alts": [
+    [
+     "a7a8r"
+    ]
+   ],
+   "rating": 400,
+   "skills": [
+    "mateIn1"
+   ],
+   "title": "A powerful promotion",
+   "objective": "Find checkmate.",
+   "hints": [
+    "Promote on the back rank to give check."
+   ],
+   "explanation": "The promoted piece covers the back rank. Your king and the opponent’s pawn close off the exits."
+  },
+  {
+   "id": "wb:royal-fork",
+   "fen": "q3k3/8/8/3N4/8/8/5PPP/6K1 w - - 0 1",
+   "line": [
+    "d5c7",
+    "e8d7",
+    "c7a8"
+   ],
+   "alts": [],
+   "rating": 700,
+   "skills": [
+    "fork"
+   ],
+   "title": "A royal fork",
+   "objective": "Win the queen.",
+   "hints": [
+    "Can your knight check the king and attack the queen at the same time?"
+   ],
+   "explanation": "The knight attacks the king and queen together. The king must move, leaving the queen behind."
+  },
+  {
+   "id": "wb:rook-fork",
+   "fen": "1r3k2/8/8/4N3/8/8/5PPP/6K1 w - - 0 1",
+   "line": [
+    "e5d7",
+    "f8e7",
+    "d7b8"
+   ],
+   "alts": [],
+   "rating": 700,
+   "skills": [
+    "fork"
+   ],
+   "title": "A knight’s double attack",
+   "objective": "Win the rook.",
+   "hints": [
+    "Look for a knight check that also attacks the rook."
+   ],
+   "explanation": "Checking the king gives you time to capture the rook on your next move."
+  },
+  {
+   "id": "wb:pawn-fork",
+   "fen": "6k1/8/8/3n1r2/8/4P3/5PPP/6K1 w - - 0 1",
+   "line": [
+    "e3e4",
+    "f5f8",
+    "e4d5"
+   ],
+   "alts": [],
+   "rating": 700,
+   "skills": [
+    "fork"
+   ],
+   "title": "A pawn with two targets",
+   "objective": "Win a piece.",
+   "hints": [
+    "A pawn attacks the two squares diagonally in front of it."
+   ],
+   "explanation": "The pawn attacks a knight and rook at once. When the rook moves, you can take the knight."
+  },
+  {
+   "id": "wb:bishop-fork",
+   "fen": "8/1r6/6k1/8/4p3/3B4/5PPP/6K1 w - - 0 1",
+   "line": [
+    "d3e4",
+    "g6f6",
+    "e4b7"
+   ],
+   "alts": [],
+   "rating": 700,
+   "skills": [
+    "fork"
+   ],
+   "title": "Look both ways",
+   "objective": "Win the rook.",
+   "hints": [
+    "Look for a bishop check with a rook on the other diagonal."
+   ],
+   "explanation": "The bishop checks the king and attacks the rook. After the king moves, the rook is yours."
+  },
+  {
+   "id": "wb:rook-pin",
+   "fen": "4k3/4n3/8/3P4/8/8/5PPP/4R1K1 w - - 0 1",
+   "line": [
+    "d5d6",
+    "e8d7",
+    "d6e7"
+   ],
+   "alts": [],
+   "rating": 850,
+   "skills": [
+    "pin"
+   ],
+   "title": "A knight that cannot move",
+   "objective": "Use the pin.",
+   "hints": [
+    "The knight shields its king from your rook. Attack it with a pawn."
+   ],
+   "explanation": "The knight cannot move without exposing its king. Your pawn attacks it and wins it.",
+   "feedback": {
+    "0:e1e7": {
+     "text": "The king can capture your rook. Instead, attack the pinned knight with your pawn.",
+     "reply": [
+      "e8e7"
+     ]
+    }
+   }
+  },
+  {
+   "id": "wb:bishop-pin",
+   "fen": "4k3/1p6/2n5/1B6/3P4/8/5PPP/6K1 w - - 0 1",
+   "line": [
+    "d4d5",
+    "e8f8",
+    "d5c6"
+   ],
+   "alts": [],
+   "rating": 850,
+   "skills": [
+    "pin"
+   ],
+   "title": "Follow the diagonal",
+   "objective": "Use the pin.",
+   "hints": [
+    "Trace the line from your bishop through the knight to the king."
+   ],
+   "explanation": "The knight is pinned to the king. Your pawn attacks it, so the knight cannot escape."
+  },
+  {
+   "id": "wb:pinned-queen",
+   "fen": "4k3/4q3/8/6B1/8/8/5PPP/4R1K1 w - - 0 1",
+   "line": [
+    "g5e7"
+   ],
+   "alts": [
+    [
+     "e1e7"
+    ]
+   ],
+   "rating": 850,
+   "skills": [
+    "pin"
+   ],
+   "title": "The queen is pinned",
+   "objective": "Win the queen.",
+   "hints": [
+    "The queen is shielding its king. Your rook and bishop both attack her."
+   ],
+   "explanation": "Your rook and bishop work together to win the queen. They also protect one another on the capture square."
+  },
+  {
+   "id": "wb:hanging-rook",
+   "fen": "6k1/8/r7/8/8/3B4/5PPP/6K1 w - - 0 1",
+   "line": [
+    "d3a6"
+   ],
+   "alts": [],
+   "rating": 400,
+   "skills": [
+    "hangingPiece"
+   ],
+   "title": "An unguarded rook",
+   "objective": "Win the rook.",
+   "hints": [
+    "Look along your bishop’s diagonal. Is that rook protected?"
+   ],
+   "explanation": "The rook is undefended. Your bishop can capture it safely."
+  },
+  {
+   "id": "wb:hanging-queen",
+   "fen": "6k1/8/8/3q4/8/2N5/5PPP/6K1 w - - 0 1",
+   "line": [
+    "c3d5"
+   ],
+   "alts": [],
+   "rating": 400,
+   "skills": [
+    "hangingPiece"
+   ],
+   "title": "A knight’s opportunity",
+   "objective": "Win the queen.",
+   "hints": [
+    "Which enemy piece can your knight capture?"
+   ],
+   "explanation": "The queen is on a square your knight attacks, with no piece ready to recapture."
+  },
+  {
+   "id": "wb:hanging-bishop",
+   "fen": "6k1/8/8/b7/8/8/5PPP/R5K1 w - - 0 1",
+   "line": [
+    "a1a5"
+   ],
+   "alts": [],
+   "rating": 400,
+   "skills": [
+    "hangingPiece"
+   ],
+   "title": "An open file",
+   "objective": "Win the bishop.",
+   "hints": [
+    "Look straight up your rook’s file."
+   ],
+   "explanation": "Nothing stands between the rook and the undefended bishop."
+  },
+  {
+   "id": "wb:new-queen",
+   "fen": "8/k3P3/4K3/8/8/8/8/8 w - - 0 1",
+   "line": [
+    "e7e8q"
+   ],
+   "alts": [],
+   "rating": 400,
+   "skills": [
+    "hangingPiece"
+   ],
+   "title": "A new queen",
+   "objective": "Promote to a queen.",
+   "hints": [
+    "Your pawn is one step from the last rank."
+   ],
+   "explanation": "A pawn that reaches the last rank can become a queen."
+  },
+  {
+   "id": "wb:answer-check",
+   "fen": "6k1/8/8/8/6b1/8/4r3/4KB2 w - - 0 1",
+   "line": [
+    "f1e2"
+   ],
+   "alts": [],
+   "rating": 800,
+   "skills": [
+    "defensiveMove"
+   ],
+   "title": "Answer the check",
+   "objective": "Stop the check. Win the rook.",
+   "hints": [
+    "Can your bishop capture the piece that is giving check?"
+   ],
+   "explanation": "Capturing the rook stops the check. Even if the other bishop recaptures, you have traded a bishop for a rook."
+  },
+  {
+   "id": "wb:escape-square",
+   "fen": "r5k1/8/8/8/8/8/5PPP/6K1 w - - 0 1",
+   "line": [
+    "h2h3",
+    "a8a1",
+    "g1h2"
+   ],
+   "alts": [
+    [
+     "h2h4",
+     "a8a1",
+     "g1h2"
+    ],
+    [
+     "g2g3",
+     "a8a1",
+     "g1g2"
+    ],
+    [
+     "g2g4",
+     "a8a1",
+     "g1g2"
+    ],
+    [
+     "f2f3",
+     "a8a1",
+     "g1f2"
+    ],
+    [
+     "f2f4",
+     "a8a1",
+     "g1f2"
+    ]
+   ],
+   "rating": 800,
+   "skills": [
+    "defensiveMove"
+   ],
+   "title": "Make room for your king",
+   "objective": "Make an escape square.",
+   "hints": [
+    "Your own pawns block every escape. Move one to give your king some room."
+   ],
+   "explanation": "An escape square prevents a back-rank mate. When the rook gives check, your king can step out."
+  },
+  {
+   "id": "wb:deflect-knight",
+   "fen": "4kb2/3n1ppp/8/4p1B1/8/1Q6/8/3R2K1 w - - 0 1",
+   "line": [
+    "b3b8",
+    "d7b8",
+    "d1d8"
+   ],
+   "alts": [],
+   "rating": 1000,
+   "skills": [
+    "mateIn2"
+   ],
+   "title": "A surprising first move",
+   "objective": "Find mate in two.",
+   "hints": [
+    "Look for a queen check that pulls the knight away from the d-file."
+   ],
+   "explanation": "The queen draws the knight away. Then the rook gives mate, supported by the bishop."
+  },
+  {
+   "id": "wb:queen-net",
+   "fen": "6k1/8/5K2/8/8/8/4Q3/8 w - - 0 1",
+   "line": [
+    "e2e7",
+    "g8h8",
+    "e7g7"
+   ],
+   "alts": [
+    [
+     "e2g4",
+     "g8f8",
+     "g4c8"
+    ],
+    [
+     "e2g4",
+     "g8h8",
+     "g4g7"
+    ],
+    [
+     "e2g4",
+     "g8h7",
+     "g4g7"
+    ],
+    [
+     "e2h5",
+     "g8f8",
+     "h5f7"
+    ],
+    [
+     "e2h5",
+     "g8f8",
+     "h5h8"
+    ],
+    [
+     "e2g2",
+     "g8f8",
+     "g2a8"
+    ],
+    [
+     "e2g2",
+     "g8h8",
+     "g2g7"
+    ],
+    [
+     "e2g2",
+     "g8h7",
+     "g2g7"
+    ],
+    [
+     "e2h2",
+     "g8f8",
+     "h2b8"
+    ],
+    [
+     "e2h2",
+     "g8f8",
+     "h2h8"
+    ]
+   ],
+   "rating": 1000,
+   "skills": [
+    "mateIn2"
+   ],
+   "title": "Closing the net",
+   "objective": "Find mate in two.",
+   "hints": [
+    "Use your queen to take away the king’s escape squares."
+   ],
+   "explanation": "The first move limits the king’s choices. Then the queen and king work together to give mate."
+  },
+  {
+   "id": "wb:queen-step",
+   "fen": "7k/8/5K2/8/Q7/8/8/8 w - - 0 1",
+   "line": [
+    "f6f7",
+    "h8h7",
+    "a4h4"
+   ],
+   "alts": [
+    [
+     "f6g6",
+     "h8g8",
+     "a4a8"
+    ],
+    [
+     "f6g6",
+     "h8g8",
+     "a4e8"
+    ],
+    [
+     "a4a7",
+     "h8g8",
+     "a7g7"
+    ],
+    [
+     "a4d7",
+     "h8g8",
+     "d7g7"
+    ],
+    [
+     "a4g4",
+     "h8h7",
+     "g4g7"
+    ]
+   ],
+   "rating": 1000,
+   "skills": [
+    "mateIn2"
+   ],
+   "title": "A queen’s quiet move",
+   "objective": "Find mate in two.",
+   "hints": [
+    "Use your queen to take away the king’s escape squares."
+   ],
+   "explanation": "The first move limits the king’s choices. Then the queen and king work together to give mate."
+  },
+  {
+   "id": "wb:back-rank:black",
+   "fen": "4r1k1/5ppp/8/8/8/8/R4PPP/6K1 b - - 0 1",
+   "line": [
+    "e8e1"
+   ],
+   "alts": [],
+   "rating": 400,
+   "skills": [
+    "mateIn1"
+   ],
+   "title": "The back rank",
+   "objective": "Find checkmate.",
+   "hints": [
+    "Look for a rook check on the back rank."
+   ],
+   "explanation": "The rook covers the back rank. The king’s own pawns block its escape."
+  },
+  {
+   "id": "wb:queen-and-king:black",
+   "fen": "8/8/8/8/8/5kq1/7P/7K b - - 0 1",
+   "line": [
+    "g3g2"
+   ],
+   "alts": [],
+   "rating": 400,
+   "skills": [
+    "mateIn1"
+   ],
+   "title": "Working together",
+   "objective": "Find checkmate.",
+   "hints": [
+    "Your king can protect the queen when she moves close."
+   ],
+   "explanation": "The queen and king work together: the queen gives check, and your king protects her."
+  },
+  {
+   "id": "wb:rook-wall:black",
+   "fen": "8/8/8/8/8/4k3/r7/4K3 b - - 0 1",
+   "line": [
+    "a2a1"
+   ],
+   "alts": [],
+   "rating": 400,
+   "skills": [
+    "mateIn1"
+   ],
+   "title": "A wall of squares",
+   "objective": "Find checkmate.",
+   "hints": [
+    "Your king already covers the squares in front of the other king."
+   ],
+   "explanation": "The rook covers the back rank while your king guards the escape squares."
+  },
+  {
+   "id": "wb:bishop-support:black",
+   "fen": "6k1/8/3b4/8/7q/8/5PP1/5RK1 b - - 0 1",
+   "line": [
+    "h4h2"
+   ],
+   "alts": [],
+   "rating": 400,
+   "skills": [
+    "mateIn1"
+   ],
+   "title": "A little support",
+   "objective": "Find checkmate.",
+   "hints": [
+    "Follow your bishop’s diagonal toward the king."
+   ],
+   "explanation": "The bishop protects the queen. The king cannot capture her or move to safety."
+  },
+  {
+   "id": "wb:smothered:black",
+   "fen": "6k1/5ppp/8/8/6n1/8/6PP/6RK b - - 0 1",
+   "line": [
+    "g4f2"
+   ],
+   "alts": [],
+   "rating": 400,
+   "skills": [
+    "mateIn1"
+   ],
+   "title": "Nowhere to go",
+   "objective": "Find checkmate.",
+   "hints": [
+    "A knight can jump over the pieces around the king."
+   ],
+   "explanation": "The knight gives check. The king is boxed in by its own pieces."
+  },
+  {
+   "id": "wb:two-rooks:black",
+   "fen": "r5k1/8/8/8/8/8/7r/4K3 b - - 0 1",
+   "line": [
+    "a8a1"
+   ],
+   "alts": [],
+   "rating": 400,
+   "skills": [
+    "mateIn1"
+   ],
+   "title": "Two rooks, one plan",
+   "objective": "Find checkmate.",
+   "hints": [
+    "One rook already cuts off the seventh rank. Use the other rook."
+   ],
+   "explanation": "One rook gives check along the back rank. The other blocks every escape to the seventh rank."
+  },
+  {
+   "id": "wb:pawn-mate:black",
+   "fen": "8/8/8/2b5/8/5kp1/7P/7K b - - 0 1",
+   "line": [
+    "g3g2"
+   ],
+   "alts": [],
+   "rating": 400,
+   "skills": [
+    "mateIn1"
+   ],
+   "title": "The smallest piece",
+   "objective": "Find checkmate.",
+   "hints": [
+    "Even a pawn can give checkmate. Look one square ahead."
+   ],
+   "explanation": "The pawn gives check, your king protects it, and the bishop covers the last escape square."
+  },
+  {
+   "id": "wb:promotion-mate:black",
+   "fen": "8/8/8/8/8/8/p4k1P/7K b - - 0 1",
+   "line": [
+    "a2a1q"
+   ],
+   "alts": [
+    [
+     "a2a1r"
+    ]
+   ],
+   "rating": 400,
+   "skills": [
+    "mateIn1"
+   ],
+   "title": "A powerful promotion",
+   "objective": "Find checkmate.",
+   "hints": [
+    "Promote on the back rank to give check."
+   ],
+   "explanation": "The promoted piece covers the back rank. Your king and the opponent’s pawn close off the exits."
+  },
+  {
+   "id": "wb:royal-fork:black",
+   "fen": "6k1/5ppp/8/8/3n4/8/8/Q3K3 b - - 0 1",
+   "line": [
+    "d4c2",
+    "e1d2",
+    "c2a1"
+   ],
+   "alts": [],
+   "rating": 700,
+   "skills": [
+    "fork"
+   ],
+   "title": "A royal fork",
+   "objective": "Win the queen.",
+   "hints": [
+    "Can your knight check the king and attack the queen at the same time?"
+   ],
+   "explanation": "The knight attacks the king and queen together. The king must move, leaving the queen behind."
+  },
+  {
+   "id": "wb:rook-fork:black",
+   "fen": "6k1/5ppp/8/8/4n3/8/8/1R3K2 b - - 0 1",
+   "line": [
+    "e4d2",
+    "f1e2",
+    "d2b1"
+   ],
+   "alts": [],
+   "rating": 700,
+   "skills": [
+    "fork"
+   ],
+   "title": "A knight’s double attack",
+   "objective": "Win the rook.",
+   "hints": [
+    "Look for a knight check that also attacks the rook."
+   ],
+   "explanation": "Checking the king gives you time to capture the rook on your next move."
+  },
+  {
+   "id": "wb:pawn-fork:black",
+   "fen": "6k1/5ppp/4p3/8/3N1R2/8/8/6K1 b - - 0 1",
+   "line": [
+    "e6e5",
+    "f4f1",
+    "e5d4"
+   ],
+   "alts": [],
+   "rating": 700,
+   "skills": [
+    "fork"
+   ],
+   "title": "A pawn with two targets",
+   "objective": "Win a piece.",
+   "hints": [
+    "A pawn attacks the two squares diagonally in front of it."
+   ],
+   "explanation": "The pawn attacks a knight and rook at once. When the rook moves, you can take the knight."
+  },
+  {
+   "id": "wb:bishop-fork:black",
+   "fen": "6k1/5ppp/3b4/4P3/8/6K1/1R6/8 b - - 0 1",
+   "line": [
+    "d6e5",
+    "g3f3",
+    "e5b2"
+   ],
+   "alts": [],
+   "rating": 700,
+   "skills": [
+    "fork"
+   ],
+   "title": "Look both ways",
+   "objective": "Win the rook.",
+   "hints": [
+    "Look for a bishop check with a rook on the other diagonal."
+   ],
+   "explanation": "The bishop checks the king and attacks the rook. After the king moves, the rook is yours."
+  },
+  {
+   "id": "wb:rook-pin:black",
+   "fen": "4r1k1/5ppp/8/8/3p4/8/4N3/4K3 b - - 0 1",
+   "line": [
+    "d4d3",
+    "e1d2",
+    "d3e2"
+   ],
+   "alts": [],
+   "rating": 850,
+   "skills": [
+    "pin"
+   ],
+   "title": "A knight that cannot move",
+   "objective": "Use the pin.",
+   "hints": [
+    "The knight shields its king from your rook. Attack it with a pawn."
+   ],
+   "explanation": "The knight cannot move without exposing its king. Your pawn attacks it and wins it.",
+   "feedback": {
+    "0:e8e2": {
+     "text": "The king can capture your rook. Instead, attack the pinned knight with your pawn.",
+     "reply": [
+      "e1e2"
+     ]
+    }
+   }
+  },
+  {
+   "id": "wb:bishop-pin:black",
+   "fen": "6k1/5ppp/8/3p4/1b6/2N5/1P6/4K3 b - - 0 1",
+   "line": [
+    "d5d4",
+    "e1f1",
+    "d4c3"
+   ],
+   "alts": [],
+   "rating": 850,
+   "skills": [
+    "pin"
+   ],
+   "title": "Follow the diagonal",
+   "objective": "Use the pin.",
+   "hints": [
+    "Trace the line from your bishop through the knight to the king."
+   ],
+   "explanation": "The knight is pinned to the king. Your pawn attacks it, so the knight cannot escape."
+  },
+  {
+   "id": "wb:pinned-queen:black",
+   "fen": "4r1k1/5ppp/8/8/6b1/8/4Q3/4K3 b - - 0 1",
+   "line": [
+    "g4e2"
+   ],
+   "alts": [
+    [
+     "e8e2"
+    ]
+   ],
+   "rating": 850,
+   "skills": [
+    "pin"
+   ],
+   "title": "The queen is pinned",
+   "objective": "Win the queen.",
+   "hints": [
+    "The queen is shielding its king. Your rook and bishop both attack her."
+   ],
+   "explanation": "Your rook and bishop work together to win the queen. They also protect one another on the capture square."
+  },
+  {
+   "id": "wb:hanging-rook:black",
+   "fen": "6k1/5ppp/3b4/8/8/R7/8/6K1 b - - 0 1",
+   "line": [
+    "d6a3"
+   ],
+   "alts": [],
+   "rating": 400,
+   "skills": [
+    "hangingPiece"
+   ],
+   "title": "An unguarded rook",
+   "objective": "Win the rook.",
+   "hints": [
+    "Look along your bishop’s diagonal. Is that rook protected?"
+   ],
+   "explanation": "The rook is undefended. Your bishop can capture it safely."
+  },
+  {
+   "id": "wb:hanging-queen:black",
+   "fen": "6k1/5ppp/2n5/8/3Q4/8/8/6K1 b - - 0 1",
+   "line": [
+    "c6d4"
+   ],
+   "alts": [],
+   "rating": 400,
+   "skills": [
+    "hangingPiece"
+   ],
+   "title": "A knight’s opportunity",
+   "objective": "Win the queen.",
+   "hints": [
+    "Which enemy piece can your knight capture?"
+   ],
+   "explanation": "The queen is on a square your knight attacks, with no piece ready to recapture."
+  },
+  {
+   "id": "wb:hanging-bishop:black",
+   "fen": "r5k1/5ppp/8/8/B7/8/8/6K1 b - - 0 1",
+   "line": [
+    "a8a4"
+   ],
+   "alts": [],
+   "rating": 400,
+   "skills": [
+    "hangingPiece"
+   ],
+   "title": "An open file",
+   "objective": "Win the bishop.",
+   "hints": [
+    "Look straight up your rook’s file."
+   ],
+   "explanation": "Nothing stands between the rook and the undefended bishop."
+  },
+  {
+   "id": "wb:new-queen:black",
+   "fen": "8/8/8/8/8/4k3/K3p3/8 b - - 0 1",
+   "line": [
+    "e2e1q"
+   ],
+   "alts": [],
+   "rating": 400,
+   "skills": [
+    "hangingPiece"
+   ],
+   "title": "A new queen",
+   "objective": "Promote to a queen.",
+   "hints": [
+    "Your pawn is one step from the last rank."
+   ],
+   "explanation": "A pawn that reaches the last rank can become a queen."
+  },
+  {
+   "id": "wb:answer-check:black",
+   "fen": "4kb2/4R3/8/6B1/8/8/8/6K1 b - - 0 1",
+   "line": [
+    "f8e7"
+   ],
+   "alts": [],
+   "rating": 800,
+   "skills": [
+    "defensiveMove"
+   ],
+   "title": "Answer the check",
+   "objective": "Stop the check. Win the rook.",
+   "hints": [
+    "Can your bishop capture the piece that is giving check?"
+   ],
+   "explanation": "Capturing the rook stops the check. Even if the other bishop recaptures, you have traded a bishop for a rook."
+  },
+  {
+   "id": "wb:escape-square:black",
+   "fen": "6k1/5ppp/8/8/8/8/8/R5K1 b - - 0 1",
+   "line": [
+    "h7h6",
+    "a1a8",
+    "g8h7"
+   ],
+   "alts": [
+    [
+     "h7h5",
+     "a1a8",
+     "g8h7"
+    ],
+    [
+     "g7g6",
+     "a1a8",
+     "g8g7"
+    ],
+    [
+     "g7g5",
+     "a1a8",
+     "g8g7"
+    ],
+    [
+     "f7f6",
+     "a1a8",
+     "g8f7"
+    ],
+    [
+     "f7f5",
+     "a1a8",
+     "g8f7"
+    ]
+   ],
+   "rating": 800,
+   "skills": [
+    "defensiveMove"
+   ],
+   "title": "Make room for your king",
+   "objective": "Make an escape square.",
+   "hints": [
+    "Your own pawns block every escape. Move one to give your king some room."
+   ],
+   "explanation": "An escape square prevents a back-rank mate. When the rook gives check, your king can step out."
+  },
+  {
+   "id": "wb:deflect-knight:black",
+   "fen": "3r2k1/8/1q6/8/4P1b1/8/3N1PPP/4KB2 b - - 0 1",
+   "line": [
+    "b6b1",
+    "d2b1",
+    "d8d1"
+   ],
+   "alts": [],
+   "rating": 1000,
+   "skills": [
+    "mateIn2"
+   ],
+   "title": "A surprising first move",
+   "objective": "Find mate in two.",
+   "hints": [
+    "Look for a queen check that pulls the knight away from the d-file."
+   ],
+   "explanation": "The queen draws the knight away. Then the rook gives mate, supported by the bishop."
+  },
+  {
+   "id": "wb:queen-net:black",
+   "fen": "8/4q3/8/8/8/5k2/8/6K1 b - - 0 1",
+   "line": [
+    "e7e2",
+    "g1h1",
+    "e2g2"
+   ],
+   "alts": [
+    [
+     "e7g5",
+     "g1f1",
+     "g5c1"
+    ],
+    [
+     "e7g5",
+     "g1h1",
+     "g5g2"
+    ],
+    [
+     "e7g5",
+     "g1h2",
+     "g5g2"
+    ],
+    [
+     "e7h4",
+     "g1f1",
+     "h4f2"
+    ],
+    [
+     "e7h4",
+     "g1f1",
+     "h4h1"
+    ],
+    [
+     "e7g7",
+     "g1f1",
+     "g7a1"
+    ],
+    [
+     "e7g7",
+     "g1h1",
+     "g7g2"
+    ],
+    [
+     "e7g7",
+     "g1h2",
+     "g7g2"
+    ],
+    [
+     "e7h7",
+     "g1f1",
+     "h7b1"
+    ],
+    [
+     "e7h7",
+     "g1f1",
+     "h7h1"
+    ]
+   ],
+   "rating": 1000,
+   "skills": [
+    "mateIn2"
+   ],
+   "title": "Closing the net",
+   "objective": "Find mate in two.",
+   "hints": [
+    "Use your queen to take away the king’s escape squares."
+   ],
+   "explanation": "The first move limits the king’s choices. Then the queen and king work together to give mate."
+  },
+  {
+   "id": "wb:queen-step:black",
+   "fen": "8/8/8/q7/8/5k2/8/7K b - - 0 1",
+   "line": [
+    "f3f2",
+    "h1h2",
+    "a5h5"
+   ],
+   "alts": [
+    [
+     "f3g3",
+     "h1g1",
+     "a5a1"
+    ],
+    [
+     "f3g3",
+     "h1g1",
+     "a5e1"
+    ],
+    [
+     "a5a2",
+     "h1g1",
+     "a2g2"
+    ],
+    [
+     "a5d2",
+     "h1g1",
+     "d2g2"
+    ],
+    [
+     "a5g5",
+     "h1h2",
+     "g5g2"
+    ]
+   ],
+   "rating": 1000,
+   "skills": [
+    "mateIn2"
+   ],
+   "title": "A queen’s quiet move",
+   "objective": "Find mate in two.",
+   "hints": [
+    "Use your queen to take away the king’s escape squares."
+   ],
+   "explanation": "The first move limits the king’s choices. Then the queen and king work together to give mate."
+  }
+ ]
+}

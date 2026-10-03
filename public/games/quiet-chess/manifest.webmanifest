@@ -1,0 +1,16 @@
+{
+  "id": "./",
+  "name": "Quiet Chess",
+  "short_name": "Quiet Chess",
+  "description": "A quiet chess workbook. Puzzles, famous games and endgames, one position at a time.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f0e6",
+  "theme_color": "#2f5a43",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
