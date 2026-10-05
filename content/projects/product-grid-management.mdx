@@ -1,44 +1,75 @@
 ---
 title: "Product Grid Management"
-description: "A spatial graph workspace for mapping product ideas, UI architecture, and planning context"
+description: "A local product-planning graph with an editable viewer and a CLI for agents"
 date: "2026-05-03"
 publishedAt: "2026-05-03"
-status: "Content coming soon"
+status: "active"
 repo: "https://github.com/byronwall/prod-mgmt-grid"
-summary: "A spatial graph workspace for mapping product ideas, UI architecture, and planning context"
-tags: ["SolidStart", "SolidJS", "TypeScript", "OpenAI", "Spatial UI", "Product Tools"]
+package: "https://www.npmjs.com/package/@byronwallrus/product-grid-cli"
+summary: "Map product structure, attach notes and screenshots, and share the same local data between a visual workspace and coding agents."
+tags: ["SolidStart", "SolidJS", "TypeScript", "CLI", "Spatial UI", "Product Tools"]
 image: "/images/projects/product-grid-management/canvas-viewer.png"
+logo: "/images/projects/product-grid-management/logo.svg"
 ---
 
-Product Grid Management is a SolidStart application for mapping product ideas, UI architecture, system relationships, and planning context as a spatial graph. It combines a project registry, interactive canvas, structured node metadata, markdown notes, image attachments, and AI-assisted workflows for turning loose context into navigable product maps.
+Product Grid Management, or `pgm`, is a workspace for product ideas, UI architecture, and implementation context. A project holds a graph of nodes, relationships, markdown notes, screenshots, and metadata. You can inspect that graph visually or read and edit it from the CLI.
+
+The October 2026 update brings a denser interface, a packaged local viewer, an automated npm release process, and a tile icon. [Read the update, including the Codex and Claude work](/blog/product-grid-local-viewer-and-agent-workflow).
 
 - Source: [byronwall/prod-mgmt-grid](https://github.com/byronwall/prod-mgmt-grid)
+- Package: [@byronwallrus/product-grid-cli](https://www.npmjs.com/package/@byronwallrus/product-grid-cli)
 
 ## Interface
 
-<div className="not-prose mt-6">
-  <img
-    src="/images/projects/product-grid-management/canvas-viewer.png"
-    alt="Product Grid Management spatial product map with selected node inspector"
-    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
-    loading="lazy"
-  />
-</div>
+The canvas shows product structure and image previews. Selecting a node opens its notes, metadata, and relationships in a compact inspector. The header stays visible while the inspector scrolls.
+
+![Current Product Grid canvas with recipe application nodes, image previews, and the selected Nav Tabs inspector](/images/projects/product-grid-management/canvas-viewer.png)
+
+The grid provides direct metadata editing, priority and status controls, and bulk status or archive actions. Sticky headers, resizable columns, and stable selection keep larger groups manageable.
+
+![Current metadata grid with hierarchy, type, status, priority, and editable purpose fields](/images/projects/product-grid-management/metadata-grid.png)
+
+The tree is a reading view of the same data. It combines collapsible branches, notes, and larger screenshots. Its table of contents follows the active heading.
+
+![Current tree view with nested recipe application sections and large screenshot previews](/images/projects/product-grid-management/tree-viewer.png)
+
+The project list provides creation, ZIP import, export, and direct access to each workspace.
+
+![Current project list with create and import controls and per-project archive downloads](/images/projects/product-grid-management/project-index.png)
+
+These screenshots were captured from the packaged viewer on October 4, 2026. The workspace views use a copy of the recipe architecture project.
 
 ## How it works
 
-Product Grid Management treats planning information as a graph:
+Install the CLI with Node.js 22 or newer, then choose a local data folder:
 
-- Nodes represent product areas, workflows, UI pieces, notes, and implementation details.
-- Links capture hierarchy, dependencies, reuse, and related concepts.
-- The same graph can be explored as a spatial canvas, hierarchy tree, document view, or metadata grid.
-- Node context supports markdown notes, image attachments, custom metadata, and status/type fields.
-- AI workflows can add nodes, decompose source material, convert loose notes, and generate mockup images.
+```bash
+pnpm add --global @byronwallrus/product-grid-cli
+pgm viewer --data-dir ./product-grid-data
+```
+
+The command opens the editable viewer in a browser. Project files and images remain in that folder after the viewer stops. CLI commands use the same data with `--local`:
+
+```bash
+pgm project list --local ./product-grid-data --json
+pgm node list --local ./product-grid-data --project <project-id> --json
+```
+
+Commands reuse an open viewer or start a temporary runtime when needed. CLI changes reach the viewer through live project events. Remote server access remains available through `--server`.
+
+## Working with agents
+
+Codex and Claude can use the CLI to inspect project schemas, find nodes, read scoped context, update statuses, and attach screenshots. The app itself no longer calls LLM providers. Content generation happens in external tools, which write the result through the CLI.
+
+The package includes a `product-grid-context` skill installer for Codex. Node context exports and context packs support focused handoffs without loading the entire graph. The inspector can also copy an agent prompt.
 
 ## Highlights
 
-- Project registry with import and export
-- Pan-and-zoom canvas with focus, isolation, depth filtering, and command search
-- Dense metadata grid and reading-oriented tree/document view
-- Markdown context nodes and source-note conversion
-- Server-side OpenAI workflows with streamed progress
+- Canvas, tree, and grid views over one project graph
+- URL state for filters, selection, and canvas zoom and pan
+- Type, status, priority, and last-editor filters
+- Markdown context, image attachments, and configurable project metadata
+- Bulk status updates and archiving, with finished work hidden by default
+- Serialized project writes and pending edits that survive server updates
+- Project ZIP import and export
+- Changesets version PRs and npm trusted publishing, with the viewer included in package checks
