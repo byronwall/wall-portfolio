@@ -1,0 +1,32 @@
+---
+title: "Context Recorder"
+description: "A macOS screen recorder for reviewing apps: hotkey marks, region screenshots, narration transcripts, page context from Chrome, and a session viewer"
+date: "2026-10-12"
+publishedAt: "2026-10-15"
+summary: "A macOS screen recorder for reviewing apps: hotkey marks, region screenshots, narration transcripts, page context from Chrome, and a session viewer"
+tags: ["Swift", "SwiftUI", "macOS", "Python", "Chrome Extension", "Speech-to-Text", "Local-First"]
+image: "/images/projects/context-recorder/sessions-window.jpg"
+repo: "https://github.com/byronwall/context-recorder"
+---
+
+Context Recorder is a macOS app for reviewing my own apps out loud. It records the screen and narration while I work. A hotkey marks a moment or captures a region, and afterward each mark comes back with its frame, the app and URL, page events from Chrome, and what I said around it. Sessions export as Markdown or straight into [Product Grid](/projects/product-grid-management).
+
+- Source: [byronwall/context-recorder](https://github.com/byronwall/context-recorder)
+- Posts: [Marking bugs while I talk through an app](/blog/context-recorder-marking-bugs-while-i-talk) · [Turning a screen recording into a canvas](/blog/turning-a-screen-recording-into-a-canvas)
+
+## Interface
+
+![The Sessions window with the session list, the recording, numbered marks on the timeline, and the marks inspector.](/images/projects/context-recorder/sessions-window.jpg)
+
+## How it works
+
+- **Capture**: records the main display and microphone, and logs the active app, window and Chrome tab as they change. Marks and region shots save context immediately and pull frames from the video afterward.
+- **Chrome extension**: logs clicks, navigation, console errors and failed requests without any change to the app under review. Marks made in Chrome add the element under the pointer, source locations from dev builds, and a saved copy of the page.
+- **Processing**: local transcription with Parakeet, then per-mark Markdown with the surrounding narration, one `session.json`, and a portable `viewer.html`.
+- **Sessions window**: the video, a timeline with app, page and voice lanes, and an inspector for marks, transcript, page events and activity.
+
+## Highlights
+
+- Add marks and region shots while reviewing, draw on shots, cut ranges, and join sessions. The original recording is never changed.
+- Export to Product Grid, one node per mark. Re-exporting keeps edits made in the grid.
+- Canvas mode turns scrolled pages into tall columns and links every pixel back to its source frame.

@@ -1,0 +1,34 @@
+---
+title: "Draftably"
+description: "A plain-text diagram file that an agent writes and a person refines in a live viewer, with edits saved back to the source"
+date: "2026-10-03"
+publishedAt: "2026-10-15"
+summary: "A plain-text diagram file that an agent writes and a person refines in a live viewer, with edits saved back to the source"
+tags: ["SolidJS", "TypeScript", "CLI", "Diagramming", "DSL", "npm"]
+image: "/images/projects/draftably/viewer.jpg"
+repo: "https://github.com/byronwall/draftably"
+package: "https://www.npmjs.com/package/draftably"
+---
+
+Draftably is a diagram tool built around one readable `.draft` file. An agent writes the file. `draftably open` serves an editor that watches it, redraws when the agent changes it, and saves my drags and edits back into the same text. The same file always compiles to the same picture, so an agent can check its work from the command line without a browser.
+
+- Try it: `pnpm dlx draftably open`
+- Source: [byronwall/draftably](https://github.com/byronwall/draftably)
+- Posts: [A diagram file that an agent and I both edit](/blog/draftably-diagram-files-an-agent-and-i-both-edit) · [Five diagram themes](/blog/five-diagram-themes-in-draftably)
+
+## Interface
+
+![The Kubernetes cluster example in the Draftably viewer, with nested namespace and deployment groups.](/images/projects/draftably/viewer.jpg)
+
+## How it works
+
+- **The file**: nodes, groups, edges and layout rules, one statement per line. Manual drags save as soft placement lines such as `near` and `stay`, so later agent edits don't strand them. `pin` is a separate, hard choice.
+- **The loop**: the CLI watches the file and serves the viewer. Saves carry a revision, so a stale save is rejected rather than overwriting the agent's change. A broken file keeps the last valid drawing on screen and names the bad line.
+- **Layout**: layout engines can be named per group in the file. Results from interactive tools such as Improve, the layout timeline and the brush save as positions.
+- **Headless checks**: `draftably check` and `draftably inspect --svg` compile and render without a browser, using the same router and text measurements as the viewer.
+
+## Highlights
+
+- Five themes (Graphite, Fieldnotes, Signal, Mulberry, Midnight), with numeric shades held to contrast targets and custom `brand` colors defined in the file.
+- Bundled fonts with stored width tables, so the compiler, the viewer and the CLI wrap text identically.
+- `draftably skill install` adds an agent skill for the file format. CI fails syntax changes that don't update the skill.
