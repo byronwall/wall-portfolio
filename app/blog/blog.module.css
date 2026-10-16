@@ -1,45 +1,14 @@
-.blogIndex,
 .articlePage {
   padding: 64px var(--page-gutter) 86px;
 }
 
-.indexHeader {
-  padding-bottom: 24px;
-}
-
-.indexHeader h1,
 .articleHeader h1 {
   margin: 0;
   color: var(--ink-primary);
+  font-weight: var(--title-weight);
   letter-spacing: -.045em;
   text-wrap: balance;
 }
-
-.indexHeader h1 { font-size: clamp(46px, 5vw, 62px); line-height: 1; }
-.indexIntro { max-width: 620px; margin: 22px 0 0; color: var(--ink-body); font-size: 18px; line-height: 1.5; }
-
-.postList { display: grid; gap: 0; }
-.postRow {
-  display: grid;
-  grid-template-columns: minmax(280px, .86fr) minmax(0, 1.14fr);
-  gap: 44px;
-  padding: 28px 0;
-  text-decoration: none;
-}
-.postRow:hover { text-decoration: none; }
-.postRow.postRowText { grid-template-columns: minmax(0, 760px); }
-.postRow:hover .postTitle { color: var(--action-primary); }
-.postVisual { position: relative; height: 260px; min-height: 0; overflow: hidden; border-radius: 7px; background: var(--surface-quiet); }
-.postImage { display: block; width: 100%; height: 100%; min-height: 0; object-fit: contain; background: var(--surface-quiet); transition: transform 180ms ease; }
-.postRow:hover .postImage { transform: scale(1.012); }
-.postCopy { display: flex; flex-direction: column; align-self: center; min-width: 0; }
-.postMeta { display: flex; flex-wrap: wrap; gap: 7px 14px; margin-bottom: 15px; color: var(--ink-muted); font-family: var(--font-geist-mono); font-size: 11px; line-height: 1.4; text-transform: uppercase; letter-spacing: .045em; }
-.postMeta span + span { position: relative; }
-.projectLabel { display: inline-flex; align-items: center; gap: 5px; }
-.projectLabel img { width: 14px; height: 14px; }
-.postMeta span + span::before { content: ""; position: absolute; left: -8px; top: 50%; width: 2px; height: 2px; border-radius: 50%; background: var(--ink-tertiary); }
-.postTitle { margin: 0; color: var(--ink-primary); font-size: clamp(24px, 2.5vw, 34px); line-height: 1.08; letter-spacing: -.035em; transition: color 150ms ease; }
-.postSummary { max-width: 620px; margin: 16px 0 0; color: var(--ink-body); font-size: 15px; line-height: 1.58; }
 
 .articleLayout { display: grid; grid-template-columns: 190px minmax(0, 760px); gap: clamp(50px, 7vw, 92px); align-items: start; }
 .articleRail { min-width: 0; align-self: stretch; }
@@ -122,7 +91,7 @@
 .articleBody :global(h2) { margin-top: 2.3em; color: var(--ink-primary); font-size: 29px; line-height: 1.18; letter-spacing: -.03em; }
 .articleBody :global(h3) { margin-top: 2em; color: var(--ink-primary); font-size: 21px; line-height: 1.25; }
 .articleBody :global(.code-block) { margin: 28px 0; }
-.articleBody :global(pre) { padding: 18px 20px; padding-right: 54px; border-color: var(--border-quiet); border-radius: 7px; background: #f6f8fb; font-size: 13px; line-height: 1.62; }
+.articleBody :global(pre) { padding: 18px 20px; padding-right: 54px; border-color: var(--border-quiet); border-radius: 7px; background: var(--surface-quiet); font-size: 13px; line-height: 1.62; }
 .articleBody :global(img) { max-width: 100%; height: auto; border-radius: 7px; }
 .articleBody :global(.not-prose) { margin: 30px 0; }
 .articleBody :global(.mdx-table-scroll) { max-width: 100%; }
@@ -165,18 +134,11 @@
 }
 
 @media (max-width: 900px) {
-  .postRow { grid-template-columns: minmax(240px, .8fr) minmax(0, 1.2fr); gap: 28px; }
   .articleLayout { grid-template-columns: 150px minmax(0, 1fr); gap: 38px; }
 }
 
 @media (max-width: 760px) {
-  .blogIndex, .articlePage { padding-top: 46px; padding-bottom: 62px; }
-  .indexHeader { padding-bottom: 18px; }
-  .indexHeader h1 { font-size: 46px; }
-  .postRow { grid-template-columns: 1fr; gap: 20px; padding: 28px 0; }
-  .postVisual { height: 210px; min-height: 0; }
-  .postImage { min-height: 0; }
-  .postTitle { font-size: 27px; }
+  .articlePage { padding-top: 46px; padding-bottom: 62px; }
   .articleLayout { display: block; }
   .articleRail { position: static; }
   .articleRail .railMeta, .articleRail .toc { display: none; }
@@ -200,8 +162,6 @@
 }
 
 @media (max-width: 460px) {
-  .postVisual { height: 180px; }
-  .postImage { min-height: 0; }
   .articleHeader h1 { font-size: 36px; }
   .interactiveArticlePage { padding-right: 14px; padding-left: 14px; }
   .interactiveTopbar { display: grid; gap: 12px; }

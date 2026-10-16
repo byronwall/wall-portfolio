@@ -244,3 +244,20 @@ export function formatDate(date: string | undefined, includeRelative = false) {
 
   return `${fullDate} (${formattedDate})`;
 }
+
+export function sortPostsNewestFirst<T extends { metadata: BaseMetadata; slug: string }>(posts: T[]) {
+  return [...posts].sort((a, b) => {
+    const dates = (b.metadata.publishedAt ?? "").localeCompare(a.metadata.publishedAt ?? "");
+    return dates || a.slug.localeCompare(b.slug);
+  });
+}
+
+export function formatShortDate(date: string | undefined, withYear = false) {
+  if (!date) return "";
+  const target = new Date(date.includes("T") ? date : `${date}T00:00:00`);
+  return target.toLocaleString("en-us", {
+    month: "short",
+    day: "numeric",
+    ...(withYear ? { year: "numeric" } : {}),
+  });
+}

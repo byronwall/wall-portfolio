@@ -183,9 +183,9 @@ export default function ProjectsPage() {
 
   return (
     <main className="project-index-page">
-      <header className="project-index-intro">
-        <h1>Projects</h1>
-        <p>
+      <header className="page-intro">
+        <h1 className="page-title">Projects</h1>
+        <p className="page-lede">
           Products, experiments, and developer tools built to make complex work
           easier to understand. Start with the work that best represents how I
           think, then browse the smaller experiments and utilities behind it.

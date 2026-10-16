@@ -58,16 +58,16 @@ function TablePreview() {
 export default function ToolsPage() {
   return (
     <main className={styles.page}>
-      <header className={styles.intro}>
-        <h1>Tools</h1>
-        <p className={styles.lede}>
+      <header className="page-intro">
+        <h1 className="page-title">Tools</h1>
+        <p className="page-lede">
           Tools are small, focused utilities for making one practical task
           easier. These are the things I build when a simple, useful surface is
           better than a larger application.
         </p>
       </header>
 
-      <section>
+      <section className={styles.body}>
         <div className={styles.grid}>
           {tools.map((tool) => (
             <article className={styles.card} key={tool.title}>

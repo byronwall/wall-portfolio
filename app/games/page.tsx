@@ -15,9 +15,9 @@ export default function GamesPage() {
 
   return (
     <main className={styles.page}>
-      <header className={styles.intro}>
-        <h1>Games</h1>
-        <p className={styles.lede}>
+      <header className="page-intro">
+        <h1 className="page-title">Games</h1>
+        <p className="page-lede">
           Small browser games where the rules are easy to learn, the feedback is
           visible, and a good idea can be played instead of only explained.
         </p>

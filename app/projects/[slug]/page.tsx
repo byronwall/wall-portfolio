@@ -82,21 +82,16 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       <Link href="/projects" className={styles.backLink}>← Projects</Link>
       <header className={`${styles.hero}${project.thumbnail ? "" : ` ${styles.heroTextOnly}`}`}>
         <div className={styles.heroCopy}>
-          <h1 className={styles.heroTitle}>{typeof project.metadata.logo === "string" && <img src={project.metadata.logo} alt="" />}{project.metadata.title}</h1>
+          <h1 className={styles.heroTitle}>{typeof project.metadata.logo === "string" && <img className="project-logo-plate" src={project.metadata.logo} alt="" />}{project.metadata.title}</h1>
           <p>{project.metadata.description ?? project.metadata.summary}</p>
-          <div className={styles.heroDetails}>
-            {(status || year) && (
-              <div className={styles.status}>
-                {status && <span>{status}</span>}
-                {year && <time dateTime={project.metadata.publishedAt}>{year}</time>}
-              </div>
-            )}
-            {project.metadata.tags?.length ? (
-              <ul className={styles.tags} aria-label="Technologies">
-                {project.metadata.tags.map((tag) => <li key={tag}>{tag}</li>)}
-              </ul>
-            ) : null}
-          </div>
+          {(status || year || project.metadata.tags?.length) && (
+            <p className={styles.heroFacts}>
+              {[status, year].filter(Boolean).join(" · ")}
+              {project.metadata.tags?.length ? (
+                <span className={styles.heroTags}>{project.metadata.tags.join(", ")}</span>
+              ) : null}
+            </p>
+          )}
           {projectLinks.length > 0 && (
             <nav className={styles.projectLinks} aria-label="Project links">
               {projectLinks.map(([label, href]) => (

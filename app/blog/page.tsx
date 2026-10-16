@@ -1,13 +1,13 @@
 import { baseUrl } from "app/sitemap";
-import Link from "next/link";
+import { BlogIndex, type BlogIndexPost } from "./blog-index";
 import {
-  formatDate,
+  formatShortDate,
   getBlogPosts,
   getPostCategory,
   getProjects,
   getReadingTime,
+  sortPostsNewestFirst,
 } from "./utils";
-import styles from "./blog.module.css";
 
 export const metadata = {
   title: "Blog",
@@ -18,47 +18,47 @@ export const metadata = {
   },
 };
 
-export default function BlogPage() {
-  const posts = getBlogPosts().sort((a, b) => {
-    const dates = (b.metadata.publishedAt ?? "").localeCompare(a.metadata.publishedAt ?? "");
-    return dates || a.slug.localeCompare(b.slug);
+function getMonthLabel(date: string | undefined) {
+  if (!date) return "Undated";
+  return new Date(`${date.slice(0, 10)}T00:00:00`).toLocaleString("en-us", {
+    month: "long",
+    year: "numeric",
   });
+}
+
+export default function BlogPage() {
   const projects = new Map(
     getProjects().map((project) => [project.slug, project.metadata]),
   );
 
+  const posts: BlogIndexPost[] = sortPostsNewestFirst(getBlogPosts()).map((post) => {
+    const projectSlug = typeof post.metadata.project === "string" ? post.metadata.project : undefined;
+    const project = projectSlug ? projects.get(projectSlug) : undefined;
+    return {
+      slug: post.slug,
+      title: post.metadata.title,
+      summary: post.metadata.summary ?? "",
+      dateLabel: formatShortDate(post.metadata.publishedAt, true),
+      monthLabel: getMonthLabel(post.metadata.publishedAt),
+      readingTime: getReadingTime(post.content),
+      category: getPostCategory(post.metadata),
+      projectSlug: project ? projectSlug : undefined,
+      projectTitle: project?.title,
+      projectLogo: typeof project?.logo === "string" ? project.logo : undefined,
+      thumbnail: post.thumbnail,
+    };
+  });
+
   return (
-    <main className={styles.blogIndex}>
-      <header className={styles.indexHeader}>
-        <h1>Blog</h1>
-        <p className={styles.indexIntro}>Notes from building software: experiments, debugging trails, product decisions, and the tools that make the work easier to understand.</p>
+    <main>
+      <header className="page-intro">
+        <h1 className="page-title">Blog</h1>
+        <p className="page-lede">
+          Notes from building software: experiments, debugging trails, product
+          decisions, and the tools that make the work easier to understand.
+        </p>
       </header>
-      <div className={styles.postList}>
-        {posts.map((post) => {
-          const project = typeof post.metadata.project === "string"
-            ? projects.get(post.metadata.project)
-            : undefined;
-          return (
-            <Link className={`${styles.postRow}${post.thumbnail ? "" : ` ${styles.postRowText}`}`} href={`/blog/${post.slug}`} key={post.slug}>
-              {post.thumbnail && (
-                <div className={styles.postVisual}>
-                  <img className={styles.postImage} src={post.thumbnail} alt="" loading="lazy" />
-                </div>
-              )}
-              <div className={styles.postCopy}>
-                <div className={styles.postMeta}>
-                  <span>{formatDate(post.metadata.publishedAt)}</span>
-                  <span>{getReadingTime(post.content)}</span>
-                  <span>{getPostCategory(post.metadata)}</span>
-                  {project && <span className={styles.projectLabel}>{typeof project.logo === "string" && <img src={project.logo} alt="" />}{project.title}</span>}
-                </div>
-                <h2 className={styles.postTitle}>{post.metadata.title}</h2>
-                <p className={styles.postSummary}>{post.metadata.summary}</p>
-              </div>
-            </Link>
-          );
-        })}
-      </div>
+      <BlogIndex posts={posts} />
     </main>
   );
 }
