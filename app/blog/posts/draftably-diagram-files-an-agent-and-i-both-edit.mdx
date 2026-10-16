@@ -1,0 +1,114 @@
+---
+title: "Draftably: diagram files an agent and I can both edit"
+publishedAt: 2026-10-15
+summary: "Turning a browser-only diagram editor into a local tool built around a readable .draft file: an agent writes it, the viewer follows it live, my layout tweaks save back to it, and it compiles to the same picture every time."
+image: "/images/posts/draftably-diagram-files-an-agent-and-i-both-edit/06-four-engines.png"
+type: feature
+---
+
+Diagram Studio started as a diagram editor that runs entirely in the browser. You draw a diagram and improve its layout in small passes, and the diagram is saved in browser storage. That works when I'm the only one drawing. It doesn't work once I want an agent to draw the first version and me to fix it up, because the agent can't reach into my browser's storage.
+
+What I wanted was one local file that both of us edit. An agent writes the diagram. I open it and get a good automatic layout. I drag a few things where they belong and close the viewer. The agent adds a node later, and my arrangement mostly holds. No export-and-import step anywhere in that loop.
+
+That became [Draftably](https://github.com/byronwall/draftably), on npm as `draftably`.
+
+## The file
+
+A `.draft` file is plain text, one statement per line:
+
+```text
+diagram "Checkout architecture" version=1
+
+group platform "Commerce platform" color=mint
+node api "API gateway" in=platform
+group services "Domain services" in=platform
+node orders "Orders" in=services
+node payments "Payments" in=services shape=pill
+node db "Postgres" color=violet
+
+edge dispatch api -> orders "create order"
+edge persist orders -> db "persist" kind=async
+
+layout root flow gap=48
+near payments orders side=right gap=32
+pin db x=900 y=40
+```
+
+The file holds the model and the layout recipe, plus a few refinements. It never holds a picture of the finished layout. The same file always compiles to the same geometry, and `draftably inspect --json` is byte-identical across runs. That makes it something an agent can check with `draftably check` and `inspect --svg`, without opening a browser.
+
+<figure className="not-prose my-6">
+  <img src="/images/posts/draftably-diagram-files-an-agent-and-i-both-edit/02-cli-svg.png" alt="SVG rendered by draftably inspect from the checkout example file" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+  <figcaption>The first <code>inspect --svg</code> of the checkout example. The CLI and the viewer share one router, so they agree.</figcaption>
+</figure>
+
+The refinements are where most of the design went. A drag shouldn't become a permanent absolute coordinate, because then the next change can't move anything. So there are different strengths. `near` and `stay` are soft, and they give way to keep siblings from overlapping. `pin` is hard. Positions are relative to the parent group, so moving a group moves everything inside it.
+
+## The loop
+
+`draftably open file.draft` serves the editor and watches the file. When the agent edits the file, the drawing updates. When I edit in the viewer, the change saves to the file. If the agent writes a broken line, the viewer keeps the last valid drawing and shows the error line.
+
+<div className="not-prose grid gap-4 sm:grid-cols-3 my-6">
+  <img src="/images/posts/draftably-diagram-files-an-agent-and-i-both-edit/03-opened.png" alt="Viewer with a diagram file freshly opened" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+  <img src="/images/posts/draftably-diagram-files-an-agent-and-i-both-edit/04-agent-adds-node.png" alt="The same diagram after an external edit adds a node" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+  <img src="/images/posts/draftably-diagram-files-an-agent-and-i-both-edit/05-invalid-source.png" alt="The viewer keeping the last valid drawing with an error banner naming the bad line" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+</div>
+
+*Opened, then an outside edit adds a node, then an invalid edit. The drawing survives and the banner names the line.*
+
+Two writers on one file need a rule so neither silently erases the other. Each save carries the revision it started from. A stale save gets a 409, and invalid source gets a 422. Writes are atomic, and the watcher looks at the folder, so editors that save by renaming still get noticed.
+
+## Layout engines in the file
+
+The editor already had several layout engines. The question was whether their results could be saved as source. An engine has to give the same answer from the file alone, without depending on where the boxes happened to start. I checked every engine on three samples. Moving the starting positions never changed the result, except for one engine, which was left out. The rest can be named per scope:
+
+```text
+layout root engine=compound-flow
+layout services engine=grid
+routing edge-gap=24 corner-radius=0
+```
+
+<figure className="not-prose my-6">
+  <img src="/images/posts/draftably-diagram-files-an-agent-and-i-both-edit/06-four-engines.png" alt="The same order pipeline diagram laid out by four engines: compound-flow, layered, stress and grid" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+  <figcaption>One file, four engines.</figcaption>
+</figure>
+
+The interactive tools were harder. Improve, timeline steps and the layout brush all start from whatever is currently drawn, so no recipe can reproduce their results. Those get saved as soft `stay` positions for just the objects that moved. A second brush stroke updates a few numbers in place instead of rewriting the block. A test runs Apply, Improve, timeline Keep, a brush stroke, an outside addition and a server restart in a row. After every step, the viewer's geometry has to match `draftably inspect` of the saved file.
+
+<figure className="not-prose my-6">
+  <img src="/images/posts/draftably-diagram-files-an-agent-and-i-both-edit/07-timeline.png" alt="Layout timeline scrubbed to step 22 while editing a diagram file" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+  <figcaption>Scrubbing the layout timeline in file mode. A kept step saves as positions.</figcaption>
+</figure>
+
+## Themes the CLI can draw too
+
+Themes came next: five presets, 14 color families with numeric shades from 50 to 950, and custom families defined in the file. The first palettes had poor contrast. The fix generates shades in two bands that skip the muddy mid-tones: pale fills with dark text at 7:1 or better, and strong fills with white text at 4.5:1 or better. Tests check every theme, family and shade.
+
+<div className="not-prose grid gap-4 sm:grid-cols-2 my-6">
+  <img src="/images/posts/draftably-diagram-files-an-agent-and-i-both-edit/09-theme-graphite.png" alt="Diagram in the Graphite theme" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+  <img src="/images/posts/draftably-diagram-files-an-agent-and-i-both-edit/10-theme-signal.png" alt="Diagram in the Signal theme with monospace connection labels" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+  <img src="/images/posts/draftably-diagram-files-an-agent-and-i-both-edit/11-theme-mulberry.png" alt="Diagram in the Mulberry theme with generous padding" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+  <img src="/images/posts/draftably-diagram-files-an-agent-and-i-both-edit/12-theme-midnight.png" alt="Diagram in the dark Midnight theme" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+</div>
+
+*Graphite, Signal, Mulberry and Midnight, all from the same source.*
+
+Text was the subtle part. If the browser measures text one way and the CLI another, titles wrap differently and the geometry stops matching. So the three fonts are bundled, and their character widths are stored in the repo. The compiler, the canvas and the CLI all wrap titles the same way, without measuring anything in the DOM.
+
+## Teaching the agent the format
+
+The last piece is a skill. `draftably skill install` drops a `SKILL.md` into `.claude/skills`, covering the write → check → inspect → open workflow and the full syntax. A test compiles every example in the skill and fails if the skill leaves out a statement or engine that the parser accepts. A CI step fails any PR that changes the syntax without also updating the skill. Otherwise the skill would drift from the parser, and agents would write diagrams the parser rejects.
+
+`draftably open` on a folder now opens a start page with that folder's diagrams, newest first. Files an agent writes show up within a few seconds, without a reload.
+
+<figure className="not-prose my-6">
+  <img src="/images/posts/draftably-diagram-files-an-agent-and-i-both-edit/13-start-page.png" alt="Draftably start page listing the folder's diagram files as thumbnail cards with a search box" className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800" loading="lazy" />
+  <figcaption>The start page puts the folder's own diagrams first. Examples show up only in an empty folder.</figcaption>
+</figure>
+
+## Where it stands
+
+The authoring loop works: agent writes, I refine, and the file holds both. Architecture diagrams and user flows were the first targets. Dependency trees and call stacks matter too but haven't been pushed as hard. Views, presentation modes and checkpoints are left out on purpose. The file format leaves room for them, but none of them were needed for the loop.
+
+```sh
+pnpm dlx draftably open
+```
