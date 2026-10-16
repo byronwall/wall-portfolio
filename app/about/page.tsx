@@ -15,7 +15,7 @@ export default function AboutPage() {
     <main className={styles.page}>
       <section className={styles.hero}>
         <div className={styles.copy}>
-          <h1>About me</h1>
+          <h1 className="page-title">About me</h1>
           <p className={styles.lede}>I’m a software engineer with more than 14 years of experience across software and chemical engineering.</p>
           <p>I specialize in highly interactive, data-centric applications. With a foundation in chemical engineering, I evolved into a full-stack developer focused on TypeScript, React and SolidJS, Python, and C#.</p>
           <p>I’m at my best building tools that help engineers and technical teams analyze data, visualize complex systems, and automate the parts of a workflow that get in the way of the real work.</p>

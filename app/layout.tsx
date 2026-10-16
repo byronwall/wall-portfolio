@@ -70,6 +70,9 @@ export const metadata: Metadata = {
 
 const cx = (...classes) => classes.filter(Boolean).join(" ");
 
+// Runs before paint so the saved theme (or the OS setting) applies without a flash.
+const themeScript = `(function(){try{var s=localStorage.getItem("theme");var d=s?s==="dark":matchMedia("(prefers-color-scheme: dark)").matches;document.documentElement.dataset.theme=d?"dark":"light"}catch(e){}})()`;
+
 export default function RootLayout({
   children,
 }: {
@@ -78,12 +81,14 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={cx(
         GeistSans.variable,
         GeistMono.variable
       )}
     >
       <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <script
           defer
           src="https://as8ws0w.apps.byroni.us/script.js"

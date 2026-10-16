@@ -1,26 +1,9 @@
 .page {
-  padding: 64px var(--page-gutter) 86px;
+  padding-bottom: 86px;
 }
 
-.intro {
-  max-width: 700px;
-  padding-bottom: 44px;
-}
-
-.intro h1 {
-  margin: 0;
-  color: var(--ink-primary);
-  font-size: clamp(46px, 5vw, 62px);
-  line-height: 1;
-  letter-spacing: -.05em;
-}
-
-.lede {
-  max-width: 650px;
-  margin: 24px 0 0;
-  color: var(--ink-body);
-  font-size: 18px;
-  line-height: 1.52;
+.body {
+  padding: 0 var(--page-gutter);
 }
 
 .grid {
@@ -43,7 +26,7 @@
 .card:hover,
 .card:focus-within {
   border-color: var(--action-border);
-  box-shadow: 0 8px 22px rgba(39, 52, 79, .07);
+  box-shadow: var(--shadow-hover);
 }
 
 .cardVisual {
@@ -101,7 +84,7 @@
 }
 
 .previewLine { width: 52%; }
-.previewButton { padding: 3px 6px; border-radius: 3px; background: var(--action-primary); color: var(--surface-paper); font-size: 7px; font-weight: 700; }
+.previewButton { padding: 3px 6px; border-radius: 3px; background: var(--action-fill); color: var(--on-action); font-size: 7px; font-weight: 700; }
 
 .previewTable {
   overflow: hidden;
@@ -132,6 +115,7 @@
 }
 
 .cardBody h3 {
+  font-weight: var(--title-weight);
   margin: 0 0 11px;
   color: var(--ink-primary);
   font-size: clamp(28px, 3.4vw, 42px);
@@ -173,9 +157,7 @@
 .cardActions a:focus-visible { text-decoration: underline; }
 
 @media (max-width: 760px) {
-  .page { padding-top: 46px; padding-bottom: 62px; }
-  .intro { padding-bottom: 30px; }
-  .lede { margin-top: 20px; font-size: 16px; }
+  .page { padding-bottom: 62px; }
   .card { grid-template-columns: 1fr; }
   .cardVisual { min-height: 250px; border-right: 0; border-bottom: 1px solid var(--border-quiet); }
   .cardBody { padding: 25px 24px 27px; }

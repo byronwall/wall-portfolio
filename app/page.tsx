@@ -1,23 +1,28 @@
 import Image from "next/image";
 import Link from "next/link";
-import { SocialIcons } from "./components/social-icons";
-import { getBlogPosts, getProjects } from "./blog/utils";
+import {
+  formatShortDate,
+  getBlogPosts,
+  getProjects,
+  sortPostsNewestFirst,
+} from "./blog/utils";
 import { experiences } from "./experience/data";
 
 export default function Home() {
-  const featuredProjects = getProjects()
+  const projects = getProjects();
+  const projectTitles = new Map(
+    projects.map((project) => [project.slug, project.metadata.title]),
+  );
+  const featuredProjects = projects
     .filter((project) => project.metadata.featured === "true")
     .sort((a, b) => (a.slug < b.slug ? -1 : 1))
     .slice(0, 2);
-  const featuredPosts = getBlogPosts()
+  const posts = sortPostsNewestFirst(getBlogPosts());
+  const featuredPosts = posts
     .filter((post) => post.metadata.featured === "true")
-    .sort((a, b) => {
-      const aDate = a.metadata.publishedAt ?? "";
-      const bDate = b.metadata.publishedAt ?? "";
-      return aDate === bDate ? (a.slug < b.slug ? -1 : 1) : aDate < bDate ? 1 : -1;
-    })
     .slice(0, 2);
-  const recentExperience = experiences.slice(0, 2);
+  const featuredSlugs = new Set(featuredPosts.map((post) => post.slug));
+  const latestPosts = posts.filter((post) => !featuredSlugs.has(post.slug)).slice(0, 6);
 
   return (
     <main className="home-page">
@@ -62,20 +67,13 @@ export default function Home() {
             <Link className="button button-primary" href="/projects">
               View projects
             </Link>
-            <Link className="button button-secondary" href="/blog">
-              Read the blog
-            </Link>
-          </div>
-
-          <div className="home-socials" aria-label="Social links">
-            <a href="https://github.com/byronwall" target="_blank" rel="noreferrer" aria-label="GitHub">
-              <SocialIcons.GitHub />
-            </a>
-            <a href="https://www.linkedin.com/in/byronwall/" target="_blank" rel="noreferrer" aria-label="LinkedIn">
-              <SocialIcons.LinkedIn />
-            </a>
-            <a href="mailto:byron@byroni.us" aria-label="Email Byron">
-              <SocialIcons.Email />
+            <a
+              className="button button-secondary"
+              href="/resume_byron_wall.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Résumé <span aria-hidden="true">↗</span>
             </a>
           </div>
         </div>
@@ -92,9 +90,10 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="featured-work" aria-labelledby="featured-projects-heading">
+      <section className="home-section home-section-quiet" aria-labelledby="featured-projects-heading">
         <Link className="section-heading-link" href="/projects">
           <span className="section-label" id="featured-projects-heading">Projects</span>
+          <span className="section-count">{projects.length}</span>
           <span aria-hidden="true">→</span>
         </Link>
         <div className="content-preview-grid">
@@ -112,22 +111,17 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="featured-blog" aria-labelledby="featured-posts-heading">
+      <section className="home-section" aria-labelledby="featured-posts-heading">
         <Link className="section-heading-link" href="/blog">
-          <span className="section-label" id="featured-posts-heading">Blog posts</span>
+          <span className="section-label" id="featured-posts-heading">Writing</span>
+          <span className="section-count">{posts.length}</span>
           <span aria-hidden="true">→</span>
         </Link>
         <div className="content-preview-grid">
           {featuredPosts.map((post) => (
             <Link className={`content-preview-card${post.thumbnail ? "" : " content-preview-card-text"}`} href={`/blog/${post.slug}`} key={post.slug}>
               {post.thumbnail && (
-                <Image
-                  src={post.thumbnail}
-                  alt=""
-                  width={400}
-                  height={400}
-                  className="content-preview-image"
-                />
+                <img src={post.thumbnail} alt="" className="content-preview-image" loading="lazy" />
               )}
               <div className="content-preview-copy">
                 <h2>{post.metadata.title}</h2>
@@ -136,32 +130,50 @@ export default function Home() {
             </Link>
           ))}
         </div>
+        <ul className="latest-list" aria-label="Latest posts">
+          {latestPosts.map((post) => {
+            const project =
+              typeof post.metadata.project === "string"
+                ? projectTitles.get(post.metadata.project)
+                : undefined;
+            return (
+              <li key={post.slug}>
+                <Link className="latest-link" href={`/blog/${post.slug}`}>
+                  <time className="latest-date" dateTime={post.metadata.publishedAt}>
+                    {formatShortDate(post.metadata.publishedAt)}
+                  </time>
+                  <span className="latest-title">
+                    {post.metadata.title}
+                    {project && <span className="latest-project"> · {project}</span>}
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
       </section>
 
-      <section className="featured-experience" aria-labelledby="featured-experience-heading">
+      <section className="home-section home-section-quiet" aria-labelledby="featured-experience-heading">
         <Link className="section-heading-link" href="/experience">
           <span className="section-label" id="featured-experience-heading">Experience</span>
           <span aria-hidden="true">→</span>
         </Link>
-        <div className="content-preview-grid">
-          {recentExperience.map((experience) => (
-            <Link
-              className="content-preview-card experience-preview-card"
-              href={`/experience/${experience.slug}`}
-              key={experience.slug}
-            >
-              <div className="experience-preview-logo">
-                <img src={experience.logoUrl} alt={`${experience.company} logo`} />
-              </div>
-              <div className="content-preview-copy experience-preview-copy">
-                <h2>{experience.company}</h2>
-                <p className="experience-preview-role">{experience.role}</p>
-                <p>{experience.summary}</p>
-                <p className="experience-preview-dates">{experience.dates}</p>
-              </div>
-            </Link>
+        <ul className="experience-ledger">
+          {experiences.map((experience) => (
+            <li key={experience.slug}>
+              <Link className="experience-ledger-link" href={`/experience/${experience.slug}`}>
+                <div className="logo-plate">
+                  <img src={experience.logoUrl} alt={`${experience.company} logo`} />
+                </div>
+                <div className="experience-ledger-copy">
+                  <h3>{experience.company}</h3>
+                  <p>{experience.role}</p>
+                  <p className="experience-ledger-dates">{experience.dates}</p>
+                </div>
+              </Link>
+            </li>
           ))}
-        </div>
+        </ul>
       </section>
     </main>
   );

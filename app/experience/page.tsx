@@ -13,10 +13,11 @@ export const metadata: Metadata = {
 export default function ExperiencePage() {
   return (
     <main className={styles.page}>
-      <header className={styles.intro}>
-        <h1>Experience</h1>
-        <p>A concise record of the teams I’ve joined and the technical problems I’ve helped solve.</p>
+      <header className="page-intro">
+        <h1 className="page-title">Experience</h1>
+        <p className="page-lede">A concise record of the teams I’ve joined and the technical problems I’ve helped solve.</p>
       </header>
+      <div className={styles.body}>
       <ol className={styles.timeline}>
         {experiences.map((item) => (
           <li className={styles.entry} key={item.slug}>
@@ -36,6 +37,7 @@ export default function ExperiencePage() {
       <a className={styles.resume} href="/resume_byron_wall.pdf" target="_blank" rel="noreferrer">
         View résumé <span aria-hidden="true">↗</span>
       </a>
+      </div>
     </main>
   );
 }
