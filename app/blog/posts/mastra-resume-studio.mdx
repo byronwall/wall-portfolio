@@ -1,0 +1,129 @@
+---
+title: Moving Resume Studio model calls to Mastra
+publishedAt: 2026-09-27
+summary: "How Resume Studio moved from direct AI SDK calls to Mastra, with bounded validation repair, durable traces, and a proof-first ticket plan."
+type: tooling
+---
+
+A failed resume generation can mean several different things. The provider may be unavailable. The response may have the wrong shape. A sentence may cite evidence that does not support it. The document may pass every check and then fail to save.
+
+Those failures need different recovery steps. A generic model error does not tell you which one happened.
+
+The Resume Studio migration addressed that problem by moving model execution into Mastra and recording the complete application run. OpenAI remains the model provider. The application still decides whether a result is grounded and safe to save.
+
+## What validation gained
+
+The old path already used Zod, structured output, evidence audits, correction, and safe partial drafts. Mastra did not introduce those concepts.
+
+The important gap was a schema failure before generation returned its first object. The application could correct an object that failed its domain audit, but a malformed response could fail before reaching that code.
+
+The migration added a bounded correction path for that case. It records the failure, sends a correction request against the same frozen evidence snapshot, and audits the second answer. A failed correction stays a failure. The model cannot repair missing evidence by inventing a claim.
+
+There are two separate checks:
+
+- **Shape:** Does the response match the expected fields and types?
+- **Grounding:** Do its claims and citations agree with the supplied evidence?
+
+[Mastra structured output](https://mastra.ai/docs/agents/structured-output) supports schema-defined objects. Grounding remains application code because a valid object can still contain an unsupported sentence.
+
+Live calls also exposed schemas that local fixtures had accepted. Some assessment arrays had untyped items. The migration added concrete provider-facing schemas while preserving item-level checks. This was a useful boundary test: a mock response proves local behavior; it does not prove that OpenAI accepts the serialized schema.
+
+## Retry and repair have different jobs
+
+The runner disables Mastra's automatic retries with `maxRetries: 0`. The shared application wrapper owns the transport policy, records each attempt, and allows at most two attempts for eligible calls. Revision and direct-edit validation remain single-attempt operations.
+
+Generation correction is a separate policy. It changes the request using validation feedback and permits one correction answer. That is different from repeating a request after a temporary provider failure.
+
+Authorization failures, exhausted credits, and rejected requests do not become requests for better resume prose. A save failure does not replay model work as semantic repair. Cancellation remains terminal.
+
+The benefit is a visible attempt budget. Hidden SDK retries cannot multiply the application retry loop. A run can explain both why another call happened and what changed between calls.
+
+## The code change
+
+The migration kept the structured-runner seam. Callers still supply instructions, a prompt, a model ID, a schema, and cancellation state.
+
+This shortened example shows the old provider call:
+
+```ts
+const result = await generateText({
+  model: openai(call.modelId),
+  system: call.system,
+  prompt: call.prompt,
+  maxRetries: 0,
+  abortSignal: call.abortSignal,
+  experimental_output: Output.object({ schema }),
+});
+
+return result.experimental_output;
+```
+
+The Mastra adapter uses the same contract:
+
+```ts
+const agent = new Agent({
+  id: `resume-${operation}`,
+  name: `Resume ${operation}`,
+  instructions: call.system,
+  model: `openai/${call.modelId}`,
+  maxRetries: 0,
+});
+
+const result = await mastra.getAgent("generation").generate(
+  call.baseContext
+    ? `${call.baseContext}\n\n${call.prompt}`
+    : call.prompt,
+  {
+    abortSignal: call.abortSignal,
+    tracingOptions: { traceId, parentSpanId: span?.id },
+    structuredOutput: { schema },
+  },
+);
+
+return checkedOutput(result, call.abortSignal, traceId, schema);
+```
+
+The omitted setup registers the agent and configures storage and observability. `checkedOutput` checks cancellation, errors, refusal, missing output, trace correlation, and the Zod schema. The adapter also reports tokens, closes spans, and flushes trace events.
+
+That cancellation check came from the runtime spike. A pre-aborted call returned an aborted finish reason without a structured object rather than throwing. The adapter had to handle the actual SDK behavior.
+
+The main changes covered the Mastra runner, shared structured-output wrapper, generation correction, durable run storage, trace storage, operation callers, and the `/runs` inspection view. The [gateway retirement commit](https://github.com/byronwall/resume-studio/commit/246856f) removed the direct SDK runner after the last callers moved.
+
+## What the traces explain
+
+The old provider summary was redacted and limited to 100 events. Some failures happened before an event existed. It could not serve as a complete account of an operation.
+
+The new application run starts before provider work. It retains inputs, prompts, attempts, validation findings, corrections, errors, and saved-result references on disk. Owner-scoped reads let the same operation reference resolve to a run after restart.
+
+Mastra adds the model execution graph: runner, agent, model, step, inference, and chunk spans. The application run stores its trace ID. Together, they connect the model call to the validation and save steps around it. [Mastra tracing](https://mastra.ai/docs/observability/tracing/overview) provides the execution view; the application timeline explains the full operation.
+
+Storage needed a real proof too. LibSQL's trace-query endpoint returned `TRACE_QUERY_UNSUPPORTED`, so Studio could not list the traces. DuckDB was retained instead, under the existing persisted data directory. A fresh reader reopened successful and malformed fixture traces after the producer exited.
+
+There is an operational cost. Studio and the app cannot both write this DuckDB file. Local inspection stops the app, opens Studio against the same absolute data path, then restores the app. Full prompts and evidence also make these records sensitive; owner access matters.
+
+## How planning became tickets
+
+The work started with an intent brief: make every run understandable, reduce avoidable failures, and preserve grounding and save integrity. A shape brief then selected the existing runner seam and an embedded Mastra adapter, subject to a runtime proof.
+
+The implementation plan divided the work into five milestones:
+
+1. Capture durable runs through the existing implementation.
+2. Prove Mastra on generation, the richest validation path.
+3. Add bounded repair for fixable output failures.
+4. Persist and inspect traces, compare behavior, then switch generation.
+5. Migrate the other operation families and remove the old gateway.
+
+The plan became one epic and 16 child tickets. Tickets carried dependencies, an outcome, likely steps, a readiness gate, and provenance back to the plan and intent claims. Execution notes recorded results and the next unresolved check.
+
+For example, the run-inspection ticket depended on the run contract and trace work. The generation cutover depended on repair, persistent traces, and inspection. Assessment, review, revision, interview, account summaries, and intake could then reuse the proven runner.
+
+Temporary server settings kept the old gateway available during migration. They were removed after parity checks and live schema tests. The final system does not maintain two provider paths indefinitely.
+
+## What completion proved
+
+The epic closed on September 25. Its final record reports 430 passing tests, 10 gated live probes skipped, zero lint errors, and a passing production build. Separately approved fixture-only calls passed nine distinct live call shapes after four schema retests. Disk checks read a saved generation, a failed run in the prior format, and a complete trace.
+
+One live comparison found the old gateway rejected a response with `omissions` nested inside `document`; an earlier Mastra fixture call passed. That is useful diagnostic evidence, but it is too small a sample to establish a general reliability or speed advantage.
+
+The demonstrated result is narrower and more useful: schema failures can reach bounded correction, the grounding audit still controls saving, and failed operations leave inspectable records. A measured reduction in failure rate needs a larger set of comparable runs.
+
+The [migration plan](https://github.com/byronwall/resume-studio/blob/e8a9c79/docs/intent/mastra-pipeline-reliability/implementation-plan.md), [runtime spike](https://github.com/byronwall/resume-studio/blob/e8a9c79/docs/intent/mastra-pipeline-reliability/mastra-runtime-spike.md), and [closed epic](https://github.com/byronwall/resume-studio/blob/e8a9c79/.tickets/efrs-gb4a.md) retain the sequence and acceptance evidence.

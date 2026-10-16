@@ -1,0 +1,39 @@
+---
+title: How I triage small explorEDA UX issues with Product Grid
+publishedAt: 2026-09-28
+summary: 'I grouped 13 explorEDA UX issues with screenshots in Product Grid, then used them to guide a set of focused fixes.'
+image: /images/posts/triaging-exploreda-ux-issues-with-product-grid/issue-grid.png
+project: exploreda
+type: tooling
+---
+
+While testing [explorEDA](https://exploreda.dev), I kept finding small UX problems. A chart menu got in the way. A sort indicator disappeared under nearby buttons. A tracing popover was hard to read. Each issue was worth fixing, but I did not need a separate planning document for every one.
+
+I put 13 cards under one feedback node in [Product Grid Management](/projects/product-grid-management). Each card named the problem and, where useful, held a screenshot of the exact state I saw. The canvas let me scan the whole group before sending it into a fix pass.
+
+![Product Grid canvas with 13 explorEDA feedback cards grouped around a central feedback node, many with screenshots of the affected interface](/images/posts/triaging-exploreda-ux-issues-with-product-grid/issue-grid.png)
+
+The cards became a useful handoff. The work landed in 12 focused pull requests, with one landing-page PR covering two cards. I could review each change against the original problem instead of trying to remember what felt wrong during testing.
+
+The [data table sort fix](https://github.com/byronwall/explorEDA/pull/86) is a good example. The card showed the sort indicator hidden by header actions. The fix keeps the arrow at the right edge and moves those actions to its left. Small change, clear check.
+
+![A sorted data table column with its blue sort arrow visible beside the header actions](/images/posts/triaging-exploreda-ux-issues-with-product-grid/sort-indicator.png)
+
+Some cards needed more than a spacing adjustment. The [trace popover](https://github.com/byronwall/explorEDA/pull/89) had useful data, but it read as one long run of details. It now starts with the row and filter results, then shows the source values and how the point was drawn. Scale and canvas details sit behind a disclosure.
+
+<div className="not-prose my-6">
+  <img
+    src="/images/posts/triaging-exploreda-ux-issues-with-product-grid/scatter-trace.png"
+    alt="Reorganized scatter trace with row and filter results, source values, drawing details, and collapsed scale details"
+    className="w-full max-w-sm h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+</div>
+
+The [new Add chart flow](https://github.com/byronwall/explorEDA/pull/90) was the largest item in this batch. Choosing a chart type used to add it immediately. Now I can choose fields, see a live preview with the current filters, and then place the chart on the grid. Canceling leaves the layout alone. That needed its own interaction checks, even though it started as one card beside much smaller fixes.
+
+![Add chart dialog with chart types and field controls beside a live scatter plot preview](/images/posts/triaging-exploreda-ux-issues-with-product-grid/add-chart-preview.png)
+
+The grid worked well as an intake surface for a one-off pass with many concrete issues. The screenshots gave each fix a visible target, and the separate PRs kept review manageable. Larger feature work needs a fuller description of intended behavior, decisions, and dependencies before implementation starts.
+
+The code and PR screenshots show what changed. Most Product Grid cards still say planned, so I need to update those statuses before the grid can serve as a completion record.
