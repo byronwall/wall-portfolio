@@ -1,0 +1,104 @@
+---
+title: Out of memory with too many agent sessions, and why Panda 2 didn't fix it
+publishedAt: 2026-10-23
+summary: 'Freeing memory on an 18 GB Mac running many Claude Code sessions, turning the cleanup into a skill, then measuring where the TypeScript memory goes and testing whether a Panda CSS 2 upgrade reduces it. It did not.'
+project: visual-notes
+type: experiment
+---
+
+My Mac has 18 GB of memory, and I had a lot of Claude Code sessions going at once: a few on Visual Notes, one on tsx-data-flow, a couple on Context Recorder, plus Codex and Chrome. Activity Monitor showed 15.8 GB used, 7.4 GB compressed, and 10.3 GB of swap. I asked Claude to free up as much idle memory as possible, quickly.
+
+That request turned into four pieces of work: the cleanup itself, a reusable skill for the next time, a breakdown of why each session costs so much memory, and a trial upgrade that was supposed to fix it. The last one did not hold up, which was the most useful result.
+
+## The first pass measured the wrong thing
+
+Claude's first answer was that memory was fine. `memory_pressure` reported 34% free, and the largest processes in `ps` were only a few hundred MB each. So it quit Docker, killed one stale TypeScript server, and reported about 1 GB freed.
+
+I sent the Activity Monitor screenshot. With 10 GB of swap, memory was clearly not fine.
+
+The problem was the measurement. `ps` reports resident memory, which leaves out pages macOS has compressed or swapped out. Under pressure, that is most of an idle process. The "free" percentage also counts file cache as free. Once Claude ranked processes with `top`'s `MEM` column, which includes compressed memory, the picture changed completely. A TypeScript server that looked like 150 MB in `ps` was actually using 2 GB.
+
+## What was actually using the memory
+
+Two kinds of process stood out.
+
+**TypeScript servers that had been idle for most of a day.** Three of them had been running for 15 to 22 hours: 2.0 GB, 0.9 GB, and 0.8 GB. Killing them is safe because an editor or agent starts a new one when it needs it.
+
+**Two runaway vitest runs.** The tsx-data-flow session had started two test suites a few minutes earlier, and they were still growing. Workers went from 1.9 GB to 2.7 GB in about a minute. Killing those runs would fail that session's tests, so Claude asked first. After I said yes, swap went from 11.4 GB to 7.8 GB and free memory rose from 34% to 43%.
+
+Claude then sent the tsx-data-flow session a message about what had happened. That session reran its suite with two workers and heap logging, one suite at a time, and found the cause: one test file, `route-totality-field-proof.test.ts`, peaks around 1.9 GB per worker. Every other file stays under about 500 MB. It now caps runs at two workers.
+
+## Turning it into a skill
+
+I wanted this to be a single command next time, so we made a `/memory-free` skill and then did a second, more aggressive pass to make it work when the machine is already swapping. When every tool call is slow, the important property is doing most of the work in one call.
+
+The skill is now a shell script plus a short playbook:
+
+- One call measures pressure, samples the process list twice to catch anything growing, sorts processes into **safe**, **ask**, and **keep**, kills the safe tier, and prints before and after numbers. It takes about 10 seconds.
+- Safe means idle and restartable: TypeScript servers older than an hour, orphaned node processes that are not serving a port, and the Docker VM when no containers are running.
+- Each TypeScript server is traced back to the Claude session that started it. If that session is not running, its server is idle and gets killed without asking.
+- Test runs, dev servers, and GUI apps go to one question at the end instead of being killed.
+
+Testing it found some bugs in my own assumptions. The first version filed the Docker VM under "never touch" because its path starts with `/System`. An orphaned node process that had been running for a day turned out to be the Plan Viewer server on port 4192, which is why serving a port is now a reason to ask. A planted 250 MB test process showed as 51 MB in `ps`, which is a good reminder of why the first pass was wrong.
+
+On a live run, the script found nothing in the safe tier. Matching against the session list found three TypeScript servers for sessions that were idle or already merged. Killing those freed about 1.8 GB and dropped the kernel's pressure level from warning to normal.
+
+## Why so much stuff
+
+The cleanup raised the obvious question: why does each session need a gigabyte?
+
+Most of it is duplication. The `typescript-lsp` plugin gives every Claude session its own TypeScript server, and worktrees share nothing. Five sessions on Visual Notes means five copies of the Visual Notes type graph. The desktop app also keeps a session's process alive until the session is archived, and I had about 20 finished sessions that were never archived.
+
+The dev server is similar. `vinxi dev` runs separate Vite instances for the client, SSR, and server functions, so about 1 GB is normal. Each worktree that verifies UI starts its own.
+
+Then I wanted to know why the Visual Notes type graph itself is 1.6 GB. `tsc --extendedDiagnostics` and a check-time trace gave a clearer answer than I expected:
+
+- The program has 3,404 files, but they total only 20.6 MB. Reading files is not where memory goes. Type checking is.
+- About 70% of check time is in `src/components`, mostly the Park UI-style `ui/` wrappers. Each wrapper combines Panda's style props with Ark UI's component types.
+- Type-checking only the server, services, and lib code uses 0.44 GB. The UI layer accounts for roughly the other 1.15 GB.
+- 26 of the 68 `ui/` components are not imported anywhere. Leaving them out cut type-check memory from 1.60 GB to 1.41 GB, about 12%.
+- `lucide-solid` is imported from the package root, which loads all 1,908 icon type files for the 88 icons the app uses. Per-icon imports are worth roughly 4%. That number is an estimate from a partly broken test.
+
+My first guess, removing Panda's generated `styled-system` folder from `include`, saved 3%. Nearly all of it is imported anyway.
+
+## The research pointed at Panda 2
+
+Visual Notes was on Panda 1.8.1, and Panda 2 had come out a few weeks earlier. [The Panda 2 announcement](https://panda-css.com/blog/panda-css-v2) claims about 99% fewer type instantiations on generated types and 21 to 25% less `tsc` memory. That is exactly the cost the trace pointed at, so it looked like the right fix.
+
+TypeScript 7, the native Go rewrite, was the other candidate. On this codebase it was 2.3 to 3.4 times faster, but it did not use less memory. Single-threaded it peaked at 1.34 GB against 1.19 GB for TypeScript 5.9. With its default parallel checkers it reached 2.0 GB. Faster, not lighter.
+
+So the plan was to upgrade Panda on a branch, measure before and after, and open a PR only if the numbers held up.
+
+## Panda 2 did not reduce memory
+
+The upgrade itself went fine. It needed four changes:
+
+- List `@pandacss/preset-base` and `@pandacss/preset-panda` explicitly, since Panda 2 no longer adds them.
+- Move 41 slot recipes from `recipes` to `slotRecipes`. All of them had been registered as plain recipes. Panda 1 noticed the `slots` key and handled it; Panda 2 drops their styles.
+- Rename `createStyleContext` to `createSlotRecipeContext` in 41 `ui/` files. The call signatures are the same.
+- Replace the one `RecipeConfig` import, which Panda 2 no longer exports.
+
+After that, type-check, lint, and all 737 tests passed. Then the measurements:
+
+| | Panda 1.8.1 | Panda 2.4.0 |
+|---|---|---|
+| Type instantiations | 4.30M | 5.25M (+22%) |
+| TypeScript 7 memory | 1.32 GB | 1.39 GB (+6%) |
+| TypeScript 5.9 memory | 2.25 GB | 1.94–2.24 GB over three runs |
+
+Instantiations went up instead of down. The TypeScript 5.9 number moved around between runs and never clearly beat the baseline. The improvement Panda describes is in its generated style types, but this app's cost is in the `ui/` wrappers. Panda 2's new slot recipe context types are richer, and here that outweighs the savings. I did not open the PR.
+
+The upgrade also found a real bug that exists on Panda 1 today. The default `solid` checkbox variant nests `control` inside `control`, so its checked fill and border never apply. Panda 1 emitted that silently; Panda 2 warns about it.
+
+## Where this leaves me
+
+The upgrade the research pointed at made the problem slightly worse. If I had trusted the release notes, I would have shipped a 46-file migration for nothing.
+
+The things that actually help are less interesting:
+
+- Archive finished sessions, since each one keeps a full TypeScript server alive.
+- Stop dev servers after verification, and cap vitest workers in each project.
+- Delete the 26 unused `ui/` components.
+- Run `/memory-free` when it gets tight.
+
+The bigger question is whether every agent session needs its own TypeScript server at all. Sessions that only plan or review probably do not. If the Panda and Ark type cost is going to stay, fewer copies will save more than any one dependency upgrade.
