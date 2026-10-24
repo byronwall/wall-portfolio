@@ -1,0 +1,88 @@
+---
+title: "From a 12-minute narrated review to 16 stacked PRs"
+publishedAt: 2026-10-24
+summary: "I talked through thirteen Draftably diagrams with Context Recorder running, handed the session folder to Claude Code, and got back a stack of sixteen pull requests, each with screenshots as proof."
+image: "/images/posts/from-a-narrated-review-to-sixteen-stacked-prs/multi-region-failover.jpg"
+project: context-recorder
+type: tooling
+---
+
+I opened thirteen deployment diagrams in [Draftably](/projects/draftably) and talked through each one for about twelve minutes. Some of it was about the viewer: the wheel should zoom, the screen flashes when I open a diagram, dragging a container takes forever. Most of it was about the drawings themselves: this line comes into the box from the bottom for no reason, this container is red on red, these three nested containers are all the same red.
+
+[Context Recorder](/projects/context-recorder) was running the whole time. When I was done, I gave Claude Code the session folder and one instruction: find all the work, assess it, then implement it as a flurry of stacked PRs.
+
+What came back was a stack of sixteen pull requests, [#86](https://github.com/byronwall/draftably/pull/86) through [#102](https://github.com/byronwall/draftably/pull/102). The first one is the assessment. The last one is a document about how I want diagrams to feel. Everything in between is a fix with before and after screenshots.
+
+## What the recording gives the agent
+
+The video alone would not have been enough. A session folder has a timestamped transcript, 44 marks with a frame for each, the URL and the element under the mouse at each mark, a saved copy of the page DOM, and a log of browser events and network requests.
+
+That turned "I said something about diagram 04 around minute five" into something the agent could act on. It matched each sentence to the diagram open at that time, read the SVG from the saved page to see which edge I was pointing at, and wrote one row per request: the time, what I said, the likely cause in the code, and the PR that would take it. That table is [the assessment](https://github.com/byronwall/draftably/blob/feedback/16-feel-doc/docs/intent/viewer-feedback-2026-10-23/README.md). It found 28 separate requests in twelve minutes of talking.
+
+One gap mattered. The diagrams I reviewed live in a different repo that wasn't on this machine. So the agent couldn't rerun my exact files. For the routing work it measured against Draftably's own audit corpus instead, which is honest but means the fixes are tested on similar diagrams, not the ones I complained about.
+
+## The evidence was right, the first reading of it was not
+
+A few of the more useful results came from the agent checking what the recording seemed to say.
+
+I said dragging a container took about five seconds. The network log agreed: the save request took 3,037ms. The obvious conclusion is a slow server. But a save against the dev server with curl takes 2 to 6ms. The recorder times requests from inside the page, so a busy page makes a request look slow. The real cost was the page recompiling and rerouting the whole file on the main thread after every edit. Moving that into a worker took the blocking time after a drag from 547ms to zero ([#93](https://github.com/byronwall/draftably/pull/93)).
+
+![Main-thread blocking after a drag and after a collapse, before and after the stack.](/images/posts/from-a-narrated-review-to-sixteen-stacked-prs/main-thread.jpg)
+
+I said the Recent list looked missorted. It wasn't. It sorts by modified time, but every file said "Oct 22", so the order looked random. Showing the time fixed it.
+
+Collapsing a container felt slow, and one of the frames had a toast in it: "That change is not saved to diagram files." That toast was the clue. In file mode, collapse ran as a full edit: translate the document to source, find nothing to save, re-project, reroute everything, then complain. Collapse is view state. Now it draws immediately and keeps the header text exactly where the open container had it ([#92](https://github.com/byronwall/draftably/pull/92)).
+
+![A collapsed container with its title in the same place as the open header.](/images/posts/from-a-narrated-review-to-sixteen-stacked-prs/collapsed-header.jpg)
+
+And "the edges move around while I'm clicking" turned out to be the router switching to its fast mode on every pointer-down, then back on release. Three clicks redrew lines 24 times. Now it's zero ([#94](https://github.com/byronwall/draftably/pull/94)).
+
+## Routing changes need a number
+
+The diagram complaints are the harder part, because "this line comes in from the bottom" is a taste judgment and the router has dozens of interacting costs. Every routing PR in the stack ran `pnpm audit:compare`, which renders the corpus, a held-out set and the bundled examples on main and on the branch, then counts defects.
+
+The audit had no metric for the thing I kept saying, so the agent added one: `arrives-below`, a line that climbs into a box's bottom when its source isn't below it. Then it priced that in the router and charged far-side loops for the extra length they draw. In the corpus, `arrives-below` went from 10 to 3 and hooks from 7 to 2 ([#99](https://github.com/byronwall/draftably/pull/99)).
+
+![hn-offline-architecture before and after: the "all comments" line no longer loops under the group into HN Firebase from below.](/images/posts/from-a-narrated-review-to-sixteen-stacked-prs/arrives-below-hn-offline.jpg)
+
+It wasn't free. About five more lines per set now have four or more bends, because coming in on top takes two more turns than coming in from below. That is the trade I asked for, and the PR says so instead of hiding it. The agent also measured two variants, one without the small side preferences and one without the loop charge, and kept the version that came out best.
+
+The same pattern covered a line running along the inside of its container to reach something outside it ([#100](https://github.com/byronwall/draftably/pull/100)) and edge labels pressed up against boxes ([#101](https://github.com/byronwall/draftably/pull/101)). One of the weights it tried first made a corpus diagram worse, so it backed the weight off and showed both numbers.
+
+![web-app-components before and after: the "click" line leaves TaskBoard right away instead of running down inside it.](/images/posts/from-a-narrated-review-to-sixteen-stacked-prs/leave-container-web-app.jpg)
+
+![ci-checks before and after: the "proofs job" label no longer sits against "pnpm build".](/images/posts/from-a-narrated-review-to-sixteen-stacked-prs/label-clearance-ci-checks.jpg)
+
+## Color got rules and a legend
+
+On color I mostly complained: a Christmas tree of red and green, red nodes in a red container, three nested containers in the same shade. In the recording I wasn't sure whether the agent that wrote those diagrams was picking the colors or whether Draftably was. It was both. The skill gave agents almost no color guidance, and the renderer drew every nested container at the same shade.
+
+The renderer now steps nested containers of one family, lighter underneath, and moves a member out of its container's shade ([#96](https://github.com/byronwall/draftably/pull/96)). The language got a `legend` statement so a diagram can say what its colors mean, and the agent skill now asks for one legend line per color ([#97](https://github.com/byronwall/draftably/pull/97)).
+
+![The order-pipeline example with a legend under the drawing.](/images/posts/from-a-narrated-review-to-sixteen-stacked-prs/legend.jpg)
+
+I also said container borders read as stronger than the lines crossing them. Lines now draw over a halo in the canvas color, so they break the border where they cross it ([#98](https://github.com/byronwall/draftably/pull/98)).
+
+![A line crossing two container borders, before and after the halo.](/images/posts/from-a-narrated-review-to-sixteen-stacked-prs/edge-halo.jpg)
+
+This render shows several layers at once: stepped shades, halos, and the routing change all landed on the same example.
+
+![multi-region-failover before and after the stack.](/images/posts/from-a-narrated-review-to-sixteen-stacked-prs/multi-region-failover.jpg)
+
+## Steering mid-run
+
+I sent two messages while it worked. The first: stack the PRs as you go, and include screenshots in each one as proof. Up to then it had pushed the first two and was building the rest locally, so that changed the rhythm. Each layer went up as soon as it passed checks, and each PR got a before and after. For the viewer fixes, the "before" was usually a crop from my recording. For performance work it was a measured chart, because a screenshot of a page that's no longer slow doesn't prove much.
+
+The second: capture what I said about how diagrams should feel in a durable doc. A pile of PRs fixes today's complaints but loses the reasoning. So the last PR adds [FEEL.md](https://github.com/byronwall/draftably/pull/102): reading order, how lines and containers relate, color, framing, interaction. The quality rubric now names it as the tie-breaker when a metric and the eye disagree.
+
+## What didn't go smoothly
+
+`gh stack init` rooted the first branch on a stale local `main`, and the working tree suddenly lost half the repo. The agent caught it, reset to `origin/main` and kept going. One PR's browser proof failed in CI and passed on a re-run. The theme proof failed locally after the compile moved to a worker, because it waited for the new source text but not its layout. That was a real race in the test, and the fix was making it wait the way the file proof already did.
+
+Three requests didn't get fixed: avoidable crossings, a node placed far down the flow from its one neighbour, and sibling groups in the wrong order. Each needs layout or global routing work that deserves its own stack. They're written up with approaches in the quality backlog.
+
+## Where that leaves things
+
+The input was twelve minutes of talking with a recorder running. The structure in the session folder, timestamps, marks, the saved page and the network log, is what let the agent turn that into a list of 28 requests with a cause and a PR for each.
+
+The output is sixteen PRs to review, each with its own screenshots and, for the routing changes, audit numbers. The routing layers are the ones where the numbers are close and taste decides, so they're the ones that need the most careful look.
