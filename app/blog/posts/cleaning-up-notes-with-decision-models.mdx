@@ -1,0 +1,118 @@
+---
+title: Cleaning up 6,000 notes with decision models, and what a good question looks like
+publishedAt: 2026-10-25
+summary: 'Testing TypeSafe Jev and the OpenAI Decisions API on note cleanup: the process, the shape of questions that work, and why my own labels changed the answer from delete to distill.'
+image: "/images/posts/cleaning-up-notes-with-decision-models/trim-signals.svg"
+project: visual-notes
+type: experiment
+---
+
+My Visual Notes site has about 6,300 notes, and a lot of them are low value for different reasons. Some are old ChatGPT transcripts I saved. Some are pages left over from a Notion import. Some are plans for events that already happened. Some are empty captures. I wanted to know whether a cheap decision API could drive the cleanup: is this note worth keeping, should it be summarized, should these notes be combined.
+
+My starting assumption was that three or four Jev calls would be much cheaper than LLM calls. That turned out to be true and mostly irrelevant. The useful parts were somewhere else.
+
+## What a decision model returns
+
+TypeSafe Jev and the OpenAI Decisions API work the same way. You send some state and a set of typed questions, and you get back probabilities instead of text. There are three question types: yes/no (Jev calls it a Noul, OpenAI a predicate), a pick-one choice, and a score on a rubric of 2 to 10 levels.
+
+```json
+{
+  "state": { "owner": { "...": "..." }, "facts": { "source": "chatgpt_transcript", "words": 1278 },
+             "note": { "title": "CSS Animations and Transitions", "body": "..." } },
+  "questions": {
+    "copied_or_generated": { "type": "noul",
+      "instructions": "Was most of `note.body` copied from a website or produced by a chatbot or agent, rather than written by `owner` in his own words?" }
+  }
+}
+```
+
+The answer comes back as `{"noul": 0.96}`. All the questions in one request run in parallel against the same state, so a dozen questions cost roughly what one does. Neither API writes anything. They judge. If a note needs a summary or a new title, an LLM still has to write it.
+
+## The process
+
+Claude did most of the legwork across a few sessions. The steps were:
+
+1. **Research the APIs.** Read what both vendors document and what independent benchmarks say. Jev is $0.042 per million input tokens and OpenAI is $0.10, with output free on both.
+2. **Sample real notes.** I pulled 144 notes from prod over the app's MCP connector, picking them by type: ChatGPT transcripts, bulk imports, notes I wrote, and notes written by agents. Each was assigned to a dev or holdout set using a hash of its id, so the split never moves.
+3. **Compute what code can know.** Source, word count, headings, and the latest date mentioned in the body all come from plain code before any model sees the note. That last one matters because these models are bad at comparing dates.
+4. **Write the questions.** The wording came from the OpenAI guide, TypeSafe's page of known weak spots, and two community Jev skills. More on that below.
+5. **Run everything twice, plus variants.** Each vendor got the 12 per-note questions, a repeat of the same call, the choice questions with options reversed, a section-by-section pass for split detection, and 36 note pairs. The same questions also went to an LLM through a normal JSON-schema call as a baseline.
+6. **Get reference labels.** A Claude subagent read every note in full and answered the same questions.
+7. **Label them myself.** I labeled 60 notes blind on a throwaway HTML page: keep, keep but trim, archive, delete, or make a task. It covered all 41 holdout notes plus the 19 dev notes where the model and the reference disagreed most.
+
+The whole experiment, about 1,400 requests, cost $0.06 on Jev and $0.23 on OpenAI.
+
+## The shape of a good question
+
+Most of the gain came from question design. A few rules did the heavy lifting:
+
+**One snap judgment per question.** "Is this note worth keeping?" is a bad question. It hides five other questions. Is it empty? Is it leftovers from an import? Did I write it? Could I get it again with one search? Is it tied to a date that passed? Each of those is something a person could answer in a second, and each one became its own question.
+
+**Make high mean yes.** My first draft had a question about whether a note was "generic". It worked better flipped around: "Does `note.body` contain something specific to `owner`: his own decisions, measurements, logs, plans, opinions, or results?" No double negatives, and a 0.9 means what it looks like it means.
+
+**Describe situations, not degrees.** Score levels like low, medium, and high are judged one at a time, so "medium" means nothing on its own. The length question uses levels like "it is long because it holds many entries, rows, or distinct items" and "it is long because of repetition, chat back-and-forth, or filler". Those levels separate a long log, which is fine, from a long ChatGPT transcript, which usually is not.
+
+**Keep dates, counting, and math in code.** Jev can't reliably order dates. So the model only answers "is this note about a one-time event or a plan for a specific window?" Code checks whether the latest date in the body has passed and combines the two.
+
+**Put the comparison target in the state.** "Is this generic?" depends on who is asking. Every request carries a short owner profile: what I do, what I keep, what I drop. Without it, "specific to the owner" has nothing to compare against.
+
+**Give the bottom tier a real meaning.** For note pairs, the lowest level of the relation score is "different problems that happen to share some vocabulary". Without that tier, two notes that both mention "link" get pulled toward "same area".
+
+**Let code combine the answers.** This was the biggest result, so it gets its own section.
+
+## Results against the Claude reference
+
+On the narrow questions, both APIs agreed with the reference 80 to 97% of the time. That is the same range as the LLM baseline, at 0.17 seconds per note for Jev and 0.24 seconds for OpenAI, against 3.8 seconds for the LLM. The structural questions, empty or stub and import leftovers, were near perfect.
+
+Then I compared three ways of turning those answers into a verdict:
+
+- **Hand-written threshold rules** agreed with the reference about 68% of the time. My rules were the weak link.
+- **One holistic question**, "what should he do with this note?", ranked drop-vs-keep at AUC 0.83 to 0.88.
+- **Weights fit in code on the narrow answers** reached AUC 0.92 to 0.94 on holdout. The 30 notes ranked most likely to drop were all drops by the reference.
+
+The weights mostly learned two things: did I write it, and could I get it again. That ordering held on both vendors.
+
+Pairs worked well too. Related notes separated from notes that only share words at AUC 0.98 to 0.99, which makes embedding neighbors plus one decision call a realistic way to find merge candidates.
+
+Order bias was the one problem that came up. When I reversed the options on the "what kind of note is this" question, OpenAI changed its answer on 14% of notes and Jev on 5%. OpenAI was perfectly repeatable run to run. Jev moved a little, enough to flip a few notes sitting right at a threshold.
+
+## Then I labeled them myself
+
+This is where the experiment changed direction. The Claude reference matched my labels only 33% of the time. On drop-vs-keep it was close to a coin flip.
+
+The disagreement had a pattern. Claude marked 58 of the 144 notes for deletion: generic CSS troubleshooting chats, a saved Postgres backup conversation, old library lists. I marked one note for deletion in my 60. Most of the notes Claude wanted gone, I wanted kept but distilled. My reasons said things like "any durable info in there to distill out?", "could be summarized now that the event has passed", and "belongs in a prompt collection".
+
+Of my 60 labels, 62% were keep, 23% keep but trim, 12% archive or delete, and 3% make a task. Cleanup for me is mostly distilling and regrouping, not deleting.
+
+![Dot plot of AUC for finding notes labeled keep but trim. copied_or_generated scores 0.93 on Jev and 0.92 on OpenAI; the holistic verdict question scores 0.51 and 0.40, at or below chance.](/images/posts/cleaning-up-notes-with-decision-models/trim-signals.svg)
+
+The best signal for the distill queue turned out to be a single yes/no question: "was this copied or generated?" It ranks my trim notes at AUC 0.93 on Jev and 0.92 on OpenAI. Sorted by that score, the top 10 notes were 9 trims and 1 archive. Every one of them needed action.
+
+The holistic verdict question could not find trims at all. Its probability for "keep but trim" scored at or below chance. That is the clearest evidence in the whole experiment for narrow questions combined in code over one big question.
+
+The drop score trained on Claude's labels did not transfer either. It learned Claude's taste. Only my labels can teach mine, and 60 was enough to show that.
+
+## What the cost question turned into
+
+A full pass over all 6,300 notes would cost about $0.70 on Jev or $2.20 on OpenAI. The LLM baseline, on the same small model, came out about the same as OpenAI's decision API. At this scale cost does not decide anything.
+
+What the decision APIs actually buy:
+
+- **Latency.** At 0.2 seconds, a note can be assessed when it is saved, not in a weekly batch.
+- **Probabilities.** A review queue can be sorted, with a band for "unsure" instead of a hard cutoff.
+- **Pairs.** Pair counts grow faster than note counts, and a cheap call per candidate pair makes merge detection practical.
+- **No parsing.** The answer is always one of the options I declared.
+
+I would start with Jev. It is about three times cheaper, a bit faster, and less sensitive to option order. The vendor was never the bottleneck, though. The question wording and the code that combines the answers mattered far more.
+
+## What I would build
+
+The order now looks like:
+
+1. **A distill queue**, ranked by "copied or generated?". An LLM pulls out the durable facts and keeps a link to the original note. I approve the result.
+2. **Regroup suggestions.** Several of my labels said a note belongs with others. That needs the pair questions and a choice over my existing collections, not a per-note verdict.
+3. **Post-event summaries** for plans and outings whose dates have passed.
+4. **Make-task** for notes that are really a to-do. That question caught both of the notes I marked as tasks.
+5. **A rare delete queue.** Empty captures, mostly.
+
+One open question is how many labels it takes before a weighted combination beats the single best question. With 60 labels, it didn't yet.
