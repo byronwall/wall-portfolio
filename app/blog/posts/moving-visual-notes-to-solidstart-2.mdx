@@ -1,0 +1,73 @@
+---
+title: Moving Visual Notes to SolidStart 2, and what broke along the way
+publishedAt: 2026-10-26
+summary: 'Dropping vinxi for Vite 8 cut the Visual Notes build from 292s to 49s on a 2-CPU box. The port itself was small. The breakage was at the boundaries: auth, server function IDs, WebSockets, and the dev server port.'
+project: visual-notes
+type: update
+---
+
+Deploying [Visual Notes](/projects/visual-notes) through Coolify took 10 to 13 minutes. The server is small: 2 CPUs and 3.8 GB of RAM. In the deploy log, one step dominated. `vinxi build` took 457 seconds.
+
+I asked Claude Code to dig into the build time and the Docker image size. Its first pass was a Dockerfile cleanup. The second pass came after I asked whether newer tool versions might just be faster. SolidStart 2.1 had shipped a few days earlier. It drops vinxi and builds directly with Vite 8, which uses Rolldown. I told it to pursue that.
+
+## The result
+
+To match the Coolify server, I measured `pnpm build` in a container capped at 2 CPUs and 3.8 GB:
+
+| | vinxi (SolidStart 1) | Vite 8 (SolidStart 2) |
+|---|---|---|
+| `pnpm build`, 2 CPUs / 3.8 GB | 292s | 49s |
+| Docker build step, local Docker Desktop | 293s | 122s |
+
+The Docker image went from 1.68 GB to 877 MB. Most of that came from the Dockerfile PR, not the migration. The old runtime image copied the full dev `node_modules`, which was 777 MB, alongside a server bundle that already carried its own dependencies.
+
+The work is in two stacked PRs. As I write this they are open and CI is still running. I have not seen a real Coolify deploy time yet, so the 49s figure is the closest proxy I have.
+
+## What the port actually touched
+
+The upgrade guide covers the expected moves:
+
+- `app.config.ts` becomes `vite.config.ts`, with a `solidStart()` plugin and a `nitro()` plugin.
+- Scripts become `vite dev` and `vite build`.
+- Node 24 is required, which meant updating the Docker image, CI, and the README.
+
+I expected changes spread across hundreds of files. They weren't. Of roughly 160 route and service files, only a handful changed. The widest edits were small:
+
+- **Three routes** needed `useParams<{ id: string }>()`. Router 1.0 types params as possibly undefined.
+- **Four `"use server"` modules** had a type re-export pattern the new transform drops.
+- **Two WebSocket handlers** moved from vinxi routers to Nitro routes.
+- **The scripts, CI, and docs** still mentioned `vinxi build` and `vinxi dev`.
+
+The time went into the boundaries, where the app depended on something vinxi did implicitly.
+
+## The issues, in the order they showed up
+
+**The auth wrapper imported vinxi.** `@solid-mediakit/auth` lists SolidStart 1 as a peer dependency and imports `sendRedirect` from `vinxi/http`. Before porting it, Claude Code checked what used it. The answer was nothing. Sign-in had moved to a magic-password cookie a while ago, and no code read an Auth.js session. A `SessionProvider` wrapped the whole app for no reason. So the package, the catch-all `/api/auth` route, and the provider all came out instead of being ported.
+
+**The first build failed on type re-exports.** The error was `Export 'Backlink' is not defined`. Those modules imported a type inline, `import { listBacklinks, type Backlink } from ...`, then re-exported it with `export type { Backlink }`. The new server-function transform strips the type import, and then the re-export points at nothing. Re-exporting straight from the source module, `export type { Backlink } from "..."`, fixed all four.
+
+After that, the build passed in 42 seconds on my Mac. Then sign-in returned 401.
+
+**Hard-coded server function IDs.** The middleware lets three server functions run without a session: login, the session check, and the public share view. It identified them by ID strings copied out of SolidStart 1's transform, such as `src_services_auth_magic-auth_actions_ts--magicLogin_action`. In v2 the IDs are opaque hashes of the module path and function name. The list could not match anything, so every unauthenticated call was rejected, including login itself.
+
+That list was a bad decision. It only worked because the old ID format happened to be readable. Mid-migration I said that when we hit things like this, it should fix them quickly without breaking anything else, and a little cleanup during the port was fine. So the public functions became named exports. A small module now reads each one's ID from its server reference, which exposes `.url` as `/_server?id=...`. The middleware builds its allowlist from that. If a function moves or gets renamed, the list follows it.
+
+That fix tripped a repo lint rule against server code importing `*.actions` modules. The rule exists because router actions fail without a request. The login function moved into its own small module, so nothing had to import an actions file.
+
+**The WebSockets were custom vinxi routers.** `/ws/jobs` and `/ws/notes` became Nitro routes using `defineWebSocketHandler`. The hooks stayed the same. I was worried the sockets and the app would load separate copies of the event bus and miss broadcasts. They do load separate copies. But the bus already keeps its listeners on `globalThis` and fans out through a `BroadcastChannel`, which an earlier vinxi quirk had forced. So creating a note still pushed a `notes:changed` message to an open socket.
+
+**The dev server ignored `PORT`.** vinxi read `PORT` and defaulted to 3000. Vite ignores `PORT` and defaults to 5173. CI's dev-server smoke test, the Playwright config, and the audit harness all start the server with `PORT=...`. Nothing would have failed loudly; they would have waited on a port with nothing behind it. The Vite config now reads `PORT` and `HOST` and keeps 3000 as the default.
+
+**Tests could not import the middleware.** SolidStart 2's middleware imports `server-only`, a module that exists only inside its Vite plugin. Vitest needed an alias to an empty module, plus an `inline` setting for `@solidjs/start`. Without the `inline` setting, the alias never applied to the externalized package.
+
+## How it got checked
+
+The order was: get the build passing, then run the production output, then try the dev server, then measure.
+
+For the production build, Claude Code drove a browser. It signed in, created a note in the editor, and reloaded the note page to check hydration. It also watched the socket traffic. Both sockets greeted on connect, and creating the note delivered the broadcast. Signed out, the socket upgrade returned 401, a private server function returned 401, and pages redirected to `/login`. The dev server got the same sign-in and socket check, plus the note page. Lint, type-check, and 807 unit tests passed on Node 24. The Playwright e2e suite runs in CI on the PR. It was not run locally.
+
+## What is still open
+
+Nitro v3 is still published as a beta, even though SolidStart 2.1 is marked stable. That is the main risk I am taking on. Server function payloads also switched to JSON serialization, the v2 default. Nothing broke from that in the checks above, but it is a real change in what goes over the wire.
+
+The bigger deploy problem turned out to be Coolify, not the build. Its Docker cleanup ran `docker builder prune -af` every hour, so no deploy ever reused a cached layer. The deploy log showed pnpm reusing 0 packages. Every environment variable was also passed in as a build arg, including secrets the build never reads. Switching cleanup to a disk threshold and turning off build-time vars should matter as much as the faster build. Whether the full deploy really lands near two minutes, I will find out on the first merge.
