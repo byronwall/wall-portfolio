@@ -1,0 +1,87 @@
+---
+title: HN Offline's service worker never registered, so I replaced it
+publishedAt: 2026-10-26
+summary: 'The offline Hacker News reader had a service worker that never registered in production. The fix was a short plain worker, a redirect trick for offline story reloads, and an update flow that waits until you stop reading.'
+image: "/images/posts/hn-offline-service-worker/fetch-routing.png"
+project: 0-hn-offline
+type: debugging
+---
+
+[HN Offline](/projects/0-hn-offline) exists so I can read Hacker News comment threads without a connection. Stories and comments are saved to IndexedDB in the background. That part worked. The part that was supposed to load the app itself offline did not.
+
+The service worker never registered in production. The app asked for `/_build/sw.js`, and nothing built that file once I had commented out `vite-plugin-pwa`. There was also a `public/sw.js`, but it imported `workbox-core`, which a served worker can't resolve. So for a while, "offline" meant "offline if the tab happened to still be open."
+
+I had Claude Code audit the worker and replace it. The result is about 160 lines of plain JavaScript in `src/sw.js`, with no Workbox and no Vite plugin. Below are the three things it has to get right, each with a diagram.
+
+## What the worker does with each request
+
+![Three columns: page navigation, built assets, and server calls](/images/posts/hn-offline-service-worker/fetch-routing.png)
+
+There are only three kinds of request, and each gets one rule:
+
+- **Page navigation** goes to the network first, with a 3 second timeout. If that fails, the worker serves the last good copy of `/`, `/day`, `/week`, or `/offline`. Those four are the only HTML it keeps.
+- **Built assets and icons** are cache first. The asset file names are content hashed, so a cached copy is never stale. Install precaches every chunk in the Vite manifest, not just the ones the home page links to. Otherwise the story route would load offline only if you had happened to open a story online first.
+- **Server function calls, POSTs, and other origins** are left alone. Story data does not live in the worker's cache. It lives in IndexedDB, and the app reads it there.
+
+Keeping the data out of the worker is the main decision. The worker only has to make the app shell boot. Everything about which stories are saved stays in one place, the client stores.
+
+## Reloading a story page offline
+
+This was the case that broke. You open a story, lose signal, and reload. The worker has no HTML for `/story/123`, and it should not. Serving the cached home page at that URL doesn't work either. SolidStart hydrates against the server's markup for that route, and another route's HTML fails with a hydration error.
+
+![Offline story reload: worker redirects to /offline, the app routes back to the story, and reads it from IndexedDB](/images/posts/hn-offline-service-worker/offline-story.png)
+
+The fix is a redirect. When a page is not cached and the network fails, the worker answers with a 302 to `/offline?next=/story/123`. The `/offline` page is cached, so it loads and hydrates cleanly. It then routes back to `/story/123` in the client, and the story page reads from IndexedDB. If the story was saved, it renders with its comments at the same URL. If not, you get "This story is not available" instead of a broken page.
+
+## Getting new code to an app that never reloads
+
+The second round of the audit was about deploys. Installed as a PWA, HN Offline can stay open for days. Browsers check for a new service worker on navigation, and an open PWA never navigates. So after a deploy, the old page kept calling server functions and loading chunks that the new build had renamed.
+
+![Update flow: check on visibility, all-or-nothing install, then reload only while the page is hidden](/images/posts/hn-offline-service-worker/update-lifecycle.png)
+
+Each step fixes one specific failure:
+
+- **Check when the app comes back to the front.** The client calls `reg.update()` on every `visibilitychange` to visible. `pnpm build` stamps a new `VERSION` into the worker, so every deploy is a byte-different `sw.js`.
+- **Install is all or nothing.** The install step fetches every chunk and shell page, and any failure fails the install. Before, a flaky network during install could replace a complete offline cache with a partial one. Now the old worker and its caches stay, and the browser tries again on its next check.
+- **Reload only while the page is hidden.** When the new worker takes control, the page marks a reload as pending. It reloads the next time you leave the app, never in the middle of a thread. Reloading as soon as the new code was ready would have been simpler, but losing your place in a long comment thread is the worst thing this app can do.
+
+There is one more guard for the gap before the new worker arrives. If a chunk fails to load (`vite:preloadError`), the page reloads once, with a 10 second guard so it can't loop.
+
+## The storage bugs underneath
+
+While the worker was the visible problem, the audit found two worse ones in the IndexedDB layer:
+
+- **Saves before IndexedDB opened were dropped silently.** The code called `localForage()?.setItem(…)`. Before storage opened, that did nothing and still looked like success. Background saves of a list's stories could vanish, and an offline story read could fall through to the network. Reads and writes now wait for storage to open, up to 5 seconds.
+- **A failed load could wipe saved data.** If loading read history or saved lists failed, the store started empty. The next write saved that empty state over the real data, and the cleanup 10 seconds later could delete every saved story. Now a failed load keeps retrying, and nothing is written until it succeeds. This one has a test.
+
+There is also a fix for Safari's "Connection to Indexed Database server lost" after iOS backgrounds the app. That error now closes the dead connection so the retry opens a new one. That fix is tested only with a faked error, because Chrome can't reproduce Safari's connection loss.
+
+## How it was checked
+
+Everything was tested against the production build, with the server stopped to go offline. Top, Day, and Week reload from the cache. A saved story reloads at its own URL with no hydration error. An unsaved story shows the "not available" page. With the page open, a rebuild installed the new worker without a reload, and hiding the page then reloaded it into the new code.
+
+The change is merged. I haven't yet confirmed on a real phone that the installed app picks up a new worker on its own. That is the real test of the update flow.
+
+## About the diagrams
+
+I made the diagrams with [Draftably](/projects/draftably). Each diagram is a short `.draft` text file. The update flow above starts like this:
+
+```text
+diagram "Getting new code to an open app" version=1
+subtitle "A deploy lands only after a full install, and the reload waits until you leave"
+
+group install "Install" color=slate
+node precache "Precache every chunk and shell page" in=install
+node ok "All fetched?" in=install shape=diamond
+node keep "Old worker stays; retry later" in=install color=rose shape=pill
+
+legend rose "Failure keeps the old version"
+
+edge e4 precache -> ok
+edge e5 ok -> keep "no" kind=async
+
+layout root row gap=56
+layout install column gap=32
+```
+
+The first versions stacked rows top to bottom, and the edges between rows wrapped around the sides. Changing the root to a `row` of `column` groups fixed all three diagrams. Each one now reads left to right in stages, and only a few edges cross between groups. The full sources are next to the images: [fetch-routing.draft](/images/posts/hn-offline-service-worker/fetch-routing.draft), [offline-story.draft](/images/posts/hn-offline-service-worker/offline-story.draft), and [update-lifecycle.draft](/images/posts/hn-offline-service-worker/update-lifecycle.draft).
