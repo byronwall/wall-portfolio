@@ -1,0 +1,313 @@
+---
+title: One TypeScript server per agent session, and moving Claude to the TypeScript 7 one
+publishedAt: 2026-10-25
+summary: 'A second memory jam on an 18 GB Mac: runaway engine scripts, 194 unarchived sessions each holding a TypeScript server, a local Claude Code plugin for the TypeScript 7 native language server, six tsconfig PRs, and a session-start hook that flags configs TypeScript 7 rejects.'
+type: tooling
+---
+
+Two days after [the last memory cleanup](/blog/out-of-memory-with-too-many-agent-sessions), the Mac was jammed again: 24 GB of swap and 7 GB compressed on an 18 GB machine. I ran `/memory-free`, the skill from that post. It cleared the obvious stuff. Then it kept finding the same two problems, and the second one ended with Claude Code using a different TypeScript language server and six repos getting their tsconfigs fixed.
+
+## The first pass
+
+The skill's script measures memory pressure, samples the process list twice to catch growth, and kills anything in its safe tier. This time the safe tier was 12 TypeScript servers that had been running for 18 to 45 hours, spread across srcly, Visual Notes and diagram-studio worktrees. Killing them freed about 11 GB.
+
+The more interesting process was growing. A srcly `_cost.ts` script, measuring the data-flow engine on Visual Notes' `TocRail.tsx`, was at 2.5 GB and climbing about 2.2 GB a minute. It belonged to a session that was idle, so nobody was waiting on it. Killed.
+
+After I said yes to the ask tier (Docker with one database container, a 19-hour-old srcly engine, and a 3 GB engine run from an active audit session), swap was down to 17 GB. Still jammed, but moving.
+
+## The same sessions started it again
+
+I asked whether there were any recurring problems. Within minutes of the cleanup, the srcly audit session had started three `survey-blockers.ts` runs in parallel, each with a 6 GB heap cap. Each was growing 600 to 1,200 MB a minute. The closure-binding session had restarted the same `TocRail` cost run. Three 6 GB caps on an 18 GB machine is not a cap.
+
+Killing them again would not fix anything. Claude messaged the audit session, which is the one that started the other srcly sessions, with the sizes and growth rates. It moved the survey to one repo at a time with a 4 GB cap and a 15-minute limit per repo, and told the closure session to rerun its cost check serially with a 3 GB cap. Then it started a background memory pass on the engine itself: reproduce the `TocRail` blowup, compare heap snapshots, and add a guard that drops caches past about 2.5 GB and answers with a named reason instead of growing.
+
+That is the fix for the engine. The TypeScript servers were a different problem, and the engine session said so: it doesn't control them.
+
+## Why every session keeps a TypeScript server
+
+The 12 servers from the first pass were not leaks. Each one was the child of a live `claude` process:
+
+```
+tsserver
+  └ typescript-language-server --stdio
+      └ claude --output-format stream-json ...
+          └ Claude.app
+```
+
+The desktop app keeps a session's CLI process alive until the session is archived. The `typescript-lsp` plugin starts a language server the first time that process touches a TypeScript file, and the server lives as long as the process. So every session that ever opened a `.ts` file holds 0.5 to 1.4 GB until someone archives it.
+
+I had 194 unarchived sessions. 151 of them were idle with a merged or closed PR. There were 47 live CLI processes. Claude checked the other direction too: none of the 6 archived sessions had a live process, so archiving does release everything.
+
+Both auto-archive settings were off. Claude turned on archiving after 2 days of inactivity. Archiving when a PR merges is a separate setting, and auto mode blocked that change, so it's still on my list. The 2-day setting started working immediately and archived most of the old sessions before Claude got to them. After archiving the rest by hand, there were 14 unarchived sessions, 20 CLI processes, and one TypeScript language server. Swap was down to 8.5 GB.
+
+## A lighter server
+
+Archiving fixes how many servers stay alive. Each one is still heavy, because `typescript-language-server` is a Node wrapper around Node `tsserver` processes. In the scan, every session's server showed up as a pair.
+
+TypeScript 7, the Go rewrite, went stable in July, and the compiler ships its own language server. The `--help` output doesn't list it, but `tsc --lsp --stdio` answers an LSP `initialize` request. Claude wrote a small benchmark that starts a server, opens `TocRail.tsx` in Visual Notes, waits for diagnostics, asks for a hover, and adds up memory for the whole process tree:
+
+| | `typescript-language-server` (TS 5.9) | TS 7 `tsc --lsp` |
+|---|---|---|
+| Processes | 4 | 1 |
+| Memory with one file open | 996 MB | 414 MB |
+| First diagnostics | 3.2 s | 0.4 s |
+| Hover | worked | worked |
+
+That needs one caveat. In the last post, a full `tsc` check of Visual Notes under TypeScript 7 used about the same memory as 5.9, or more with parallel checkers. A full-project check and a language server with one file open are different workloads. For the full check, TypeScript 7 is faster but not lighter. As the language server inside each agent session, which is the case I have dozens of, it's one process instead of four and about 60% less memory. I'd expect the gap to narrow as a session opens more files, and I haven't measured that.
+
+## The plugin
+
+Claude Code plugins can declare LSP servers, so the swap is a local plugin. TypeScript 7 is installed in its own folder, so the global TypeScript 5.9 that other tools use stays put:
+
+```bash
+mkdir -p ~/.local/share/typescript7
+cd ~/.local/share/typescript7 && npm init -y && npm install typescript@7.0.2
+```
+
+The plugin lives in a local marketplace at `~/.claude/local-marketplace`:
+
+```
+local-marketplace/
+├── .claude-plugin/marketplace.json
+└── plugins/typescript7-lsp/
+    ├── .claude-plugin/plugin.json
+    ├── .lsp.json
+    └── README.md
+```
+
+`marketplace.json`:
+
+```json
+{
+  "name": "byron-local",
+  "owner": { "name": "Byron Wall" },
+  "plugins": [
+    {
+      "name": "typescript7-lsp",
+      "description": "TypeScript/JavaScript code intelligence from the TypeScript 7 native (Go) language server",
+      "version": "1.0.1",
+      "source": "./plugins/typescript7-lsp"
+    }
+  ]
+}
+```
+
+`plugins/typescript7-lsp/.claude-plugin/plugin.json`:
+
+```json
+{
+  "name": "typescript7-lsp",
+  "version": "1.0.1",
+  "description": "TypeScript 7 native language server for Claude Code"
+}
+```
+
+`plugins/typescript7-lsp/.lsp.json` points straight at the native binary, not the `tsc` Node shim, so there's no Node process at all:
+
+```json
+{
+  "typescript": {
+    "command": "/Users/byronwall/.local/share/typescript7/node_modules/@typescript/typescript-darwin-arm64/lib/tsc",
+    "args": ["--lsp", "--stdio"],
+    "extensionToLanguage": {
+      ".ts": "typescript",
+      ".tsx": "typescriptreact",
+      ".js": "javascript",
+      ".jsx": "javascriptreact",
+      ".mts": "typescript",
+      ".cts": "typescript",
+      ".mjs": "javascript",
+      ".cjs": "javascript"
+    }
+  }
+}
+```
+
+`plugins/typescript7-lsp/README.md`:
+
+```markdown
+# typescript7-lsp
+
+Runs the TypeScript 7 native language server (`tsc --lsp --stdio`) instead of
+`typescript-language-server` + Node `tsserver`. One process per session.
+
+The binary is installed in `~/.local/share/typescript7`. To update it:
+
+    cd ~/.local/share/typescript7 && npm install typescript@latest
+```
+
+Installing it and turning off the official plugin:
+
+```bash
+claude plugin marketplace add ~/.claude/local-marketplace
+claude plugin install typescript7-lsp@byron-local
+claude plugin disable typescript-lsp@claude-plugins-official
+```
+
+### The first version loaded zero servers
+
+The first version copied the official plugin's layout, which declares `lspServers` inside the marketplace entry. `claude plugin details` listed the LSP server, so it looked fine. The first headless session I ran had no LSP tool at all. With `--debug`, the log said it plainly:
+
+```
+[DEBUG] Total LSP servers loaded: 0
+```
+
+The official plugin has no `plugin.json`, so its marketplace entry is its manifest. Mine had a `plugin.json`, which took precedence and declared no servers. Moving the server into the plugin's own `.lsp.json` and bumping the version fixed it:
+
+```
+[DEBUG] Total LSP servers loaded: 1
+[DEBUG] LSP manager initialized with 1 servers
+```
+
+A fresh headless session then ran a hover on `TocRail` (`function TocRail(props: Props): JSX.Element`) and a go-to-definition on the `TocMarker` import (`src/components/toc/types.ts:9:13`). It also reported a config error in that checkout's tsconfig, which is the next problem.
+
+## TypeScript 7 rejects some configs outright
+
+TypeScript 7 removed several compiler options. If a tsconfig sets one, the compiler and language server stop at a config error and never type-check the project. Claude's diagnostics for that repo become one line about the config.
+
+The options that showed up in my repos:
+
+- `baseUrl` (TS5102)
+- `moduleResolution: "node"`, which is node10 (TS5108)
+- `target: "es5"` (TS5108)
+- `outDir` without an explicit `rootDir` (TS5011)
+
+`tsc --listFilesOnly -p tsconfig.json` reports these in about 0.15 seconds without a full type check. `--showConfig` does not report them.
+
+Claude built the list of repos from my session history and `~/.claude/projects`, which includes terminal sessions: 14 repos. Then it checked every tracked tsconfig on each repo's `main`, not whatever branch the checkout happened to be on. Eight were already fine. Six needed changes:
+
+- **explorEDA** ([#528](https://github.com/byronwall/explorEDA/pull/528)): `baseUrl` in three configs, `moduleResolution: "node"` in the shared base config, and a missing `rootDir` in two configs. Switching to `bundler` also made two `@ts-expect-error` comments unnecessary. They said "the package uses export maps, but this project uses legacy module resolution", and `bundler` honors export maps. CI also wanted a changeset because the package's tsconfig changed.
+- **bible-daily** ([#24](https://github.com/byronwall/bible-daily/pull/24)): `baseUrl` and `moduleResolution: "node"`.
+- **comic-book-creator** ([#13](https://github.com/byronwall/comic-book-creator/pull/13)), **prod-mgmt-grid** ([#66](https://github.com/byronwall/prod-mgmt-grid/pull/66)) and **recipes-modern** ([#41](https://github.com/byronwall/recipes-modern/pull/41)): `baseUrl` only.
+- **wall-portfolio** ([#4](https://github.com/byronwall/wall-portfolio/pull/4)), this site: all three removed options.
+
+Most of the `baseUrl` removals did nothing, because every `paths` entry was already `./`-relative and `baseUrl` pointed at the tsconfig's own folder. This site was the exception. 43 imports like `"app/dev-feedback/server/request"` were resolving from the project root through `baseUrl`, so it became an explicit `"app/*": ["./app/*"]` paths entry.
+
+For each repo, the check was the same: TypeScript 7 reports no config errors, and the set of source-file errors under the repo's own TypeScript is identical before and after. explorEDA also got a package build, `check-types` in all three projects, and the edited tests. This site got a `next build`. Two repos still have hundreds of pre-existing errors that come from Panda's generated `styled-system` folder not existing in a fresh worktree. Those didn't change.
+
+explorEDA still has 9 errors that only TypeScript 7 reports: stricter "possibly undefined" checks, a `Buffer` type that is no longer a `BlobPart`, an unknown option in a test, and three CSS side-effect imports, which TypeScript 7 now checks by default. Claude shows them as diagnostics on those files. Fixing them is part of moving explorEDA itself to TypeScript 7, which is a separate job from getting the language server to load its configs.
+
+## Catching the next repo
+
+New repos and old ones I haven't opened in a while will have the same configs. I wanted Claude to notice that at the start of a session instead of me finding it later as a pile of config diagnostics.
+
+The check is a script, `~/.claude/scripts/ts7-config-check.sh`:
+
+```zsh
+#!/bin/zsh
+# Report tsconfig options that TypeScript 7 rejects (TS5xxx config errors).
+# Claude Code's TypeScript LSP is the TypeScript 7 native server, which stops
+# at these errors and never type-checks the project.
+#
+# Usage: ts7-config-check.sh [dir]        human-readable report, exit 1 on errors
+#        ts7-config-check.sh --hook       SessionStart hook: silent when clean
+setopt nullglob
+
+TS7=~/.local/share/typescript7/node_modules/@typescript/typescript-darwin-arm64/lib/tsc
+hook=0
+[[ $1 == --hook ]] && { hook=1; shift; }
+dir=${1:-${CLAUDE_PROJECT_DIR:-$PWD}}
+[[ -x $TS7 ]] || exit 0
+cd $dir 2>/dev/null || exit 0
+
+# Tracked configs only, so node_modules and build output never count.
+configs=(${(f)"$(git ls-files '*tsconfig*.json' 2>/dev/null | grep -v -E '(^|/)(node_modules|dist|build)/')"})
+(( ${#configs} )) || exit 0
+(( ${#configs} > 25 )) && configs=(${configs[1,25]})
+
+report=""
+for f in $configs; do
+  errs=$(cd ${f:h} && $TS7 --listFilesOnly -p ${f:t} 2>&1 | grep -E 'error TS5[0-9]{3}' | sed -E 's/^/    /')
+  [[ -n $errs ]] && report+="  $f\n$errs\n"
+done
+[[ -z $report ]] && exit 0
+
+fixes="Usual fixes: drop \"baseUrl\" when every \"paths\" entry is ./-relative (otherwise add a paths entry for each root folder imported bare, e.g. \"app/*\": [\"./app/*\"]); \"moduleResolution\": \"node\" -> \"bundler\" for Vite/Next/tsup projects (\"nodenext\" for plain Node); \"target\": \"es5\" -> \"ES2017\" or later; add \"rootDir\" (the common source folder) wherever \"outDir\" is set. Verify with the project's own tsc that errors in source files don't change."
+
+if (( hook )); then
+  print -r -- "TypeScript 7 config check: these tsconfig files use options TypeScript 7 removed. Claude's TypeScript LSP (TS 7 native) reports only these config errors for this project until they are fixed. Mention this to the user if you work on TypeScript here; don't change the configs unless they ask."
+  print -- "$report"
+  print -r -- "$fixes"
+  exit 0
+fi
+print -- "TypeScript 7 rejects options in:\n$report"
+print -r -- "$fixes"
+exit 1
+```
+
+Run by hand, it prints the problems and exits 1. With `--hook`, it prints nothing when the repo is clean, and otherwise gives Claude the errors and the usual fixes. It tells Claude to mention the problem but not to edit the configs unless I ask. I didn't want every session in an old repo to start by rewriting its tsconfig.
+
+Auto mode wouldn't let Claude edit its own hook settings, which is reasonable. I didn't want to hand-edit `settings.json` either, so it wrote a script I could run once, `~/.claude/scripts/add-ts7-hook.sh`:
+
+```zsh
+#!/bin/zsh
+# Add the TypeScript 7 config check as a SessionStart hook in
+# ~/.claude/settings.json. Safe to run more than once: it skips if the hook
+# is already there, and keeps a backup next to the file.
+set -euo pipefail
+
+settings=~/.claude/settings.json
+cmd='~/.claude/scripts/ts7-config-check.sh --hook'
+
+if jq -e --arg c "$cmd" '[.hooks.SessionStart[]?.hooks[]?.command] | index($c)' "$settings" >/dev/null; then
+  echo "Hook already present in $settings, nothing to do."
+  exit 0
+fi
+
+backup="$settings.bak-$(date +%Y%m%d-%H%M%S)"
+cp "$settings" "$backup"
+
+tmp=$(mktemp)
+jq --arg c "$cmd" '.hooks.SessionStart = ((.hooks.SessionStart // []) + [{
+  "matcher": "startup",
+  "hooks": [{ "type": "command", "command": $c, "timeout": 20 }]
+}])' "$settings" > "$tmp"
+
+# Only replace the file if the result is valid JSON that contains the hook.
+jq -e --arg c "$cmd" '[.hooks.SessionStart[].hooks[].command] | index($c)' "$tmp" >/dev/null
+mv "$tmp" "$settings"
+
+echo "Added the TS 7 config check to SessionStart in $settings"
+echo "Backup: $backup"
+jq '.hooks.SessionStart' "$settings"
+```
+
+What it adds to `settings.json`:
+
+```json
+"SessionStart": [
+  {
+    "matcher": "startup",
+    "hooks": [
+      {
+        "type": "command",
+        "command": "~/.claude/scripts/ts7-config-check.sh --hook",
+        "timeout": 20
+      }
+    ]
+  }
+]
+```
+
+This is the full text a session gets at startup, from this site's tsconfig before the fix:
+
+```
+TypeScript 7 config check: these tsconfig files use options TypeScript 7 removed. Claude's TypeScript LSP (TS 7 native) reports only these config errors for this project until they are fixed. Mention this to the user if you work on TypeScript here; don't change the configs unless they ask.
+  tsconfig.json
+    tsconfig.json(3,15): error TS5108: Option 'target=ES5' has been removed. Please remove it from your configuration.
+    tsconfig.json(12,25): error TS5108: Option 'moduleResolution=node10' has been removed. Please remove it from your configuration.
+    tsconfig.json(16,5): error TS5102: Option 'baseUrl' has been removed. Please remove it from your configuration.
+
+Usual fixes: drop "baseUrl" when every "paths" entry is ./-relative (otherwise add a paths entry for each root folder imported bare, e.g. "app/*": ["./app/*"]); "moduleResolution": "node" -> "bundler" for Vite/Next/tsup projects ("nodenext" for plain Node); "target": "es5" -> "ES2017" or later; add "rootDir" (the common source folder) wherever "outDir" is set. Verify with the project's own tsc that errors in source files don't change.
+```
+
+The first real test was a headless session in my local wall-portfolio checkout, which hadn't pulled the fix yet. It quoted that first line back, listed the three options, and said it hadn't changed anything because the check told it not to. That's the behavior I wanted.
+
+## What's left
+
+- Turn on auto-archive when a PR merges. Most of the 151 idle sessions were sitting on merged PRs.
+- The srcly engine memory pass is still running in its own session. The `TocRail` cost run is the repro.
+- explorEDA's 9 TypeScript 7–only errors, when I move that repo to TypeScript 7 for real.
+- About 20 dormant repos still set `baseUrl`. The hook will flag them when I open one.
+
+The bigger change is the per-session baseline. Before, each agent session that touched TypeScript held four processes and about a gigabyte until I archived it. Now it's one process and about 400 MB, and sessions archive themselves after two days. The next jam will probably come from a runaway script, not a pile of idle servers.
