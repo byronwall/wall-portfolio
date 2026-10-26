@@ -1,118 +1,100 @@
 ---
-title: Cleaning up 6,000 notes with decision models, and what a good question looks like
+title: Cleaning up 6,300 notes, from decision models to a working review queue
 publishedAt: 2026-10-25
-summary: 'Testing TypeSafe Jev and the OpenAI Decisions API on note cleanup: the process, the shape of questions that work, and why my own labels changed the answer from delete to distill.'
+summary: 'How my own labels changed Visual Notes cleanup from deletion to distillation, what Jev suggested across the collection, and what production verification caught.'
 image: "/images/posts/cleaning-up-notes-with-decision-models/trim-signals.svg"
 project: visual-notes
-type: experiment
+type: update
 ---
 
-My Visual Notes site has about 6,300 notes, and a lot of them are low value for different reasons. Some are old ChatGPT transcripts I saved. Some are pages left over from a Notion import. Some are plans for events that already happened. Some are empty captures. I wanted to know whether a cheap decision API could drive the cleanup: is this note worth keeping, should it be summarized, should these notes be combined.
+My [Visual Notes](/projects/visual-notes) collection had 6,349 notes when this shipped. Some were saved chatbot conversations, some were import leftovers, and some were plans for events that already happened. Useful information was often buried inside material I no longer needed.
 
-My starting assumption was that three or four Jev calls would be much cheaper than LLM calls. That turned out to be true and mostly irrelevant. The useful parts were somewhere else.
+The cleanup feature now ranks those notes for review. Jev assesses them, code suggests an action, and an LLM drafts a shorter version when I open a distill card. I decide what to keep. Getting there required an experiment that changed the product's direction, followed by production checks that found several things the tests missed.
 
-## What a decision model returns
+## The reference had the wrong taste
 
-TypeSafe Jev and the OpenAI Decisions API work the same way. You send some state and a set of typed questions, and you get back probabilities instead of text. There are three question types: yes/no (Jev calls it a Noul, OpenAI a predicate), a pick-one choice, and a score on a rubric of 2 to 10 levels.
+On October 24, I tested 144 production notes with Jev `jev-1.14.0` and OpenAI Decisions `gpt-6-luna`. The experiment repeated calls, reversed choice order, asked section and pair questions, and included a normal LLM baseline. It cost $0.061 on Jev and $0.232 on OpenAI, including that baseline.
 
-```json
-{
-  "state": { "owner": { "...": "..." }, "facts": { "source": "chatgpt_transcript", "words": 1278 },
-             "note": { "title": "CSS Animations and Transitions", "body": "..." } },
-  "questions": {
-    "copied_or_generated": { "type": "noul",
-      "instructions": "Was most of `note.body` copied from a website or produced by a chatbot or agent, rather than written by `owner` in his own words?" }
-  }
-}
-```
+A Claude reference read every note and supplied labels. It favored deletion: 58 of the 144 notes. The models could agree with that reference and still produce a cleanup queue I did not want.
 
-The answer comes back as `{"noul": 0.96}`. All the questions in one request run in parallel against the same state, so a dozen questions cost roughly what one does. Neither API writes anything. They judge. If a note needs a summary or a new title, an LLM still has to write it.
+I then labeled 60 notes blind: all 41 holdouts plus 19 development notes selected for disagreement.
 
-## The process
+| My action | Notes |
+| --- | ---: |
+| Keep | 37 |
+| Keep but trim | 14 |
+| Archive | 6 |
+| Make task | 2 |
+| Delete | 1 |
 
-Claude did most of the legwork across a few sessions. The steps were:
+Five of the keeps also needed regrouping. These are labels for a selected sample, not an estimate of the whole collection.
 
-1. **Research the APIs.** Read what both vendors document and what independent benchmarks say. Jev is $0.042 per million input tokens and OpenAI is $0.10, with output free on both.
-2. **Sample real notes.** I pulled 144 notes from prod over the app's MCP connector, picking them by type: ChatGPT transcripts, bulk imports, notes I wrote, and notes written by agents. Each was assigned to a dev or holdout set using a hash of its id, so the split never moves.
-3. **Compute what code can know.** Source, word count, headings, and the latest date mentioned in the body all come from plain code before any model sees the note. That last one matters because these models are bad at comparing dates.
-4. **Write the questions.** The wording came from the OpenAI guide, TypeSafe's page of known weak spots, and two community Jev skills. More on that below.
-5. **Run everything twice, plus variants.** Each vendor got the 12 per-note questions, a repeat of the same call, the choice questions with options reversed, a section-by-section pass for split detection, and 36 note pairs. The same questions also went to an LLM through a normal JSON-schema call as a baseline.
-6. **Get reference labels.** A Claude subagent read every note in full and answered the same questions.
-7. **Label them myself.** I labeled 60 notes blind on a throwaway HTML page: keep, keep but trim, archive, delete, or make a task. It covered all 41 holdout notes plus the 19 dev notes where the model and the reference disagreed most.
+Claude matched only 33% of my exact verdicts. A saved answer can be generic and still contain a fix worth keeping. An expired event plan can lose its schedule while keeping a reusable checklist. Several short notes can belong together without any of them being junk.
 
-The whole experiment, about 1,400 requests, cost $0.06 on Jev and $0.23 on OpenAI.
+The useful action was often to distill the durable part or put it with related information. A reference model's labels could not settle that choice for me.
 
-## The shape of a good question
+## Ask the small question
 
-Most of the gain came from question design. A few rules did the heavy lifting:
+The strongest trim signal was one yes/no question: was most of the note copied or generated?
 
-**One snap judgment per question.** "Is this note worth keeping?" is a bad question. It hides five other questions. Is it empty? Is it leftovers from an import? Did I write it? Could I get it again with one search? Is it tied to a date that passed? Each of those is something a person could answer in a second, and each one became its own question.
+That signal ranked my trim labels at AUC 0.93 on Jev and 0.92 on OpenAI. The holistic “keep but trim” verdict scored 0.51 and 0.40, near chance or worse. On both vendors, the top ten notes ranked by the narrow signal contained nine trims and one archive.
 
-**Make high mean yes.** My first draft had a question about whether a note was "generic". It worked better flipped around: "Does `note.body` contain something specific to `owner`: his own decisions, measurements, logs, plans, opinions, or results?" No double negatives, and a 0.9 means what it looks like it means.
+![AUC against 60 owner labels. The copied-or-generated signal finds trim candidates much better than the holistic verdict.](/images/posts/cleaning-up-notes-with-decision-models/trim-signals.svg)
 
-**Describe situations, not degrees.** Score levels like low, medium, and high are judged one at a time, so "medium" means nothing on its own. The length question uses levels like "it is long because it holds many entries, rows, or distinct items" and "it is long because of repetition, chat back-and-forth, or filler". Those levels separate a long log, which is fine, from a long ChatGPT transcript, which usually is not.
+This gave the implementation a useful division of work. Code computes source, word count, and dates. The decision model answers narrow questions about content. Code combines those answers into a ranked queue. A writing model drafts when there is something to review.
 
-**Keep dates, counting, and math in code.** Jev can't reliably order dates. So the model only answers "is this note about a one-time event or a plan for a specific window?" Code checks whether the latest date in the body has passed and combines the two.
+Reversing the note-kind choices changed OpenAI's answer on 14% of notes and Jev's on 5%. A probability is useful for sorting, but it does not make a suggestion true. The [experiment results](https://github.com/byronwall/visual-notes/blob/main/docs/intent/notes-cleanup-decisions/results.md) include the protocol, costs, and both sets of labels.
 
-**Put the comparison target in the state.** "Is this generic?" depends on who is asking. Every request carries a short owner profile: what I do, what I keep, what I drop. Without it, "specific to the owner" has nothing to compare against.
+## What the whole collection looks like
 
-**Give the bottom tier a real meaning.** For note pairs, the lowest level of the relation score is "different problems that happen to share some vocabulary". Without that tier, two notes that both mention "link" get pulled toward "same area".
+The first production sweep saved 6,335 Jev assessments with zero failures. Collection rows, events, and places are excluded from assessment. Their structured fields can hold the value even when the note body is empty.
 
-**Let code combine the answers.** This was the biggest result, so it gets its own section.
+A read-only snapshot at **10:20 p.m. EDT on October 25, 2026** showed this distribution. Percentages use the 6,335 assessed notes as the denominator.
 
-## Results against the Claude reference
+| Suggested bucket | Notes | Share |
+| --- | ---: | ---: |
+| Distill | 3,352 | 52.91% |
+| Delete, through archive | 1,556 | 24.56% |
+| Keep | 1,172 | 18.50% |
+| Make task | 206 | 3.25% |
+| Post-event | 49 | 0.77% |
 
-On the narrow questions, both APIs agreed with the reference 80 to 97% of the time. That is the same range as the LLM baseline, at 0.17 seconds per note for Jev and 0.24 seconds for OpenAI, against 3.8 seconds for the LLM. The structural questions, empty or stub and import leftovers, were near perfect.
+All assessments used `jev-1.14.0`, question set `v1`. All 6,335 were still unreviewed. These are model signals combined with code rules, not my decisions. The delete bucket's size does not establish that a quarter of the collection should disappear.
 
-Then I compared three ways of turning those answers into a verdict:
+Regroup is separate from this per-note partition. The snapshot held 4,096 pair assessments, with 460 pairs meeting the combine threshold. Pairs can share notes, so those counts cannot be added to the table or treated as 460 independent merges.
 
-- **Hand-written threshold rules** agreed with the reference about 68% of the time. My rules were the weak link.
-- **One holistic question**, "what should he do with this note?", ranked drop-vs-keep at AUC 0.83 to 0.88.
-- **Weights fit in code on the narrow answers** reached AUC 0.92 to 0.94 on holdout. The 30 notes ranked most likely to drop were all drops by the reference.
+Distillation is the largest suggested job. The next evidence comes from reviewing the suggestions and seeing which ones I accept.
 
-The weights mostly learned two things: did I write it, and could I get it again. That ordering held on both vendors.
+At an earlier billing checkpoint, the production key showed **$1.14 estimated spend**, 15,888 requests, and 27,142,782 input tokens, including regroup work. That is separate from the small experiment above. Dashboard totals can lag; this was not a final bill.
 
-Pairs worked well too. Related notes separated from notes that only share words at AUC 0.98 to 0.99, which makes embedding neighbors plus one decision call a realistic way to find merge candidates.
+## A queue I can act on
 
-Order bias was the one problem that came up. When I reversed the options on the "what kind of note is this" question, OpenAI changed its answer on 14% of notes and Jev on 5%. OpenAI was perfectly repeatable run to run. Jev moved a little, enough to flip a few notes sitting right at a threshold.
+The shipped interface has ranked buckets for a deep pass and a daily stack with eight cards. Each note explains why it appeared. Distill and combine drafts use OpenAI on demand and can go into a new or existing note. A header chip brings the suggestion into the normal note view.
 
-## Then I labeled them myself
+Keep hides a note from cleanup for six months. Snooze hides it for 30 days. Regroup can combine related notes or file a note into a path or collection without rewriting it.
 
-This is where the experiment changed direction. The Claude reference matched my labels only 33% of the time. On drop-vs-keep it was close to a coin flip.
+Approving a distill or combine archives the source. Links follow the retained content, and the archive provides Restore. After 30 days, archived notes are automatically deleted, leaving a small record so old links can still resolve. That retention rule starts after an approved action. Assessment alone does not archive or delete anything.
 
-The disagreement had a pattern. Claude marked 58 of the 144 notes for deletion: generic CSS troubleshooting chats, a saved Postgres backup conversation, old library lists. I marked one note for deletion in my 60. Most of the notes Claude wanted gone, I wanted kept but distilled. My reasons said things like "any durable info in there to distill out?", "could be summarized now that the event has passed", and "belongs in a prompt collection".
+Production verification loaded the buckets, daily cards, archive page, search, and header chip. It generated a successful draft with an enabled Distill action. It did not execute an archive or delete action, so those paths remain outside the live verification claim. The [implementation notes](https://github.com/byronwall/visual-notes/blob/main/app/docs/note-cleanup.md) describe the shipped flows.
 
-Of my 60 labels, 62% were keep, 23% keep but trim, 12% archive or delete, and 3% make a task. Cleanup for me is mostly distilling and regrouping, not deleting.
+## What production caught
 
-![Dot plot of AUC for finding notes labeled keep but trim. copied_or_generated scores 0.93 on Jev and 0.92 on OpenAI; the holistic verdict question scores 0.51 and 0.40, at or below chance.](/images/posts/cleaning-up-notes-with-decision-models/trim-signals.svg)
+PostgreSQL lived inside the application's Compose project, rather than in a separate Coolify database resource. A roughly 1.2 GB dump passed a full read validation, with another copy on the host. Both copies remained on the same server. Four additive migrations applied; the handoff had counted three.
 
-The best signal for the distill queue turned out to be a single yes/no question: "was this copied or generated?" It ranks my trim notes at AUC 0.93 on Jev and 0.92 on OpenAI. Sorted by that score, the top 10 notes were 9 trims and 1 archive. Every one of them needed action.
+Compose omitted `TYPESAFE_API_KEY` and `CLEANUP_DECIDER`; the OpenAI key already existed. [PR #233](https://github.com/byronwall/visual-notes/pull/233) fixed the mappings. A real draft then failed because the shared helper sent `temperature` to `gpt-5-mini`. [PR #234](https://github.com/byronwall/visual-notes/pull/234) removed unsupported sampling settings and restored successful drafts.
 
-The holistic verdict question could not find trims at all. Its probability for "keep but trim" scored at or below chance. That is the clearest evidence in the whole experiment for narrow questions combined in code over one big question.
+A background embedding timer then failed at `singleFlight`. It called a Solid router action without an HTTP router context. Tests had hidden the problem by replacing router actions with plain functions. [PR #235](https://github.com/byronwall/visual-notes/pull/235) moved the business logic into plain server workers, leaving router actions for browser requests.
 
-The drop score trained on Claude's labels did not transfer either. It learned Claude's taste. Only my labels can teach mine, and 60 was enough to show that.
+Once that worked, a larger vector batch took over seven seconds and exceeded Prisma's five-second interactive transaction limit. [PR #236](https://github.com/byronwall/visual-notes/pull/236) gave that vector-write transaction 60 seconds while keeping deletes and replacement writes atomic.
 
-## What the cost question turned into
+The final rollout also filled the 71 GB server disk with repeated image builds. Coolify returned 500 and the app stopped. Removing unused Docker build cache recovered space without removing volumes or backups. The rollout finished from the already built final image. The stale job was cancelled after manual recovery, so its cancelled status did not describe the running application.
 
-A full pass over all 6,300 notes would cost about $0.70 on Jev or $2.20 on OpenAI. The LLM baseline, on the same small model, came out about the same as OpenAI's decision API. At this scale cost does not decide anything.
+## Working, with catch-up still running
 
-What the decision APIs actually buy:
+The verified image was `137cbdb9f817792b97041244fa5d6c45b87f6935`. The login route returned HTTP 200, no migrations remained, and the server had about 16 GB free. Both embedding fixes passed CI, and 19 focused tests passed.
 
-- **Latency.** At 0.2 seconds, a note can be assessed when it is saved, not in a weekly batch.
-- **Probabilities.** A review queue can be sorted, with a band for "unsure" instead of a hard cutoff.
-- **Pairs.** Pair counts grow faster than note counts, and a cheap call per candidate pair makes merge detection practical.
-- **No parsing.** The answer is always one of the options I declared.
+The embedding count rose from 6,263 to 6,347, covering 84 previously missing notes. A later checkpoint recorded 75 replacements after the final startup. Multiple changed-note batches projected 25 points each with zero failures.
 
-I would start with Jev. It is about three times cheaper, a bit faster, and less sensitive to option order. The vendor was never the bottleneck, though. The question wording and the code that combines the answers mattered far more.
+That did not finish the backlog. One checkpoint still had 6,138 changed notes waiting, and two notes produced no embedding chunks. Catch-up continued in the background.
 
-## What I would build
-
-The order now looks like:
-
-1. **A distill queue**, ranked by "copied or generated?". An LLM pulls out the durable facts and keeps a link to the original note. I approve the result.
-2. **Regroup suggestions.** Several of my labels said a note belongs with others. That needs the pair questions and a choice over my existing collections, not a per-note verdict.
-3. **Post-event summaries** for plans and outings whose dates have passed.
-4. **Make-task** for notes that are really a to-do. That question caught both of the notes I marked as tasks.
-5. **A rare delete queue.** Empty captures, mostly.
-
-One open question is how many labels it takes before a weighted combination beats the single best question. With 60 labels, it didn't yet.
+The useful result is a review queue backed by a measured signal and a working draft flow. Whether it makes the collection better depends on the next step: keeping the durable information, approving the changes, and using those decisions to judge the queue.
