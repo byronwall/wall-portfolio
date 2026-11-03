@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { highlight } from "./blog/blog-index";
+import { NotFoundArt } from "./not-found-art";
 import styles from "./not-found.module.css";
 
 export type FinderEntry = {
@@ -113,7 +114,7 @@ export function NotFoundFinder({ entries, sections }: { entries: FinderEntry[]; 
     .sort((a, b) => b.date.localeCompare(a.date))
     .slice(0, 5);
 
-  let heading = best ? "Other close matches" : "Closest matches";
+  let heading = best ? "Also nearby" : "Nearest neighbors";
   let rows = closest.map((item) => item.entry).filter((entry) => entry !== best);
   if (needle) {
     const found = searchEntries(entries, needle);
@@ -127,22 +128,25 @@ export function NotFoundFinder({ entries, sections }: { entries: FinderEntry[]; 
   return (
     <main className={styles.page}>
       <header className={styles.intro}>
-        <p className={styles.code}>404</p>
-        <h1 className="page-title">This page isn’t here</h1>
-        <p className={styles.lede}>
-          Nothing lives at <code className={styles.path}>{pathname}</code>.
-          {best ? (
-            <>
-              {" "}You may want{" "}
-              <Link className={styles.bestLink} href={best.href}>
-                {best.title}
-              </Link>
-              .
-            </>
-          ) : (
-            " It may have moved, or the link has a typo."
-          )}
-        </p>
+        <div className={styles.introText}>
+          <p className={styles.code}>404 · node not found</p>
+          <h1 className="page-title">This page floated off</h1>
+          <p className={styles.lede}>
+            Nothing is linked at <code className={styles.path}>{pathname}</code>.
+            {best ? (
+              <>
+                {" "}The nearest node is{" "}
+                <Link className={styles.bestLink} href={best.href}>
+                  {best.title}
+                </Link>
+                .
+              </>
+            ) : (
+              " It may have moved, or the link has a typo. The rest of the graph is still here."
+            )}
+          </p>
+        </div>
+        <NotFoundArt path={pathname} />
       </header>
 
       <div className={styles.body}>
@@ -169,7 +173,7 @@ export function NotFoundFinder({ entries, sections }: { entries: FinderEntry[]; 
 
           <h2 className={styles.heading} aria-live="polite">{heading}</h2>
           {rows.length === 0 ? (
-            <p className={styles.empty}>Nothing matches. Try a shorter word, or browse a section.</p>
+            <p className={styles.empty}>No nodes match. Try a shorter word, or browse a section.</p>
           ) : (
             <ol className={styles.rows}>
               {rows.map((entry) => (
