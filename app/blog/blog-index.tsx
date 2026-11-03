@@ -33,7 +33,7 @@ function countBy(posts: BlogIndexPost[], key: (post: BlogIndexPost) => [string, 
   return Array.from(counts.values()).sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
 }
 
-function highlight(text: string, query: string): ReactNode {
+export function highlight(text: string, query: string): ReactNode {
   if (!query) return text;
   const lower = text.toLowerCase();
   const parts: ReactNode[] = [];

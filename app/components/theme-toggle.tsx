@@ -12,6 +12,15 @@ export function ThemeToggle() {
   const [theme, setTheme] = useState<Theme | null>(null);
 
   useEffect(() => {
+    // A notFound() page from a slug route renders client-side, so the inline head script never ran.
+    if (!document.documentElement.dataset.theme) {
+      let saved: string | null = null;
+      try {
+        saved = localStorage.getItem("theme");
+      } catch {}
+      const dark = saved ? saved === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
+      document.documentElement.dataset.theme = dark ? "dark" : "light";
+    }
     setTheme(readTheme());
     // Follow the OS setting until the visitor picks a theme explicitly.
     const media = window.matchMedia("(prefers-color-scheme: dark)");

@@ -1,0 +1,56 @@
+.page { padding-bottom: 64px; }
+
+.intro { max-width: calc(760px + 2 * var(--page-gutter)); padding: 60px var(--page-gutter) 40px; }
+.code { margin: 0 0 14px; color: var(--accent-warm); font-size: 12px; font-weight: 650; letter-spacing: .08em; font-variant-numeric: tabular-nums; }
+.lede { max-width: 660px; margin: 22px 0 0; color: var(--ink-body); font-size: 17px; line-height: 1.55; text-wrap: pretty; }
+.path { padding: 1px 6px; border-radius: 4px; background: var(--surface-chip); color: var(--ink-primary); font-family: var(--font-geist-mono), monospace; font-size: .86em; overflow-wrap: anywhere; }
+.bestLink,
+.bestLink:visited { color: var(--action-primary); font-weight: 600; text-decoration: underline; text-decoration-color: var(--action-border); text-underline-offset: 3px; }
+.bestLink:hover { color: var(--action-hover); text-decoration-color: currentColor; }
+
+.body { display: grid; grid-template-columns: minmax(0, 1fr) 200px; gap: 64px; align-items: start; padding: 0 var(--page-gutter); }
+.finder { min-width: 0; max-width: 720px; }
+
+.search { position: relative; display: flex; align-items: center; height: 40px; border: 1px solid var(--border-quiet); border-radius: 6px; background: var(--surface-paper); transition: border-color 140ms ease; }
+.search:focus-within { border-color: var(--action-border); }
+.search svg { position: absolute; left: 11px; width: 16px; height: 16px; fill: none; stroke: var(--ink-muted); stroke-width: 1.7; stroke-linecap: round; pointer-events: none; }
+.search input { width: 100%; height: 100%; min-width: 0; padding: 0 32px 0 35px; border: 0; border-radius: 6px; background: transparent; color: var(--ink-primary); font: inherit; font-size: 14px; outline: none; }
+.search input::placeholder { color: var(--ink-muted); }
+.search input::-webkit-search-cancel-button { display: none; }
+.search kbd { position: absolute; right: 9px; display: grid; width: 18px; height: 18px; place-items: center; border: 1px solid var(--border-quiet); border-radius: 4px; color: var(--ink-muted); font-family: inherit; font-size: 11px; line-height: 1; }
+.search:focus-within kbd { opacity: 0; }
+
+.heading { margin: 26px 0 4px; color: var(--ink-muted); font-size: 11.5px; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; }
+.sections .heading { margin-top: 0; }
+.empty { margin: 14px 0 0; color: var(--ink-body); font-size: 15px; }
+
+.rows { margin: 0; padding: 0; list-style: none; }
+.rows li { border-bottom: 1px solid var(--border-quiet); }
+.row,
+.row:visited { display: grid; gap: 4px; padding: 13px 0; color: inherit; text-decoration: none; }
+.row:hover { color: inherit; text-decoration: none; }
+.title { color: var(--ink-primary); font-size: 16.5px; font-weight: var(--heading-weight); line-height: 1.3; letter-spacing: -.012em; text-wrap: pretty; transition: color 140ms ease; }
+.row:hover .title { color: var(--action-primary); }
+.summary { display: -webkit-box; overflow: hidden; color: var(--ink-body); font-size: 14px; line-height: 1.45; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.meta { color: var(--ink-muted); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.title mark, .summary mark { border-radius: 2px; background: color-mix(in srgb, var(--accent-warm) 28%, transparent); color: inherit; }
+.row:focus-visible { outline: 2px solid var(--action-border); outline-offset: 2px; border-radius: 4px; }
+
+.sections ul { display: grid; gap: 1px; margin: 6px 0 0 -8px; padding: 0; list-style: none; }
+.sections a,
+.sections a:visited { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 5px 8px; border-radius: 5px; color: var(--ink-body); font-size: 14px; text-decoration: none; transition: background-color 140ms ease, color 140ms ease; }
+.sections a:hover { background: var(--surface-quiet); color: var(--ink-primary); text-decoration: none; }
+.sections a span { color: var(--ink-muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+
+.srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+@media (max-width: 900px) {
+  .body { grid-template-columns: minmax(0, 1fr); gap: 36px; }
+  .sections ul { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 2px 12px; }
+}
+
+@media (max-width: 760px) {
+  .intro { padding-top: 40px; padding-bottom: 30px; }
+  .lede { margin-top: 18px; font-size: 16px; }
+  .page { padding-bottom: 44px; }
+}
