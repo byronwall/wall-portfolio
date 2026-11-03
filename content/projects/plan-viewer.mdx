@@ -1,0 +1,77 @@
+---
+title: "Plan Viewer"
+description: "A local reading desk for Markdown plans and tasks, with a PR review view that reads diffs from the clone already on disk"
+date: "2026-10-18"
+publishedAt: "2026-11-02"
+summary: "A local reading desk for Markdown plans and tasks, with a PR review view that reads diffs from the clone already on disk"
+tags: ["TypeScript", "Node.js", "Markdown", "Code Review", "Git", "AI Agents"]
+image: "/images/projects/plan-viewer/pr-treemap.png"
+repo: "https://github.com/byronwall/plan-viewer"
+---
+
+Plan Viewer turns a folder of Markdown daily plans and tasks into a fast, keyboard-driven app. It also shows the code those plans touch: worktrees, open PRs, commits, and a full diff viewer for review. The viewer never edits your files. The Markdown stays the source of truth, and agents make the changes.
+
+- Source: [byronwall/plan-viewer](https://github.com/byronwall/plan-viewer)
+
+## Interface
+
+Today's plan opens on launch. Each section is a card, and each card or next action can open as a draft in Codex or Claude Desktop.
+
+<div className="not-prose mt-6">
+  <img
+    src="https://raw.githubusercontent.com/byronwall/plan-viewer/main/docs/images/today.png"
+    alt="Plan Viewer showing today's plan with scheduled tasks and milestone cards"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+</div>
+
+## Reviewing pull requests
+
+The Code view lists open PRs across every tracked repository, with CI state, size, and a stack rail for stacked branches.
+
+<div className="not-prose mt-6">
+  <img
+    src="/images/projects/plan-viewer/code-prs.png"
+    alt="The Code view listing open pull requests across five repositories"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+</div>
+
+A PR opens in an overview with three columns: facts, notes, and commits; the file list; and the diff. The file list can switch to a treemap. Each tile is a file sized by changed lines, with the green and red bar at its foot showing additions and deletions. One look tells you where the weight of a change is before you read a line of it.
+
+<div className="not-prose mt-6">
+  <img
+    src="/images/projects/plan-viewer/pr-treemap.png"
+    alt="A PR overview with the change treemap beside the diff of the selected file"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+</div>
+
+Review notes are local Markdown files in the planning repository. Each note keeps the code it quotes. When new commits land, the note follows that code: it shows as moved to its new line, edited when only part of the quote survives, or outdated when the code is gone. **Clear stale** removes the ones that no longer apply.
+
+<div className="not-prose mt-6">
+  <img
+    src="/images/projects/plan-viewer/pr-notes.png"
+    alt="Review notes inline in a diff, marked moved, edited, and outdated"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+</div>
+
+## How it works
+
+- A Node server with no dependencies reads the planning folder and serves a plain JavaScript front end.
+- PR files, refs, and diffs come from the tracked local clone first, so large PRs and whole stacks open fast, even when GitHub's diff view gives up.
+- Review notes live in `plans/pr-notes/` as Markdown. An agent can read them, post them as a GitHub review, or work through them.
+- `plan-viewer lint` and `plan-viewer links` keep task front matter, work breakdowns, and links valid.
+
+## Highlights
+
+- Plans, tasks with dependency graphs, a week calendar, and an issues page for Jira and Linear
+- One-click handoff of any card or next action to a Codex or Claude draft
+- Change treemap with PNG export, split and unified diffs, and Viewed marks that remember when
+- Keyboard review flow: `D` for the description, `G` to widen, `X` to mark a file viewed and go to the next one
+- `⌘K` search across documents, tasks, PRs, and issues
