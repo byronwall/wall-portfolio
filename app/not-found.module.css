@@ -58,7 +58,7 @@
 }
 
 /* Floating elephant. Times stay long and amplitudes small so it reads as drift, not bounce.
-   Pivots use view-box coordinates: source image pixels minus the (220, 120) offset. */
+   Pivots are in source image pixels, the art's own user space. */
 .art { display: block; width: 100%; height: auto; overflow: visible; }
 .art line, .art path, .art circle, .art ellipse { stroke-linecap: round; }
 .graph line { stroke: var(--ink-primary); stroke-width: 8; }
@@ -77,10 +77,10 @@
 .ticks { animation: ticks 6s ease-in-out infinite; }
 
 .float { animation: bob 6s ease-in-out infinite; }
-.elephant, .balloon { transform-box: view-box; transform-origin: 1011px 141px; }
+.elephant, .balloon { transform-box: view-box; transform-origin: 1231px 261px; }
 .elephant { animation: sway 7.4s ease-in-out infinite; }
 .balloon { animation: sway 7.4s ease-in-out infinite reverse; }
-.tail { transform-box: view-box; transform-origin: 571px 482px; animation: swish 4.6s ease-in-out infinite; }
+.tail { transform-box: view-box; transform-origin: 791px 602px; animation: swish 4.6s ease-in-out infinite; }
 .eye { transform-box: fill-box; transform-origin: center; animation: blink 5.2s infinite; }
 
 @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
