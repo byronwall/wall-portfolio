@@ -16,6 +16,7 @@ import {
   CanvasWholeSystemPreview,
 } from 'app/blog/components/canvas-interactivity-explorer'
 import { GraphLayoutExplorer } from 'app/blog/components/graph-layout-explorer'
+import { AgreementWaffle, VariantRanker } from 'app/blog/components/variant-ranker'
 import { VaultwardenUpdatePath } from 'app/blog/components/vaultwarden-update-path'
 import { DiagramReviewSkillSource } from 'app/blog/components/diagram-review-skill-source'
 import { DateTableEmbed } from 'app/blog/components/date-table-embed'
@@ -164,6 +165,8 @@ let components = {
   CanvasSceneModelExplorer,
   CanvasWholeSystemPreview,
   GraphLayoutExplorer,
+  VariantRanker,
+  AgreementWaffle,
   VaultwardenUpdatePath,
   DiagramReviewSkillSource,
   DateTableEmbed,
