@@ -1,0 +1,41 @@
+---
+title: "Chat titles that show what still needs me"
+publishedAt: 2026-11-03
+summary: "A small naming convention lets an agent turn a crowded chat sidebar into a useful view of questions, approvals, and unfinished work."
+type: tooling
+---
+
+I had 93 pinned chats across Codex and ChatGPT. Their titles described the topics. I wanted to see which ones still needed something from me.
+
+So I asked Codex to apply my naming convention in several quick passes. It read the latest exchanges, renamed the chats, and checked the saved titles. The result included nine chats marked for my attention and 14 marked for PR review.
+
+The format is small:
+
+```text
+<status><type>[<attention>] <ID> · <short topic>
+```
+
+The first emoji shows the stage: investigating, planning, building, testing, in review, done, or parked. The second shows the kind of work. An optional third marks a question, a blocker, or a failure that needs me.
+
+For example:
+
+```text
+👀📝 PR-10 · John chapter analysis
+⭐ 🧭 00 · 🔨✨🚧 FSM baseline commit
+```
+
+The first points to work ready for review. The second identifies an orchestrator waiting for permission to commit. Its family prefix stays intact, so related chats remain recognizable.
+
+I keep these rules in my shared `AGENTS.md`. You could put the same procedure in a small skill:
+
+```text
+Read each pinned chat's latest exchange.
+Identify its stage and who owns the next action.
+Apply the title format; preserve existing family prefixes.
+Rename in batches, then check the saved titles.
+Report questions, blockers, and unfinished work.
+```
+
+The useful distinction is whether the agent finished its turn or the work reached its intended result. A chat can end with passing tests and still wait on a product answer, an approval, or a PR review. Those states deserve different titles.
+
+This pass used the latest chat messages. It did not recheck GitHub, so the review markers may need another pass. Keeping the titles current as work changes is part of the rule. The sidebar can then show where to resume without opening every conversation.
