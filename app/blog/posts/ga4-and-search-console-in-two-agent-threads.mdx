@@ -4,6 +4,7 @@ publishedAt: 2026-11-04
 summary: 'Codex did the Google console work in 25 minutes. Claude turned it into six merged PRs, working sitemaps, a read-only metrics script, and a retired Umami server in about 45. Then the daily review started reading the numbers.'
 project: plan-viewer
 type: tooling
+articleHero: false
 ---
 
 I want to know three things about my sites: whether people use them, how they find them, and when one breaks. At the start of the night, I could answer almost none of that. byroni.us and hn.byroni.us sent visits to a self-hosted Umami server. Nothing else reported anything. My daily review only checked that each URL returned a 200.
@@ -65,7 +66,13 @@ SITE https://byroni.us
   GSC sitemap https://byroni.us/sitemap.xml: processed, 128 URLs, errors 0, warnings 0
 ```
 
-GA4 shows zeros because the tags went live that night, and standard reports cover full days. Realtime already had 22 active users on hn.byroni.us. The Search Console numbers show something I did not know: my post about [patching Coolify's PHP](/blog/from-php-vulnerability-to-verified-coolify-update) gets the most impressions of anything on the site.
+GA4 shows zeros because the tags went live that night, and standard reports cover full days. Realtime already had 22 active users on hn.byroni.us.
+
+![GA4 Realtime overview for hn.byroni.us: a world map with active users in the US, Europe, India and East Asia, and 77 active users in the last 30 minutes](/images/posts/ga4-and-search-console-in-two-agent-threads/hn-realtime-map.png)
+
+That is the hn.byroni.us property about an hour after its tag went live: 77 active users in the last 30 minutes, from the US to India.
+
+The Search Console numbers show something I did not know: my post about [patching Coolify's PHP](/blog/from-php-vulnerability-to-verified-coolify-update) gets the most impressions of anything on the site.
 
 The first version of this output had a quiet bug. Search Console orders rows by clicks, and almost every query had zero clicks, so the "top 10" queries came back roughly alphabetical. "byron ganes" with one impression was in the list, and "coolify php" with 36 was not. The script now fetches every row and sorts by impressions. I only saw it because I asked for a sample of the real output.
 
