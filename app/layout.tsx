@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { Navbar } from "./components/nav";
+import Script from "next/script";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Footer } from "./components/footer";
@@ -68,6 +69,9 @@ export const metadata: Metadata = {
   },
 };
 
+const gaId = "G-GQQ3NPGZYD";
+const gaScript = `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date());gtag("config","${gaId}");`;
+
 const cx = (...classes) => classes.filter(Boolean).join(" ");
 
 // Runs before paint so the saved theme (or the OS setting) applies without a flash.
@@ -89,11 +93,6 @@ export default function RootLayout({
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-        <script
-          defer
-          src="https://as8ws0w.apps.byroni.us/script.js"
-          data-website-id="03d5aaeb-7747-4d42-83b1-a3e859babdca"
-        ></script>
       </head>
       <body className="antialiased">
         <div className="site-shell">
@@ -105,6 +104,17 @@ export default function RootLayout({
           <Analytics />
           <SpeedInsights />
           {process.env.NODE_ENV === "development" ? <DevFeedbackOverlay /> : null}
+          {process.env.NODE_ENV === "production" ? (
+            <>
+              <Script
+                src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+                strategy="afterInteractive"
+              />
+              <Script id="ga4" strategy="afterInteractive">
+                {gaScript}
+              </Script>
+            </>
+          ) : null}
         </div>
       </body>
     </html>
