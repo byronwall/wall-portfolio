@@ -5,6 +5,7 @@ import {
   getBlogPosts,
   getProjects,
   sortPostsNewestFirst,
+  sortProjectsForIndex,
 } from "./blog/utils";
 import { experiences } from "./experience/data";
 
@@ -13,14 +14,16 @@ export default function Home() {
   const projectTitles = new Map(
     projects.map((project) => [project.slug, project.metadata.title]),
   );
-  const featuredProjects = projects
-    .filter((project) => project.metadata.featured === "true")
-    .sort((a, b) => (a.slug < b.slug ? -1 : 1))
-    .slice(0, 2);
+  const featuredProjects = sortProjectsForIndex(
+    projects.filter((project) => project.metadata.featured === "true"),
+  ).slice(0, 2);
+  const projectOrder = (slug?: string | string[]) =>
+    Number(projects.find((project) => project.slug === slug)?.metadata.indexOrder ?? Infinity);
   const posts = sortPostsNewestFirst(getBlogPosts());
   const featuredPosts = posts
     .filter((post) => post.metadata.featured === "true")
-    .slice(0, 2);
+    .slice(0, 2)
+    .sort((a, b) => projectOrder(a.metadata.project) - projectOrder(b.metadata.project));
   const featuredSlugs = new Set(featuredPosts.map((post) => post.slug));
   const latestPosts = posts.filter((post) => !featuredSlugs.has(post.slug)).slice(0, 6);
 
