@@ -122,6 +122,6 @@ On the docs session's own fair benchmark, with real elkjs and dagre on the same 
 | DAG 100 / 127 | 29 ms | 19 ms | 19 ms |
 | DAG 50 / 65 | 17 ms | 10 ms | 8 ms |
 
-The stack is still open, so none of this is on main yet. The dense-graph case is the clear gap. 1.6 s is three times faster than main, but the fast corridor version of that drawing still crosses more. That is the next thing to climb.
+Update, 10 November: the stack merged into `main` and shipped in `draftably` 0.12.0. The dense-graph case is the clear gap. 1.6 s is three times faster than before, but the fast corridor version of that drawing still crosses more. That is the next thing to climb.
 
 Three parts of the setup did most of the work: the digest existed before the first optimization, every worker had the same gates, and every worker's report was a claim to check, not a result. The digest made exact changes free to accept. The audit and the reviewer caught the drawing changes that the numbers alone would have let through.
