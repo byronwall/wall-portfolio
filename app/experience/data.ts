@@ -131,8 +131,7 @@ export const experiences: Experience[] = [
   {
     slug: "chevron-phillips-chemical",
     photos: [
-      { src: "/images/experience/cpchem-pasadena-dusk.jpg", alt: "Polyethylene reactor structures at the Pasadena Plastics Complex at dusk, lit against an orange sky", caption: "Polyethylene units at the Pasadena Plastics Complex (photo: Chevron Phillips Chemical)" },
-      { src: "/images/experience/cpchem-pasadena.jpg", alt: "The Pasadena Plastics Complex seen from Jefferson Road", caption: "The Pasadena Plastics Complex (photo: Art Smart, CC BY-SA 4.0, via Wikimedia Commons)" }],
+      { src: "/images/experience/cpchem-pasadena-dusk.jpg", alt: "Polyethylene reactor structures at the Pasadena Plastics Complex at dusk, lit against an orange sky", caption: "Polyethylene units at the Pasadena Plastics Complex (photo: Chevron Phillips Chemical)" }],
     map: "/images/experience/cpchem-map.png",
     company: "Chevron Phillips Chemical",
     mark: "CPChem",
