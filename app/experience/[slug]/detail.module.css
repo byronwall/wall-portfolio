@@ -2,15 +2,7 @@
 .back { display: inline-flex; margin-bottom: 36px; color: var(--ink-muted); font-size: 12px; text-decoration: none; }
 .hero { display: grid; grid-template-columns: minmax(260px, .72fr) minmax(380px, 1.28fr); gap: 66px; align-items: start; padding-bottom: 62px; }
 .heroSolo { grid-template-columns: minmax(0, 720px); }
-.media { display: grid; gap: 10px; align-self: start; }
-.photo { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border: 1px solid var(--border-quiet); border-radius: 8px; background: var(--surface-quiet); }
-.mediaFoot { display: grid; grid-template-columns: 1fr 42%; gap: 14px; align-items: start; }
-.mediaFoot p { margin: 0; color: var(--ink-muted); font-size: 11px; line-height: 1.45; }
-.media:not(:has(.photo)) .mediaFoot { grid-template-columns: 1fr; }
-.mediaFoot p:empty { display: none; }
-.map { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border: 1px solid var(--border-quiet); border-radius: 7px; }
-.gallery { padding: 0 0 40px; }
-.gallery h2 { margin: 0 0 14px; font-size: 16px; }
+.media { display: grid; gap: 14px; align-self: start; }
 .identity { display: flex; align-items: center; gap: 15px; margin-bottom: 24px; }
 .mark { display: grid; width: 150px; height: 68px; place-items: center; }
 .mark img { display: block; width: 100%; height: 100%; object-fit: contain; object-position: left center; }

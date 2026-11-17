@@ -11,16 +11,15 @@ export type Experience = {
   focus: string[];
   tools: string[];
   reflection: string;
-  photo?: { src: string; alt: string; credit: string };
+  photos?: { src: string; alt: string; caption: string }[];
   map?: string;
-  gallery?: { src: string; alt: string; caption: string }[];
   externalUrl: string;
 };
 
 export const experiences: Experience[] = [
   {
     slug: "relationalai",
-    photo: { src: "/images/experience/rai-semantic-model.png", alt: "A semantic model drawn as a city of linked concepts: products, bill of materials, inventories, and raw materials", credit: "Image: RelationalAI" },
+    photos: [{ src: "/images/experience/rai-semantic-model.png", alt: "A semantic model drawn as a city of linked concepts: products, bill of materials, inventories, and raw materials", caption: "A semantic model drawn as linked business concepts (image: RelationalAI)" }],
     company: "RelationalAI",
     mark: "RAI",
     logoUrl: "https://cdn.prod.website-files.com/68c66131e7dc76329c719913/68c81ce60b127fb633e554aa_relationalai-lockup-blue.svg",
@@ -61,7 +60,7 @@ export const experiences: Experience[] = [
   },
   {
     slug: "allison-engineering",
-    photo: { src: "/images/projects/hydraulic-schematic-tool/hydraulic-topology-diagram.png", alt: "A hydraulic schematic drawn in the interactive schematic tool", credit: "From my hydraulic schematic tool" },
+    photos: [{ src: "/images/projects/hydraulic-schematic-tool/hydraulic-topology-diagram.png", alt: "A hydraulic schematic drawn in the interactive schematic tool", caption: "A hydraulic schematic in the interactive tool I built" }],
     map: "/images/experience/allison-map.png",
     company: "Allison Transmission",
     mark: "AT",
@@ -82,11 +81,10 @@ export const experiences: Experience[] = [
   },
   {
     slug: "tda-research",
-    photo: { src: "/images/experience/tda-skid-2.jpg", alt: "A crane lifting a yellow-framed pilot skid onto a steel structure at an outdoor plant site", credit: "A CO₂ capture skid I laid out, lifted into place at the test site." },
     map: "/images/experience/tda-map.png",
-    gallery: [
+    photos: [
+      { src: "/images/experience/tda-skid-2.jpg", alt: "A crane lifting a yellow-framed pilot skid onto a steel structure at an outdoor plant site", caption: "A CO₂ capture skid I laid out, lifted into place at the test site" },
       { src: "/images/experience/tda-skid-1.jpg", alt: "A yellow-framed CO2 capture pilot skid with vessels and piping, under construction indoors", caption: "One of the CO₂ capture skids I laid out, during construction" },
-      { src: "/images/experience/tda-skid-2.jpg", alt: "A crane lifting a yellow-framed pilot skid onto a steel structure at an outdoor plant site", caption: "A finished skid lifted into place at the test site" },
       { src: "/images/experience/tda-building.jpg", alt: "The TDA Research building on Table Mountain Drive in Golden, Colorado", caption: "TDA Research in Golden, Colorado (photo: TDA Research)" },
     ],
     company: "TDA Research",
@@ -111,7 +109,8 @@ export const experiences: Experience[] = [
   {
     slug: "continental-technologies",
     logoUrl: "/images/experience/continental-logo.png",
-    photo: { src: "/images/experience/continental-skid.jpg", alt: "A skid-mounted pilot unit built by Continental Technologies", credit: "Photo: Continental Technologies website, via the Internet Archive" },
+    photos: [{ src: "/images/experience/continental-skid.jpg", alt: "A skid-mounted pilot unit built by Continental Technologies", caption: "A Continental pilot skid (photo: company website, via the Internet Archive)" },
+      { src: "/images/experience/continental-hq.jpg", alt: "The Boulder building shared by Continental Technologies and Eltron Research", caption: "The Boulder office and shop (photo: company website, via the Internet Archive)" }],
     map: "/images/experience/continental-map.png",
     company: "Continental Technologies",
     mark: "CT",
@@ -131,7 +130,9 @@ export const experiences: Experience[] = [
   },
   {
     slug: "chevron-phillips-chemical",
-    photo: { src: "/images/experience/cpchem-pasadena.jpg", alt: "The Pasadena Plastics Complex seen from Jefferson Road", credit: "Photo: Art Smart, CC BY-SA 4.0, via Wikimedia Commons" },
+    photos: [
+      { src: "/images/experience/cpchem-pasadena-dusk.jpg", alt: "Polyethylene reactor structures at the Pasadena Plastics Complex at dusk, lit against an orange sky", caption: "Polyethylene units at the Pasadena Plastics Complex (photo: Chevron Phillips Chemical)" },
+      { src: "/images/experience/cpchem-pasadena.jpg", alt: "The Pasadena Plastics Complex seen from Jefferson Road", caption: "The Pasadena Plastics Complex (photo: Art Smart, CC BY-SA 4.0, via Wikimedia Commons)" }],
     map: "/images/experience/cpchem-map.png",
     company: "Chevron Phillips Chemical",
     mark: "CPChem",
