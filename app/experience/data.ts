@@ -60,7 +60,6 @@ export const experiences: Experience[] = [
   },
   {
     slug: "allison-engineering",
-    photos: [{ src: "/images/projects/hydraulic-schematic-tool/hydraulic-topology-diagram.png", alt: "A hydraulic schematic drawn in the interactive schematic tool", caption: "A hydraulic schematic in the interactive tool I built" }],
     map: "/images/experience/allison-map.png",
     company: "Allison Transmission",
     mark: "AT",
