@@ -1,6 +1,7 @@
 .page { padding: 50px var(--page-gutter) 82px; }
 .back { display: inline-flex; margin-bottom: 36px; color: var(--ink-muted); font-size: 12px; text-decoration: none; }
 .hero { display: grid; grid-template-columns: minmax(260px, .72fr) minmax(380px, 1.28fr); gap: 66px; align-items: center; padding-bottom: 62px; }
+.heroSolo { grid-template-columns: minmax(0, 720px); }
 .identity { display: flex; align-items: center; gap: 15px; margin-bottom: 24px; }
 .mark { display: grid; width: 150px; height: 68px; place-items: center; }
 .mark img { display: block; width: 100%; height: 100%; object-fit: contain; object-position: left center; }

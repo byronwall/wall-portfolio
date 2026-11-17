@@ -24,7 +24,7 @@ export default async function ExperienceDetailPage({ params }: { params: Promise
   return (
     <main className={styles.page}>
       <Link className={styles.back} href="/experience">← Back to experience</Link>
-      <section className={styles.hero}>
+      <section className={item.artifactLabel ? styles.hero : `${styles.hero} ${styles.heroSolo}`}>
         <div>
           <div className={styles.identity}><div className={styles.mark}><img src={item.logoUrl} alt={`${item.company} logo`} /></div></div>
           <h1>{item.company}</h1>
@@ -32,10 +32,12 @@ export default async function ExperienceDetailPage({ params }: { params: Promise
           <div className={styles.meta}><span>{item.dates}</span><span>{item.location}</span></div>
           <p className={styles.overview}>{item.overview}</p>
         </div>
-        <div className={styles.artifact} role="img" aria-label={`Reserved space for a representative ${item.company} artifact`}>
-          <span className={styles.artifactMark} aria-hidden="true">{item.mark}</span>
-          <p>{item.artifactLabel}</p>
-        </div>
+        {item.artifactLabel && (
+          <div className={styles.artifact} role="img" aria-label={`Reserved space for a representative ${item.company} artifact`}>
+            <span className={styles.artifactMark} aria-hidden="true">{item.mark}</span>
+            <p>{item.artifactLabel}</p>
+          </div>
+        )}
       </section>
       <section className={styles.body}>
         <div className={styles.focus}>

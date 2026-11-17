@@ -33,7 +33,7 @@ export const experiences: Experience[] = [
     ],
     tools: ["Python", "FastAPI", "Pydantic AI", "TypeScript", "SolidJS", "Snowflake"],
     reflection: "This role brings together the threads I care about most: data-rich software, complex technical domains, and interfaces that make an emerging technology feel understandable rather than magical.",
-    artifactLabel: "Product imagery will be added as the work becomes public.",
+    artifactLabel: "",
     externalUrl: "https://relational.ai",
   },
   {
@@ -74,7 +74,7 @@ export const experiences: Experience[] = [
     ],
     tools: ["Hydraulics", "TypeScript", "Electron", "React", "SolidJS", "Engineering analysis"],
     reflection: "This was the bridge between chemical engineering and full-time software. Building for my own engineering team taught me to treat domain knowledge as product input, not background context.",
-    artifactLabel: "Hydraulic-system artifacts are being prepared for this archive.",
+    artifactLabel: "",
     externalUrl: "https://www.allisontransmission.com",
   },
   {
@@ -94,7 +94,7 @@ export const experiences: Experience[] = [
     ],
     tools: ["Chemical engineering", "C#", "Excel", "InfluxDB", "Grafana", "Process systems"],
     reflection: "Small tools had disproportionate value here. Automating one awkward handoff or making one dataset visible could give researchers more time to focus on the experiment itself.",
-    artifactLabel: "Process and equipment photography will be added from the personal archive.",
+    artifactLabel: "",
     externalUrl: "https://www.tda.com",
   },
 ];
