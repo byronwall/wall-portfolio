@@ -20,7 +20,7 @@ export const experiences: Experience[] = [
   {
     slug: "relationalai",
     photos: [{ src: "/images/experience/rai-semantic-model.jpg", alt: "A semantic model drawn as a city of linked concepts: products, bill of materials, inventories, and raw materials", caption: "A semantic model drawn as linked business concepts (image: RelationalAI)" },
-      { src: "/images/experience/rai-docs.jpg", alt: "The RelationalAI documentation home page, with a small semantic-model diagram of customers, orders, products, shipments, and carriers", caption: "The RelationalAI docs home page (docs.relational.ai)" }],
+      { src: "/images/experience/rai-docs.jpg", alt: "The RelationalAI documentation home page, with a small semantic-model diagram of customers, orders, products, shipments, and carriers", caption: "The RelationalAI docs home page, for context on the product. I did not build the docs site. (docs.relational.ai)" }],
     company: "RelationalAI",
     mark: "RAI",
     logoUrl: "https://cdn.prod.website-files.com/68c66131e7dc76329c719913/68c81ce60b127fb633e554aa_relationalai-lockup-blue.svg",
