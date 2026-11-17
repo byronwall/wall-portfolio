@@ -177,8 +177,8 @@ The options that showed up in my repos:
 Claude built the list of repos from my session history and `~/.claude/projects`, which includes terminal sessions: 14 repos. Then it checked every tracked tsconfig on each repo's `main`, not whatever branch the checkout happened to be on. Eight were already fine. Six needed changes:
 
 - **explorEDA** ([#528](https://github.com/byronwall/explorEDA/pull/528)): `baseUrl` in three configs, `moduleResolution: "node"` in the shared base config, and a missing `rootDir` in two configs. Switching to `bundler` also made two `@ts-expect-error` comments unnecessary. They said "the package uses export maps, but this project uses legacy module resolution", and `bundler` honors export maps. CI also wanted a changeset because the package's tsconfig changed.
-- **bible-daily** ([#24](https://github.com/byronwall/bible-daily/pull/24)): `baseUrl` and `moduleResolution: "node"`.
-- **comic-book-creator** ([#13](https://github.com/byronwall/comic-book-creator/pull/13)), **prod-mgmt-grid** ([#66](https://github.com/byronwall/prod-mgmt-grid/pull/66)) and **recipes-modern** ([#41](https://github.com/byronwall/recipes-modern/pull/41)): `baseUrl` only.
+- **bible-daily** (#24): `baseUrl` and `moduleResolution: "node"`.
+- **comic-book-creator** ([#13](https://github.com/byronwall/comic-book-creator/pull/13)), **prod-mgmt-grid** (#66) and **recipes-modern** ([#41](https://github.com/byronwall/recipes-modern/pull/41)): `baseUrl` only.
 - **wall-portfolio** ([#4](https://github.com/byronwall/wall-portfolio/pull/4)), this site: all three removed options.
 
 Most of the `baseUrl` removals did nothing, because every `paths` entry was already `./`-relative and `baseUrl` pointed at the tsconfig's own folder. This site was the exception. 43 imports like `"app/dev-feedback/server/request"` were resolving from the project root through `baseUrl`, so it became an explicit `"app/*": ["./app/*"]` paths entry.
