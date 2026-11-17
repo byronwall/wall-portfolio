@@ -1,38 +1,42 @@
 ---
-title: "Shifty"
-description: "An interactive data-visualization tool for exploring complex engineering data"
-date: "2025-01-31"
-publishedAt: "2025-01-31"
-status: "Content coming soon"
-summary: "An interactive data-visualization tool for exploring complex engineering data"
-indexImage: "placeholder"
-tags: ["TypeScript", "D3.js", "SVG", "Canvas", "React"]
+title: "Engineering analysis at Allison"
+description: "A shared time-series analysis platform that replaced Excel and MATLAB reporting for 100+ engineers at Allison Transmission"
+date: "2023-02-01"
+publishedAt: "2026-11-16"
+summary: "A shared time-series analysis platform that replaced Excel and MATLAB reporting for 100+ engineers at Allison Transmission"
+tags: ["TypeScript", "React", "D3", "Crossfilter", "C#", "DSL"]
+image: "/images/projects/allison-platform/allison-analysis-flow.png"
+indexTier: "medium"
+indexOrder: "1"
 ---
 
-Developed a comprehensive data visualization platform that combines the power of D3.js with custom rendering optimizations for large datasets.
+Engineers at Allison Transmission analyzed transmission and vehicle tests in Excel and MATLAB, one report at a time. I created and led a shared analysis platform that replaced that work. Telemetry showed more than 100 engineers using it.
 
-## Key Features
+The important design choice was to let engineers ask new questions without a server change. They defined events and calculations themselves, filtered the results across every test, and opened the raw signals behind any pattern.
 
-- High-performance rendering using SVG and Canvas
-- Interactive charts with zoom, pan, and selection capabilities
-- Custom chart types for engineering data
-- Responsive design and dynamic resizing
-- Configurable styling and theming
+This was internal software, so there are no screenshots. The diagrams below show how it worked. [explorEDA](/projects/exploreda) is my clean-sheet, open-source take on the same linked-chart idea; it shares no code with this platform.
 
-## Technical Implementation
+## How an analysis worked
 
-- Built on D3.js for generating SVG elements
-- Custom React components for easy integration
-- Hybrid rendering approach:
-  - SVG for interactive elements
-  - Canvas where needed to maintain performance (scatter charts and parallel coordinates)
-- TypeScript for type safety and better maintainability
+The diagram at the top of the page shows the loop.
 
-## Impact
+- **Events**: engineers defined the moments they cared about, like an oscilloscope trigger. Range shifts were the most common. They previewed an event on sample files, then ran it across hundreds to tens of thousands of files.
+- **Analyses**: a second step computed values for each event, such as maximum engine speed or minimum pressure. A 2,000-hour durability test could yield half a million shifts with 10 to 30 values each.
+- **Exploration**: linked charts filtered every event at once. I first built them on dc.js, then rewrote every chart as custom D3 and SVG code on top of Crossfilter, so interaction stayed fast.
+- **Signal overlay**: from a filtered set, engineers opened the raw signals aligned on event start. A difference they spotted there, such as a fault 300 ms after the shift command, became the next analysis.
 
-This visualization library has become a cornerstone of our data analysis platforms, enabling engineers to:
+## How it grew
 
-- Identify patterns in transmission testing data
-- Analyze performance metrics in near real-time
-- Make data-driven decisions quickly
-- Share insights through interactive visualizations
+![How the platform grew: from Excel and MATLAB, to a first web app with hard-coded analyses, to user-defined analysis, to a shared platform used by 100+ engineers.](/images/projects/allison-platform/allison-platform-growth.png)
+
+It started as my own Excel pipeline and a reader for the test files. The first web app hard-coded each analysis on a C# server, so every new question needed a change and a recompile from me. The user-defined language for events and calculations removed that step. Later, engineers worked in shared databases, reused each other's calculations, and sent deep links to results.
+
+## Results
+
+- More than 100 engineers used the platform, measured by usage telemetry.
+- When I helped teams move their reporting pipelines onto it, their report work fell from hours to minutes. That is what I saw in those conversions, not an average across every user.
+- Tests on the calculation language checked parsing, numerical results, and drift, so I could refactor without changing answers.
+
+## My part
+
+I created the platform and led its development. I wrote its TypeScript frontend, about 60,000 lines, from scratch. I also helped teams convert their pipelines and mentored newer engineers on the code.
