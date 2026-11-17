@@ -22,7 +22,7 @@
 .tags { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 36px; }
 .tag { padding: 5px 7px; border-radius: 4px; background: var(--surface-chip); color: var(--ink-body); font-size: 11px; }
 .companyLink { color: var(--action-primary); font-size: 13px; font-weight: 600; }
-.reflection { grid-column: 2; margin-top: 40px; padding: 28px 30px; border-left: 3px solid var(--accent-warm); background: var(--surface-quiet); }
+.reflection { grid-column: 2; margin-top: 40px; padding: 28px 30px; background: var(--surface-quiet); }
 .reflection h2 { margin-bottom: 12px; }
 .reflection p { margin: 0; color: var(--ink-body); font-size: 15px; line-height: 1.65; }
 

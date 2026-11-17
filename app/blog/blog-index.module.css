@@ -39,6 +39,7 @@
 .row:hover { color: inherit; text-decoration: none; }
 .thumb { display: block; height: 105px; overflow: hidden; border: 1px solid var(--border-quiet); border-radius: 6px; background: var(--surface-quiet); }
 .thumb img { display: block; width: 100%; height: 100%; object-fit: contain; transition: transform 180ms ease; }
+.thumb img[src$=".svg"] { box-sizing: border-box; padding: 14% 18%; }
 .row:hover .thumb img { transform: scale(1.03); }
 .copy { display: flex; min-width: 0; flex-direction: column; gap: 6px; padding-top: 2px; }
 .title { color: var(--ink-primary); font-size: 18px; font-weight: var(--heading-weight); line-height: 1.25; letter-spacing: -.015em; text-wrap: pretty; transition: color 140ms ease; }

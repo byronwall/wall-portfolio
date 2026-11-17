@@ -180,6 +180,8 @@ body {
 .content-preview-card:hover { border-color: var(--action-border); box-shadow: var(--shadow-hover); color: inherit; text-decoration: none; }
 .content-preview-card:hover h2 { color: var(--action-primary); }
 .content-preview-image { display: block; width: 100%; height: 100%; object-fit: contain; border-right: 1px solid var(--border-quiet); background: var(--surface-quiet); }
+/* SVG thumbnails are logos; inset them so they read as a mark, not a poster. */
+.content-preview-image[src$=".svg"] { box-sizing: border-box; padding: 16% 20%; }
 .content-preview-card-text { grid-template-columns: 1fr; }
 .content-preview-copy { display: flex; min-width: 0; flex-direction: column; justify-content: flex-start; padding: 20px 20px; }
 .content-preview-copy h2 { display: -webkit-box; margin: 0 0 10px; overflow: hidden; color: var(--ink-primary); font-size: 19px; font-weight: var(--heading-weight); line-height: 1.2; letter-spacing: -.02em; -webkit-box-orient: vertical; -webkit-line-clamp: 3; transition: color 140ms ease; }

@@ -54,7 +54,7 @@ export const experiences: Experience[] = [
     ],
     tools: ["TypeScript", "C#", "React", "SolidJS", "D3", "Data visualization"],
     reflection: "The work reinforced a lesson that still shapes how I build: an internal tool succeeds when its model matches the way specialists already reason, not when it asks them to become software developers.",
-    artifactLabel: "Internal engineering software — representative screenshots are not public.",
+    artifactLabel: "",
     externalUrl: "https://www.allisontransmission.com",
   },
   {
