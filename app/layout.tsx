@@ -11,10 +11,11 @@ import { baseUrl } from "./sitemap";
 import { getOgImageUrl } from "./og-image";
 import { DevFeedbackOverlay } from "./components/dev-feedback/dev-feedback-overlay";
 
+const siteTitle = "Byron Wall — Interfaces for data and AI";
 const siteDescription =
-  "Software engineer building full-stack applications, data tools, and developer tooling.";
+  "Byron Wall builds interfaces for data and AI. Full Stack Engineer at RelationalAI, based in Indianapolis. Projects include explorEDA and Draftably.";
 const defaultOgImage = getOgImageUrl({
-  title: "Byron Wall",
+  title: siteTitle,
   description: siteDescription,
   section: "Portfolio",
 });
@@ -22,7 +23,7 @@ const defaultOgImage = getOgImageUrl({
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
   title: {
-    default: "Byron Wall",
+    default: siteTitle,
     template: "%s | Byron Wall",
   },
   description: siteDescription,
@@ -36,7 +37,7 @@ export const metadata: Metadata = {
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
   openGraph: {
-    title: "Byron Wall",
+    title: siteTitle,
     description: siteDescription,
     url: baseUrl,
     siteName: "Byron Wall",
@@ -46,7 +47,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Byron Wall",
+    title: siteTitle,
     description: siteDescription,
     images: [defaultOgImage],
   },

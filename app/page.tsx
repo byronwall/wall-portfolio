@@ -79,6 +79,9 @@ export default function Home() {
             >
               Résumé <span aria-hidden="true">↗</span>
             </a>
+            <a className="button button-secondary" href="mailto:byron@byroni.us">
+              Email
+            </a>
           </div>
         </div>
 

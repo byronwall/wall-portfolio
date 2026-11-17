@@ -1,14 +1,13 @@
+import { indexMetadata } from "../og-image";
 import { getProjectIndexTier, getProjects, sortProjectsForIndex, type ProjectIndexTier } from "app/blog/utils";
-import { baseUrl } from "app/sitemap";
 import Link from "next/link";
 import { getProjectStatus } from "./status";
 
-export const metadata = {
-  title: "Projects",
-  description:
-    "Selected software, data visualization, developer tooling, and engineering projects by Byron Wall.",
-  alternates: { canonical: `${baseUrl}/projects` },
-};
+export const metadata = indexMetadata(
+  "Projects",
+  "Selected software, data visualization, developer tooling, and engineering projects by Byron Wall.",
+  "/projects",
+);
 
 type Project = ReturnType<typeof getProjects>[number];
 

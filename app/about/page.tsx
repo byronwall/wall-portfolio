@@ -1,14 +1,14 @@
+import { indexMetadata } from "../og-image";
 import Image from "next/image";
 import Link from "next/link";
 import { SocialIcons } from "../components/social-icons";
-import { baseUrl } from "../sitemap";
 import styles from "./about.module.css";
 
-export const metadata = {
-  title: "About",
-  description: "About Byron Wall, a software engineer who builds data-rich applications and technical tools.",
-  alternates: { canonical: `${baseUrl}/about` },
-};
+export const metadata = indexMetadata(
+  "About",
+  "About Byron Wall, a software engineer who builds data-rich applications and technical tools.",
+  "/about",
+);
 
 export default function AboutPage() {
   return (
@@ -39,6 +39,7 @@ export default function AboutPage() {
         </div>
         <div className={styles.links}>
           <Link href="/experience">Experience <span aria-hidden="true">→</span></Link>
+          <a href="mailto:byron@byroni.us"><SocialIcons.Email /> byron@byroni.us</a>
           <a href="https://github.com/byronwall" target="_blank" rel="noreferrer"><SocialIcons.GitHub /> GitHub</a>
           <a href="https://www.linkedin.com/in/byronwall/" target="_blank" rel="noreferrer"><SocialIcons.LinkedIn /> LinkedIn</a>
         </div>

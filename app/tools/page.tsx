@@ -1,15 +1,12 @@
+import { indexMetadata } from "../og-image";
 import Link from "next/link";
-import { baseUrl } from "app/sitemap";
 import styles from "./tools.module.css";
 
-export const metadata = {
-  title: "Tools",
-  description:
-    "Small, focused utilities by Byron Wall for planning, inspecting, and making technical work easier.",
-  alternates: {
-    canonical: `${baseUrl}/tools`,
-  },
-};
+export const metadata = indexMetadata(
+  "Tools",
+  "Small, focused utilities by Byron Wall for planning, inspecting, and making technical work easier.",
+  "/tools",
+);
 
 const tools = [
   {

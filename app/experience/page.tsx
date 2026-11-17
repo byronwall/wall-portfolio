@@ -1,14 +1,14 @@
+import { indexMetadata } from "../og-image";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { baseUrl } from "../sitemap";
 import { experiences } from "./data";
 import styles from "./experience.module.css";
 
-export const metadata: Metadata = {
-  title: "Experience",
-  description: "A chronology of Byron Wall’s work across software, data products, and engineering.",
-  alternates: { canonical: `${baseUrl}/experience` },
-};
+export const metadata: Metadata = indexMetadata(
+  "Experience",
+  "A chronology of Byron Wall’s work across software, data products, and engineering.",
+  "/experience",
+);
 
 export default function ExperiencePage() {
   return (

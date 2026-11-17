@@ -1,4 +1,4 @@
-import { baseUrl } from "app/sitemap";
+import { indexMetadata } from "../og-image";
 import { BlogIndex, type BlogIndexPost } from "./blog-index";
 import {
   formatShortDate,
@@ -9,14 +9,11 @@ import {
   sortPostsNewestFirst,
 } from "./utils";
 
-export const metadata = {
-  title: "Blog",
-  description:
-    "Technical notes from Byron Wall on software development, data analysis, SolidJS, TypeScript, AI tooling, and engineering workflows.",
-  alternates: {
-    canonical: `${baseUrl}/blog`,
-  },
-};
+export const metadata = indexMetadata(
+  "Blog",
+  "Technical notes from Byron Wall on software development, data analysis, SolidJS, TypeScript, AI tooling, and engineering workflows.",
+  "/blog",
+);
 
 function getMonthLabel(date: string | undefined) {
   if (!date) return "Undated";

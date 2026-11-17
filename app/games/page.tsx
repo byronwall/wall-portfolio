@@ -1,14 +1,14 @@
+import { indexMetadata } from "../og-image";
 import Link from "next/link";
 import { getGames } from "app/blog/utils";
-import { baseUrl } from "app/sitemap";
 import { getGamePlayHref, getGameTags, hasGameImage } from "./data";
 import styles from "./games.module.css";
 
-export const metadata = {
-  title: "Games",
-  description: "Small browser games and playful experiments by Byron Wall.",
-  alternates: { canonical: `${baseUrl}/games` },
-};
+export const metadata = indexMetadata(
+  "Games",
+  "Small browser games and playful experiments by Byron Wall.",
+  "/games",
+);
 
 export default function GamesPage() {
   const games = getGames().sort((a, b) => (Number(a.metadata.indexOrder) || 99) - (Number(b.metadata.indexOrder) || 99));
