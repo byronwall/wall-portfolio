@@ -11,13 +11,16 @@ export type Experience = {
   focus: string[];
   tools: string[];
   reflection: string;
-  artifactLabel: string;
+  photo?: { src: string; alt: string; credit: string };
+  map?: string;
+  gallery?: { src: string; alt: string; caption: string }[];
   externalUrl: string;
 };
 
 export const experiences: Experience[] = [
   {
     slug: "relationalai",
+    photo: { src: "/images/experience/rai-semantic-model.png", alt: "A semantic model drawn as a city of linked concepts: products, bill of materials, inventories, and raw materials", credit: "Image: RelationalAI" },
     company: "RelationalAI",
     mark: "RAI",
     logoUrl: "https://cdn.prod.website-files.com/68c66131e7dc76329c719913/68c81ce60b127fb633e554aa_relationalai-lockup-blue.svg",
@@ -33,11 +36,11 @@ export const experiences: Experience[] = [
     ],
     tools: ["Python", "FastAPI", "Pydantic AI", "TypeScript", "SolidJS", "Snowflake"],
     reflection: "This role brings together the threads I care about most: data-rich software, complex technical domains, and interfaces that make an emerging technology feel understandable rather than magical.",
-    artifactLabel: "",
     externalUrl: "https://relational.ai",
   },
   {
     slug: "allison-software",
+    map: "/images/experience/allison-map.png",
     company: "Allison Transmission",
     mark: "AT",
     logoUrl: "https://allisontransmission.bynder.com/transform/8149412d-f2e2-457c-beb4-928e6ae38ca4/ATI_Header_Logo-png?io=transform:fill,width:418,height:103,gravity:center",
@@ -54,11 +57,12 @@ export const experiences: Experience[] = [
     ],
     tools: ["TypeScript", "C#", "React", "SolidJS", "D3", "Data visualization"],
     reflection: "The work reinforced a lesson that still shapes how I build: an internal tool succeeds when its model matches the way specialists already reason, not when it asks them to become software developers.",
-    artifactLabel: "",
     externalUrl: "https://www.allisontransmission.com",
   },
   {
     slug: "allison-engineering",
+    photo: { src: "/images/projects/hydraulic-schematic-tool/hydraulic-topology-diagram.png", alt: "A hydraulic schematic drawn in the interactive schematic tool", credit: "From my hydraulic schematic tool" },
+    map: "/images/experience/allison-map.png",
     company: "Allison Transmission",
     mark: "AT",
     logoUrl: "https://allisontransmission.bynder.com/transform/8149412d-f2e2-457c-beb4-928e6ae38ca4/ATI_Header_Logo-png?io=transform:fill,width:418,height:103,gravity:center",
@@ -74,11 +78,17 @@ export const experiences: Experience[] = [
     ],
     tools: ["Hydraulics", "TypeScript", "Electron", "React", "SolidJS", "Engineering analysis"],
     reflection: "This was the bridge between chemical engineering and full-time software. Building for my own engineering team taught me to treat domain knowledge as product input, not background context.",
-    artifactLabel: "",
     externalUrl: "https://www.allisontransmission.com",
   },
   {
     slug: "tda-research",
+    photo: { src: "/images/experience/tda-skid-2.jpg", alt: "A crane lifting a yellow-framed pilot skid onto a steel structure at an outdoor plant site", credit: "A CO₂ capture skid I laid out, lifted into place at the test site." },
+    map: "/images/experience/tda-map.png",
+    gallery: [
+      { src: "/images/experience/tda-skid-1.jpg", alt: "A yellow-framed CO2 capture pilot skid with vessels and piping, under construction indoors", caption: "One of the CO₂ capture skids I laid out, during construction" },
+      { src: "/images/experience/tda-skid-2.jpg", alt: "A crane lifting a yellow-framed pilot skid onto a steel structure at an outdoor plant site", caption: "A finished skid lifted into place at the test site" },
+      { src: "/images/experience/tda-building.jpg", alt: "The TDA Research building on Table Mountain Drive in Golden, Colorado", caption: "TDA Research in Golden, Colorado (photo: TDA Research)" },
+    ],
     company: "TDA Research",
     mark: "TDA",
     logoUrl: "https://images.squarespace-cdn.com/content/v1/67d84de53503701949732b2d/2375c654-0370-4aad-87ed-8c9325f97d9c/TDA-Logo-Color-PNG.png",
@@ -88,17 +98,21 @@ export const experiences: Experience[] = [
     summary: "Designed process systems and small software tools for research, quoting, and experimental data.",
     overview: "At TDA Research I worked close to physical experiments and process equipment. The role combined research engineering with the practical work of making experimental data easier to capture, inspect, and use.",
     focus: [
+      "Laid out both process skids of a $2MM+ CO₂ capture pilot plant in SolidWorks: 21 vessels, their piping, and the structural steel.",
+      "Managed six months of skid construction as the on-site engineer, directing technicians and outside contractors.",
       "Connected CSV-based experimental data to InfluxDB and Grafana.",
       "Built a C# Excel add-in for database connectivity.",
       "Automated quoting workflows, reducing work that took hours to minutes.",
     ],
     tools: ["Chemical engineering", "C#", "Excel", "InfluxDB", "Grafana", "Process systems"],
     reflection: "Small tools had disproportionate value here. Automating one awkward handoff or making one dataset visible could give researchers more time to focus on the experiment itself.",
-    artifactLabel: "",
     externalUrl: "https://www.tda.com",
   },
   {
     slug: "continental-technologies",
+    logoUrl: "/images/experience/continental-logo.png",
+    photo: { src: "/images/experience/continental-skid.jpg", alt: "A skid-mounted pilot unit built by Continental Technologies", credit: "Photo: Continental Technologies website, via the Internet Archive" },
+    map: "/images/experience/continental-map.png",
     company: "Continental Technologies",
     mark: "CT",
     role: "Project Engineer",
@@ -113,11 +127,12 @@ export const experiences: Experience[] = [
     ],
     tools: ["Process simulation", "VMGSim", "Equipment sizing", "Relief valves", "Process hazard analysis"],
     reflection: "",
-    artifactLabel: "",
     externalUrl: "",
   },
   {
     slug: "chevron-phillips-chemical",
+    photo: { src: "/images/experience/cpchem-pasadena.jpg", alt: "The Pasadena Plastics Complex seen from Jefferson Road", credit: "Photo: Art Smart, CC BY-SA 4.0, via Wikimedia Commons" },
+    map: "/images/experience/cpchem-map.png",
     company: "Chevron Phillips Chemical",
     mark: "CPChem",
     logoUrl: "/images/experience/cpchem.svg",
@@ -134,7 +149,6 @@ export const experiences: Experience[] = [
     ],
     tools: ["Process engineering", "Operations", "Excel", "VBA", "Time-series analysis", "SAP"],
     reflection: "Morning reviews of plant data were where I first learned to make a chart answer one question quickly. That thread runs straight through to the analysis software I built later.",
-    artifactLabel: "",
     externalUrl: "https://www.cpchem.com",
   },
 ];

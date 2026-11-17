@@ -1,3 +1,4 @@
+import { PhotoGallery } from "../photo-gallery";
 import { CompanyLogo } from "../company-logo";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -25,7 +26,7 @@ export default async function ExperienceDetailPage({ params }: { params: Promise
   return (
     <main className={styles.page}>
       <Link className={styles.back} href="/experience">← Back to experience</Link>
-      <section className={item.artifactLabel ? styles.hero : `${styles.hero} ${styles.heroSolo}`}>
+      <section className={item.photo || item.map ? styles.hero : `${styles.hero} ${styles.heroSolo}`}>
         <div>
           {item.logoUrl && <div className={styles.identity}><div className={styles.mark}><CompanyLogo item={item} /></div></div>}
           <h1>{item.company}</h1>
@@ -33,13 +34,22 @@ export default async function ExperienceDetailPage({ params }: { params: Promise
           <div className={styles.meta}><span>{item.dates}</span><span>{item.location}</span></div>
           <p className={styles.overview}>{item.overview}</p>
         </div>
-        {item.artifactLabel && (
-          <div className={styles.artifact} role="img" aria-label={`Reserved space for a representative ${item.company} artifact`}>
-            <span className={styles.artifactMark} aria-hidden="true">{item.mark}</span>
-            <p>{item.artifactLabel}</p>
+        {(item.photo || item.map) && (
+          <div className={styles.media}>
+            {item.photo && <img className={styles.photo} src={item.photo.src} alt={item.photo.alt} />}
+            <div className={styles.mediaFoot}>
+              <p>{item.photo?.credit}</p>
+              {item.map && <img className={styles.map} src={item.map} alt={`Map of ${item.location}`} />}
+            </div>
           </div>
         )}
       </section>
+      {item.gallery && (
+        <section className={styles.gallery} aria-labelledby="photos-heading">
+          <h2 id="photos-heading">Photos</h2>
+          <PhotoGallery photos={item.gallery} />
+        </section>
+      )}
       <section className={styles.body}>
         <div className={styles.focus}>
           <h2>What I worked on</h2>

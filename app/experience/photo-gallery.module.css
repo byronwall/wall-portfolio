@@ -1,0 +1,15 @@
+.thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; margin: 0; padding: 0; list-style: none; }
+.thumb { display: block; width: 100%; padding: 0; border: 1px solid var(--border-quiet); border-radius: 7px; overflow: hidden; background: var(--surface-quiet); cursor: zoom-in; transition: border-color 140ms ease; }
+.thumb img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; transition: transform 160ms ease; }
+@media (hover: hover) { .thumb:hover { border-color: var(--action-border); } .thumb:hover img { transform: scale(1.02); } }
+.thumb:focus-visible { outline: 2px solid var(--action-primary); outline-offset: 2px; }
+.caption { margin: 6px 0 0; color: var(--ink-muted); font-size: 12px; line-height: 1.4; }
+.viewer { width: min(1200px, 94vw); max-height: 92vh; padding: 0; border: 0; border-radius: 8px; background: var(--surface-paper); }
+.viewer::backdrop { background: rgb(10 14 20 / .78); }
+.viewer figure { margin: 0; }
+.viewer img { display: block; width: 100%; max-height: calc(92vh - 48px); object-fit: contain; background: #111; }
+.viewer figcaption { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; padding: 0 14px; color: var(--ink-body); font-size: 13px; }
+.controls { display: inline-flex; align-items: center; gap: 8px; color: var(--ink-muted); font-variant-numeric: tabular-nums; }
+.controls button { min-width: 28px; height: 28px; border: 1px solid var(--border-quiet); border-radius: 5px; background: transparent; color: var(--ink-body); cursor: pointer; }
+@media (hover: hover) { .controls button:hover { background: var(--surface-quiet); } }
+@media (prefers-reduced-motion: reduce) { .thumb, .thumb img { transition: none; } }
