@@ -1,3 +1,4 @@
+import { CompanyLogo } from "../company-logo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -26,7 +27,7 @@ export default async function ExperienceDetailPage({ params }: { params: Promise
       <Link className={styles.back} href="/experience">← Back to experience</Link>
       <section className={item.artifactLabel ? styles.hero : `${styles.hero} ${styles.heroSolo}`}>
         <div>
-          <div className={styles.identity}><div className={styles.mark}><img src={item.logoUrl} alt={`${item.company} logo`} /></div></div>
+          {item.logoUrl && <div className={styles.identity}><div className={styles.mark}><CompanyLogo item={item} /></div></div>}
           <h1>{item.company}</h1>
           <p className={styles.role}>{item.role}</p>
           <div className={styles.meta}><span>{item.dates}</span><span>{item.location}</span></div>
@@ -47,12 +48,14 @@ export default async function ExperienceDetailPage({ params }: { params: Promise
         <aside className={styles.aside}>
           <h2>Systems &amp; tools</h2>
           <div className={styles.tags}>{item.tools.map((tool) => <span className={styles.tag} key={tool}>{tool}</span>)}</div>
-          <a className={styles.companyLink} href={item.externalUrl} target="_blank" rel="noreferrer">Company site ↗</a>
+          {item.externalUrl && <a className={styles.companyLink} href={item.externalUrl} target="_blank" rel="noreferrer">Company site ↗</a>}
         </aside>
-        <div className={styles.reflection}>
-          <h2>What stayed with me</h2>
-          <p>{item.reflection}</p>
-        </div>
+        {item.reflection && (
+          <div className={styles.reflection}>
+            <h2>What stayed with me</h2>
+            <p>{item.reflection}</p>
+          </div>
+        )}
       </section>
     </main>
   );

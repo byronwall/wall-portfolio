@@ -1,3 +1,4 @@
+import { CompanyLogo } from "./company-logo";
 import { indexMetadata } from "../og-image";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -29,7 +30,7 @@ export default function ExperiencePage() {
               <p className={styles.summary}>{item.summary}</p>
             </div>
             <div className={styles.mark}>
-              <img src={item.logoUrl} alt={`${item.company} logo`} />
+              <CompanyLogo item={item} />
             </div>
           </li>
         ))}

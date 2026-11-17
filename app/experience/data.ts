@@ -2,7 +2,7 @@ export type Experience = {
   slug: string;
   company: string;
   mark: string;
-  logoUrl: string;
+  logoUrl?: string;
   role: string;
   dates: string;
   location: string;
@@ -96,6 +96,46 @@ export const experiences: Experience[] = [
     reflection: "Small tools had disproportionate value here. Automating one awkward handoff or making one dataset visible could give researchers more time to focus on the experiment itself.",
     artifactLabel: "",
     externalUrl: "https://www.tda.com",
+  },
+  {
+    slug: "continental-technologies",
+    company: "Continental Technologies",
+    mark: "CT",
+    role: "Project Engineer",
+    dates: "November 2014 – July 2015",
+    location: "Boulder, Colorado",
+    summary: "Designed a pilot-scale refining facility for an industrial client, from process simulation to hazard review.",
+    overview: "Continental Technologies set out to supply turnkey pilot-scale process plants for industrial clients. I worked between process and project engineering on one pilot refining facility, from the first simulations to the hazard review with the client.",
+    focus: [
+      "Simulated the client’s refinery processes in VMGSim and produced stream summaries and process diagrams.",
+      "Sized and selected vessels, equipment, and relief valves, and wrote the design documents and specification sheets.",
+      "Took part in a process hazard analysis of the pilot design with the client’s engineers.",
+    ],
+    tools: ["Process simulation", "VMGSim", "Equipment sizing", "Relief valves", "Process hazard analysis"],
+    reflection: "",
+    artifactLabel: "",
+    externalUrl: "",
+  },
+  {
+    slug: "chevron-phillips-chemical",
+    company: "Chevron Phillips Chemical",
+    mark: "CPChem",
+    logoUrl: "/images/experience/cpchem.svg",
+    role: "Process Engineer, then Operations Engineer",
+    dates: "June 2010 – July 2014",
+    location: "Pasadena, Texas",
+    summary: "Supported polypropylene and polyethylene units, from process support to daily operation of a 2 MMlb/day unit.",
+    overview: "My first role after Purdue was at a large plastics complex near Houston. I started in process support for the polypropylene and K-Resin units, then ran day-to-day engineering for operating units, working with shift supervisors, operators, the production scheduler, and the business team.",
+    focus: [
+      "Supported daily operation of a 2 MMlb/day polyethylene unit that ran experimental catalyst systems and frequent resin changes.",
+      "Coordinated the isolation of a polypropylene unit for demolition: 60+ lines air-gapped on the required four-month schedule.",
+      "Built an Excel add-in that pulled lab quality data and drew control charts, used by about 20–30 engineers.",
+      "Built time-series charts for morning reviews, so an upset such as flaring could be traced to its cause at a glance.",
+    ],
+    tools: ["Process engineering", "Operations", "Excel", "VBA", "Time-series analysis", "SAP"],
+    reflection: "Morning reviews of plant data were where I first learned to make a chart answer one question quickly. That thread runs straight through to the analysis software I built later.",
+    artifactLabel: "",
+    externalUrl: "https://www.cpchem.com",
   },
 ];
 

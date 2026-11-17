@@ -1,3 +1,4 @@
+import { CompanyLogo } from "./experience/company-logo";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -170,7 +171,7 @@ export default function Home() {
             <li key={experience.slug}>
               <Link className="experience-ledger-link" href={`/experience/${experience.slug}`}>
                 <div className="logo-plate">
-                  <img src={experience.logoUrl} alt={`${experience.company} logo`} />
+                  <CompanyLogo item={experience} />
                 </div>
                 <div className="experience-ledger-copy">
                   <h3>{experience.company}</h3>
