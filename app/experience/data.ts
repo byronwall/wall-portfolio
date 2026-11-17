@@ -131,7 +131,8 @@ export const experiences: Experience[] = [
   {
     slug: "chevron-phillips-chemical",
     photos: [
-      { src: "/images/experience/cpchem-pasadena-dusk.jpg", alt: "Polyethylene reactor structures at the Pasadena Plastics Complex at dusk, lit against an orange sky", caption: "Polyethylene units at the Pasadena Plastics Complex (photo: Chevron Phillips Chemical)" }],
+      { src: "/images/experience/cpchem-pasadena-dusk.jpg", alt: "Polyethylene reactor structures at the Pasadena Plastics Complex at dusk, lit against an orange sky", caption: "Polyethylene units at the Pasadena Plastics Complex (photo: Chevron Phillips Chemical)" },
+      { src: "/images/experience/cpchem-byron-nomex.jpg", alt: "Byron in blue Chevron Phillips flame-resistant coveralls with his name patch and site badge", caption: "Me in plant Nomex, my first year at Chevron Phillips (2010)" }],
     map: "/images/experience/cpchem-map.png",
     company: "Chevron Phillips Chemical",
     mark: "CPChem",
