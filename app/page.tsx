@@ -33,8 +33,9 @@ export default function Home() {
         <div className="home-intro">
           <h1>Byron Wall</h1>
           <p className="home-lede">
-            Software engineer with more than 14 years of experience building
-            real-world web applications and data products.
+            Software engineer building web applications and data products.
+            Sixteen years in engineering, nine building software, and nearly
+            four in full-time software roles.
           </p>
           <p>
             I build full-stack applications, data tools, and developer tooling.
