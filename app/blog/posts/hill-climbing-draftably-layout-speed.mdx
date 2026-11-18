@@ -7,7 +7,7 @@ project: draftably
 type: experiment
 ---
 
-Draftably has a layout API now, `layout()` from `@draftably/runtime/graph`, and I want it to be a real drop-in for elkjs and dagre. A docs session was writing that drop-in page, and its fair benchmark showed the problem. On a fresh graph, Draftably was 5 to 20 times slower than both:
+Draftably has a layout API now, `layout()` from `@draftably/runtime/graph`, and I want it to be a real drop-in for elkjs and dagre. A docs session was writing that drop-in page ([#515](https://github.com/byronwall/draftably/pull/515)), and its fair benchmark showed the problem. On a fresh graph, Draftably was 5 to 20 times slower than both:
 
 | Graph | elkjs | dagre | Draftably |
 | --- | ---: | ---: | ---: |
@@ -27,7 +27,7 @@ The benchmark had to get two things right.
 
 First, every call needs a **new** graph. Call `layout()` twice with the same input and the second call returns in about 20 ms, because it hits a cache. A benchmark that repeats one graph measures the cache. The earlier perf PRs had probably done exactly that, which is why their numbers looked better than the fair benchmark.
 
-Second, the score includes the drawing. The new `pnpm bench:fresh` script builds five seeded random graphs per case and reports the median time. It also reports crossings, bends, line length, area, lines through boxes, and blocked lines. Then it prints a **digest**: a hash of every drawing. If a change makes `layout()` faster and the digest is the same, it drew those graphs exactly as before. A second digest over the 50 corpus layouts covers real diagrams, so nobody had to review screenshots.
+Second, the score includes the drawing. The new `pnpm bench:fresh` script builds five seeded random graphs per case and reports the median time. Its timings differ a little from the docs benchmark: the 100/127 DAG on main takes 663 ms here and 632 ms there. It also reports crossings, bends, line length, area, lines through boxes, and blocked lines. Then it prints a **digest**: a hash of every drawing. If a change makes `layout()` faster and the digest is the same, it drew those graphs exactly as before. A second digest over the 50 corpus layouts covers real diagrams, so nobody had to review screenshots.
 
 That digest split every idea into two kinds:
 
