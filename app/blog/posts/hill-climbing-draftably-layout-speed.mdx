@@ -17,17 +17,17 @@ Draftably has a layout API now, `layout()` from `@draftably/runtime/graph`, and 
 
 So the docs session started a second Claude session with one job: hill-climb the speed of `layout()` on fresh graphs, without making the drawings worse. Try one change, measure it, keep it only if time drops and quality holds. The first target was 150 ms on the 100/127 DAG. After the first PR, I moved it to 50 ms and asked for Codex to look for the next opportunity in parallel after each big gain.
 
-About an hour and a half later, that DAG lays out in about 20 ms. There is a four-PR stack, and three of its layers draw exactly the same pictures as before. The interesting part is how the loop decided what to keep, and which agent found what.
+About an hour and a half later, that DAG lays out in about 20 ms. There is a four-PR stack, and three of its layers draw exactly the same pictures as before. The rest of this post covers how Claude decided what to keep, and which agent found each change.
 
 ![The process: Claude profiles, tries one change, and measures time, quality and a digest. A change with the same digest is committed. A change that alters the drawing must pass a quality gate, or it is reverted. Codex rounds and Sonnet trials take briefs in parallel, and their changes come back through the same gates.](/images/posts/hill-climbing-draftably-layout-speed/process.png)
 
-## The measuring stick came first
+## Building the benchmark first
 
-A hill climb is only as good as what it measures. Two things about this benchmark mattered.
+The benchmark had to get two things right.
 
 First, every call needs a **new** graph. Call `layout()` twice with the same input and the second call returns in about 20 ms, because it hits a cache. A benchmark that repeats one graph measures the cache. The earlier perf PRs had probably done exactly that, which is why their numbers looked better than the fair benchmark.
 
-Second, speed alone is not the score. The new `pnpm bench:fresh` script builds five seeded random graphs per case and reports the median time. It also reports crossings, bends, line length, area, lines through boxes, and blocked lines. Then it prints a **digest**: a hash of every drawing. If a change makes `layout()` faster and the digest is the same, it drew those graphs exactly as before. A second digest over the 50 corpus layouts covers real diagrams. No screenshot review needed.
+Second, the score includes the drawing. The new `pnpm bench:fresh` script builds five seeded random graphs per case and reports the median time. It also reports crossings, bends, line length, area, lines through boxes, and blocked lines. Then it prints a **digest**: a hash of every drawing. If a change makes `layout()` faster and the digest is the same, it drew those graphs exactly as before. A second digest over the 50 corpus layouts covers real diagrams, so nobody had to review screenshots.
 
 That digest split every idea into two kinds:
 
@@ -69,13 +69,13 @@ While Claude climbed, other agents tried ideas on their own branches.
 - **Round 3** found an exact speedup in crossing counts. Each grid line now sorts its crossing points once, and a grid edge counts them with two binary searches. Codex checked 510,000 floor queries and 600 seeded A* searches against the old code, and all were equal. That is [#520](https://github.com/byronwall/draftably/pull/520).
 - **Round 4** was a review of the corridor layer. More on that below.
 
-**Three Sonnet sessions** each got one narrow, exact-only idea: an obstacle index for the box checks, cheaper lane checks, and a cheaper A* setup. All three found no gain beyond noise and left no commits. They each said so plainly, and that is a fine result. It took three ideas off the list.
+**Three Sonnet sessions** each got one narrow, exact-only idea: an obstacle index for the box checks, cheaper lane checks, and a cheaper A* setup. All three found no gain beyond noise and left no commits. They each said so plainly, and that took three ideas off the list.
 
-## The jump the climb could not make
+## Corridor routing from a failed round
 
 After #517, the exact cuts were running out. Claude's next trials (a search cost cap, a crossing-count hint for A*, standoff in the floor) gained nothing, and Codex round 3 found 14%. The 50 ms target needed about 5x more.
 
-The idea that got there came out of Codex round 2, the round that failed. Claude built it as [#519](https://github.com/byronwall/draftably/pull/519). A large `flow` diagram now lays out like a layered layout. Each long line gets its own corridor between the boxes of the ranks it passes. Each gap between ranks is sized to the tracks it needs. And every forward line follows a planned route, so the router does not have to search for it.
+The idea that got there came out of Codex round 2, the round that failed. Claude built it as [#519](https://github.com/byronwall/draftably/pull/519). A large `flow` diagram now lays out like a layered layout. Each long line gets its own corridor between the boxes of the ranks it passes, and each gap between ranks is sized to the tracks it needs. Every forward line follows a planned route, so the router does not have to search for it.
 
 That took the 100/127 DAG from 276 ms to 19 ms. It also made the drawing better: crossings 133 to 108, bends 256 to 216, and the 100-node tree went from 11 crossings to 0. On main, several lines arrive at a box from the side and weave between boxes:
 
@@ -85,7 +85,7 @@ With corridors, every line leaves a bottom and enters a top, and long lines run 
 
 ![The same crop with corridors. Every line enters a box from the top, and long lines run as straight trunks.](/images/posts/hill-climbing-draftably-layout-speed/dag100-stack.jpg)
 
-That is the limit of this kind of loop. Small, measured steps are very good at squeezing an approach. They do not change the approach. The step that changed it came from an experiment that failed and then explained why.
+The small measured steps took the DAG from 663 ms to 276 ms, but none of them could replace the router's search. The idea that did came from Codex's failed round 2 and its report on why it failed.
 
 ## The drawing-change layer got the hardest gate
 
@@ -101,7 +101,7 @@ Round 4 also reviewed the corridor code and found three real bugs, each with a f
 - The router accepted a saved plan after a box had moved, which left a detached line.
 - A plan overrode a line's own arrival offset.
 
-Claude checked each fix and folded it into #519, where the bugs came from. It also fixed one more that Codex reported and left open: plans ignored the file's `portGap` and `edgeGap`. An independent reviewer that did not write the code found what the gates missed. That is worth a whole round.
+Claude checked each fix and folded it into #519, where the bugs came from. It also fixed one more that Codex reported and left open: plans ignored the file's `portGap` and `edgeGap`. Codex had not written the corridor code, and its review found three bugs that the gates missed.
 
 ## Where it ended
 
@@ -122,6 +122,6 @@ On the docs session's own fair benchmark, with real elkjs and dagre on the same 
 | DAG 100 / 127 | 29 ms | 19 ms | 19 ms |
 | DAG 50 / 65 | 17 ms | 10 ms | 8 ms |
 
-Update, 10 November: the stack merged into `main` and shipped in `draftably` 0.12.0. The dense-graph case is the clear gap. 1.6 s is three times faster than before, but the fast corridor version of that drawing still crosses more. That is the next thing to climb.
+Update, 10 November: the stack merged into `main` and shipped in `draftably` 0.12.0. The dense-graph case is the clear gap. 1.6 s is three times faster than before, but the fast corridor version of that drawing still crosses more. Closing that gap is the next step.
 
-Three parts of the setup did most of the work: the digest existed before the first optimization, every worker had the same gates, and every worker's report was a claim to check, not a result. The digest made exact changes free to accept. The audit and the reviewer caught the drawing changes that the numbers alone would have let through.
+The setup did most of the work. The digest existed before the first optimization, every worker had the same gates, and Claude re-ran each worker's checks before porting its code. The digest made exact changes free to accept. The audit and the reviewer caught the drawing changes that the numbers alone would have let through.
