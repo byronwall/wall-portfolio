@@ -59,7 +59,7 @@ A read-only snapshot at **10:20 p.m. EDT on October 25, 2026** showed this distr
 | Make task | 206 | 3.25% |
 | Post-event | 49 | 0.77% |
 
-All assessments used `jev-1.14.0`, question set `v1`. All 6,335 were still unreviewed. Model signals and code rules produced these buckets, and I have not reviewed them. The delete bucket's size does not establish that a quarter of the collection should disappear.
+All assessments used `jev-1.14.0`, question set `v1`. All 6,335 were still unreviewed. Model signals and code rules produced these buckets. The delete bucket's size does not establish that a quarter of the collection should disappear.
 
 Regroup is separate from this per-note partition. The snapshot held 4,096 pair assessments, with 460 pairs meeting the combine threshold. Pairs can share notes, so those counts cannot be added to the table or treated as 460 independent merges.
 
@@ -96,5 +96,3 @@ The verified image was `137cbdb9f817792b97041244fa5d6c45b87f6935`. The login rou
 The embedding count rose from 6,263 to 6,347, covering 84 previously missing notes. A later checkpoint recorded 75 replacements after the final startup. Multiple changed-note batches projected 25 points each with zero failures.
 
 That did not finish the backlog. One checkpoint still had 6,138 changed notes waiting, and two notes produced no embedding chunks. Catch-up continued in the background.
-
-Next, I need to review the suggestions. What I approve will show whether the ranking is worth trusting.

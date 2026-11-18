@@ -17,7 +17,7 @@ Draftably has a layout API now, `layout()` from `@draftably/runtime/graph`, and 
 
 So the docs session started a second Claude session with one job: hill-climb the speed of `layout()` on fresh graphs, without making the drawings worse. Try one change, measure it, keep it only if time drops and quality holds. The first target was 150 ms on the 100/127 DAG. After the first PR, I moved it to 50 ms and asked for Codex to look for the next opportunity in parallel after each big gain.
 
-About an hour and a half later, that DAG lays out in about 20 ms. There is a four-PR stack, and three of its layers draw exactly the same pictures as before. The rest of this post covers how Claude decided what to keep, and which agent found each change.
+About an hour and a half later, that DAG lays out in about 20 ms. There is a four-PR stack, and three of its layers draw exactly the same pictures as before.
 
 ![The process: Claude profiles, tries one change, and measures time, quality and a digest. A change with the same digest is committed. A change that alters the drawing must pass a quality gate, or it is reverted. Codex rounds and Sonnet trials take briefs in parallel, and their changes come back through the same gates.](/images/posts/hill-climbing-draftably-layout-speed/process.png)
 
@@ -42,7 +42,7 @@ The profile was clear: about 97% of `layout()` was edge routing, not placement. 
 
 So the router spent almost all its time scoring paths that could never win.
 
-## Layer 1 and 2: exact cuts
+## Layers 1 and 2: exact cuts
 
 The first changes were all exact. The router now puts every candidate in one queue, ordered by a floor under its score: length, bends, and side terms. It builds a side's detours only when the queue reaches that side's floor, and it stops at the first floor above the best route. Scoring also stops adding terms once the partial sum has already lost.
 
@@ -101,7 +101,7 @@ Round 4 also reviewed the corridor code and found three real bugs, each with a f
 - The router accepted a saved plan after a box had moved, which left a detached line.
 - A plan overrode a line's own arrival offset.
 
-Claude checked each fix and folded it into #519, where the bugs came from. It also fixed one more that Codex reported and left open: plans ignored the file's `portGap` and `edgeGap`. Codex had not written the corridor code, and its review found three bugs that the gates missed.
+Claude checked each fix and folded it into #519, where the bugs came from. It also fixed one more that Codex reported and left open: plans ignored the file's `portGap` and `edgeGap`.
 
 ## Where it ended
 
