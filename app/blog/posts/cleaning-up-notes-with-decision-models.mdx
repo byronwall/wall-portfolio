@@ -1,7 +1,7 @@
 ---
 title: Cleaning up 6,300 notes, from decision models to a working review queue
 publishedAt: 2026-10-25
-summary: 'How my own labels changed Visual Notes cleanup from deletion to distillation, what Jev suggested across the collection, and what production verification caught.'
+summary: 'How my own labels turned Visual Notes cleanup toward trimming notes instead of deleting them, what Jev suggested across the collection, and what broke in production.'
 image: "/images/posts/cleaning-up-notes-with-decision-models/trim-signals.svg"
 project: visual-notes
 type: update
@@ -9,9 +9,9 @@ type: update
 
 My [Visual Notes](/projects/visual-notes) collection had 6,349 notes when this shipped. Some were saved chatbot conversations, some were import leftovers, and some were plans for events that already happened. Useful information was often buried inside material I no longer needed.
 
-The cleanup feature now ranks those notes for review. Jev assesses them, code suggests an action, and an LLM drafts a shorter version when I open a distill card. I decide what to keep. Getting there required an experiment that changed the product's direction, followed by production checks that found several things the tests missed.
+The cleanup feature now ranks those notes for review. Jev assesses them, code suggests an action, and an LLM drafts a shorter version when I open a distill card. I decide what to keep. An experiment changed what I built, and production checks then found several problems that the tests missed.
 
-## The reference had the wrong taste
+## Claude's reference labels favored deletion
 
 On October 24, I tested 144 production notes with Jev `jev-1.14.0` and OpenAI Decisions `gpt-6-luna`. The experiment repeated calls, reversed choice order, asked section and pair questions, and included a normal LLM baseline. It cost $0.061 on Jev and $0.232 on OpenAI, including that baseline.
 
@@ -27,23 +27,23 @@ I then labeled 60 notes blind: all 41 holdouts plus 19 development notes selecte
 | Make task | 2 |
 | Delete | 1 |
 
-Five of the keeps also needed regrouping. These are labels for a selected sample, not an estimate of the whole collection.
+Five of the keeps also needed regrouping. I picked part of the sample for disagreement, so it does not estimate the whole collection.
 
 Claude matched only 33% of my exact verdicts. A saved answer can be generic and still contain a fix worth keeping. An expired event plan can lose its schedule while keeping a reusable checklist. Several short notes can belong together without any of them being junk.
 
 The useful action was often to distill the durable part or put it with related information. A reference model's labels could not settle that choice for me.
 
-## Ask the small question
+## One yes/no question found the trims
 
 The strongest trim signal was one yes/no question: was most of the note copied or generated?
 
-That signal ranked my trim labels at AUC 0.93 on Jev and 0.92 on OpenAI. The holistic “keep but trim” verdict scored 0.51 and 0.40, near chance or worse. On both vendors, the top ten notes ranked by the narrow signal contained nine trims and one archive.
+That signal ranked my trim labels at AUC 0.93 on Jev and 0.92 on OpenAI. The holistic "keep but trim" verdict scored 0.51 and 0.40, near chance or worse. On both vendors, the top ten notes ranked by the narrow signal contained nine trims and one archive.
 
 ![AUC against 60 owner labels. The copied-or-generated signal finds trim candidates much better than the holistic verdict.](/images/posts/cleaning-up-notes-with-decision-models/trim-signals.svg)
 
-This gave the implementation a useful division of work. Code computes source, word count, and dates. The decision model answers narrow questions about content. Code combines those answers into a ranked queue. A writing model drafts when there is something to review.
+So I split the work. Code computes source, word count and dates, and the decision model answers narrow questions about the content. Code then combines those answers into a ranked queue, and a writing model drafts only when there is something to review.
 
-Reversing the note-kind choices changed OpenAI's answer on 14% of notes and Jev's on 5%. A probability is useful for sorting, but it does not make a suggestion true. The [experiment results](https://github.com/byronwall/visual-notes/blob/main/docs/intent/notes-cleanup-decisions/results.md) include the protocol, costs, and both sets of labels.
+Reversing the note-kind choices changed OpenAI's answer on 14% of notes and Jev's on 5%. So the queue uses the probability for sorting only. The [experiment results](https://github.com/byronwall/visual-notes/blob/main/docs/intent/notes-cleanup-decisions/results.md) include the protocol, costs, and both sets of labels.
 
 ## What the whole collection looks like
 
@@ -59,7 +59,7 @@ A read-only snapshot at **10:20 p.m. EDT on October 25, 2026** showed this distr
 | Make task | 206 | 3.25% |
 | Post-event | 49 | 0.77% |
 
-All assessments used `jev-1.14.0`, question set `v1`. All 6,335 were still unreviewed. These are model signals combined with code rules, not my decisions. The delete bucket's size does not establish that a quarter of the collection should disappear.
+All assessments used `jev-1.14.0`, question set `v1`. All 6,335 were still unreviewed. Model signals and code rules produced these buckets, and I have not reviewed them. The delete bucket's size does not establish that a quarter of the collection should disappear.
 
 Regroup is separate from this per-note partition. The snapshot held 4,096 pair assessments, with 460 pairs meeting the combine threshold. Pairs can share notes, so those counts cannot be added to the table or treated as 460 independent merges.
 
@@ -75,15 +75,15 @@ Keep hides a note from cleanup for six months. Snooze hides it for 30 days. Regr
 
 Approving a distill or combine archives the source. Links follow the retained content, and the archive provides Restore. After 30 days, archived notes are automatically deleted, leaving a small record so old links can still resolve. That retention rule starts after an approved action. Assessment alone does not archive or delete anything.
 
-Production verification loaded the buckets, daily cards, archive page, search, and header chip. It generated a successful draft with an enabled Distill action. It did not execute an archive or delete action, so those paths remain outside the live verification claim. The [implementation notes](https://github.com/byronwall/visual-notes/blob/main/app/docs/note-cleanup.md) describe the shipped flows.
+Production verification loaded the buckets, daily cards, archive page, search, and header chip. It generated a successful draft with an enabled Distill action. It did not execute an archive or delete action, so I have not verified those paths in production. The [implementation notes](https://github.com/byronwall/visual-notes/blob/main/app/docs/note-cleanup.md) describe the shipped flows.
 
-## What production caught
+## Problems found in production
 
 PostgreSQL lived inside the application's Compose project, rather than in a separate Coolify database resource. A roughly 1.2 GB dump passed a full read validation, with another copy on the host. Both copies remained on the same server. Four additive migrations applied; the handoff had counted three.
 
 Compose omitted `TYPESAFE_API_KEY` and `CLEANUP_DECIDER`; the OpenAI key already existed. [PR #233](https://github.com/byronwall/visual-notes/pull/233) fixed the mappings. A real draft then failed because the shared helper sent `temperature` to `gpt-5-mini`. [PR #234](https://github.com/byronwall/visual-notes/pull/234) removed unsupported sampling settings and restored successful drafts.
 
-A background embedding timer then failed at `singleFlight`. It called a Solid router action without an HTTP router context. Tests had hidden the problem by replacing router actions with plain functions. [PR #235](https://github.com/byronwall/visual-notes/pull/235) moved the business logic into plain server workers, leaving router actions for browser requests.
+A background embedding timer then failed at `singleFlight`. It called a Solid router action without an HTTP router context. The tests replaced router actions with plain functions, so they never hit this. [PR #235](https://github.com/byronwall/visual-notes/pull/235) moved the business logic into plain server workers, leaving router actions for browser requests.
 
 Once that worked, a larger vector batch took over seven seconds and exceeded Prisma's five-second interactive transaction limit. [PR #236](https://github.com/byronwall/visual-notes/pull/236) gave that vector-write transaction 60 seconds while keeping deletes and replacement writes atomic.
 
@@ -97,4 +97,4 @@ The embedding count rose from 6,263 to 6,347, covering 84 previously missing not
 
 That did not finish the backlog. One checkpoint still had 6,138 changed notes waiting, and two notes produced no embedding chunks. Catch-up continued in the background.
 
-The useful result is a review queue backed by a measured signal and a working draft flow. Whether it makes the collection better depends on the next step: keeping the durable information, approving the changes, and using those decisions to judge the queue.
+Next, I need to review the suggestions. What I approve will show whether the ranking is worth trusting.
