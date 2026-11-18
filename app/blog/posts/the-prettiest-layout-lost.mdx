@@ -12,7 +12,7 @@ interactionTime: "5 min interactive"
 
 A Draftably file says what a diagram means: nodes, groups, edges. A `layout` line says how to arrange it. The trouble is picking that line. You change `flow` to `compound-flow`, look, flip the direction, look again, bump a gap. One guess at a time.
 
-That is slow for me. It is worse for an agent. An agent edits the file, runs `check`, and gets back "OK." It has no idea whether the picture got better, so it either stops at the first layout or keeps editing lines blind.
+Guessing is slow for me and worse for an agent. An agent edits the file, runs `check`, and gets back "OK." It has no idea whether the picture got better, so it either stops at the first layout or keeps editing lines blind.
 
 So Draftably now does the guessing. `draftably vary` reads the diagram's shape, tries the layouts that suit it, draws and measures each one, and ranks them against the file as it is. The editor's **Compare** sheet does the same thing with the same rule.
 
@@ -28,15 +28,15 @@ The obvious pick is `v2`. It has zero crossings and 13 fewer bends than the orig
 
 ![The observability contact sheet. v1 is starred as the pick, with 1 fewer crossing and 0 px moved. v2 is ringed in red: 0 crossings, but 79% bigger.](/images/posts/the-prettiest-layout-lost/hero.jpg)
 
-`v2` is 79% bigger, and the average box moved 622 px. It is a different diagram. Maybe a better one. But "better" there is a trade: fewer crossings for a lot more canvas. The tool will not make that trade for you.
+`v2` is 79% bigger, and the average box moved 622 px. It might be a better diagram, but it trades fewer crossings for a lot more canvas, and `vary` will not make that trade for you.
 
 The rule is in [`improves()`](https://github.com/byronwall/draftably/blob/main/src/cli/variants.ts), and it is short:
 
 - A variant with **more warnings** or **more crossings** than the file never wins.
-- **Fewer warnings** with no more crossings always wins. A conflict outweighs room.
+- **Fewer warnings** with no more crossings always wins, even if the canvas grows.
 - Otherwise it has to be **no bigger**, and better on crossings or area.
 
-Only a variant that passes is recommended. If none does, the recommendation is `v0`, which means keep what you have. The scatter under the explorer below shows this directly: the shaded corner is "no worse on crossings or area." Dots in that corner can win. Every dot outside it is a trade.
+Only a variant that passes is recommended. If none does, the recommendation is `v0`, which means keep what you have. The scatter under the explorer below shows this directly: the shaded corner is "no worse on crossings or area." Dots in that corner can win. A dot outside it is better on one measure and worse on another.
 
 ## What it tries and what it measures
 
@@ -70,7 +70,7 @@ Recommended: v1. Apply: draftably vary observability-stack.draft --apply v1
 
 `--apply` writes only the lines that variant changes and keeps comments, IDs and refinements. Then it runs `check`.
 
-## Six runs, six answers
+## Six example diagrams
 
 Here are all six runs, including the one above. Switch between them, hover a tile or a dot, and change `--prefer`.
 
@@ -78,13 +78,13 @@ Here are all six runs, including the one above. Switch between them, hover a til
 
 The other five each show a different side of the rule.
 
-**Data lakehouse: a win without moving anything.** `crossing-penalty=900` takes 4 crossings to 2 and moves 0 px. This is the best kind of result. The picture you already know, a little cleaner. But switch `--prefer` to *Smallest first* and the star moves to `v2`, which softens the group frames and is 27% smaller with the same 4 crossings. Both pass the rule. `--prefer` only decides which safe change comes first.
+**Data lakehouse: a win without moving anything.** `crossing-penalty=900` takes 4 crossings to 2 and moves 0 px. You get the picture you already know with half the crossings. But switch `--prefer` to *Smallest first* and the star moves to `v2`, which softens the group frames and is 27% smaller with the same 4 crossings. Both pass the rule. `--prefer` only decides which safe change comes first.
 
-**RAG assistant: keep what you have.** Three alternatives each remove one crossing, but each one grows the canvas by 8 to 46%. None passes, so the recommendation is `v0`. "No change" is a real answer. An agent that gets `v0` back knows to stop.
+**RAG assistant: keep what you have.** Three alternatives each remove one crossing, but each one grows the canvas by 8 to 46%. None passes, so the recommendation is `v0`. An agent that gets `v0` back should stop editing the layout.
 
-**AWS VPC: the bends trap.** Softening the subnet and region frames takes bends from 21 to 7. That tile looks much quieter. It also adds 7 crossings and 2 warnings. This is why bends rank but do not gate. A drawing with fewer bends is not better if lines now run through things.
+**AWS VPC: fewer bends, more crossings.** Softening the subnet and region frames takes bends from 21 to 7. That tile looks much quieter. It also adds 7 crossings and 2 warnings. This case is why bends affect the ranking but cannot make a variant win. The quieter tile has lines running through things.
 
-**Kubernetes cluster: the big shrink.** Reading down is 40% smaller and passes the rule. It also moves the average box 533 px. If someone already knows this diagram, that matters. *Least moved first* picks `v2`, which is 1% smaller and moves boxes only 87 px.
+**Kubernetes cluster: 40% smaller, but everything moves.** Reading down is 40% smaller and passes the rule. It also moves the average box 533 px. If someone already knows this diagram, they have to find everything again. *Least moved first* picks `v2`, which is 1% smaller and moves boxes only 87 px.
 
 The last tab is a diagram from this post. It gets its own section.
 
@@ -111,7 +111,7 @@ v2  compound-flow down           0 (-3)     16 (-13)  1008×1421 (+79%)  0.71   
 …
 ```
 
-With `--fit`, a variant can grow to reach the shape, but by half at most. Reshaping the same content should not need more than that. Growth past that point is empty space, not a better fit.
+With `--fit`, a variant can grow to reach the shape, but by half at most. Reshaping the same content should not need more than that. Past that, the extra area is empty space.
 
 The loop an agent runs looks like this:
 
@@ -127,7 +127,7 @@ The recommendation was `v1`: the same 3 crossings, 2% smaller. Every other varia
 
 `v1` is not the best tile. `v2` is the same layout with the stricter router. It has 0 crossings, nothing moved, and 14% more room. I looked at the sheet, took the trade, and ran `vary --apply v2`. That is the version in the previous section.
 
-Two things to note from this. First, the rule did its job. It found the safe change and showed me the trades next to it, and the trade was mine to make. Second, the table said `v1` had 0 warnings, even with a line through a label. `check`'s label rule looks for a label over a box or another label. It does not catch a line through a label. The editor's Compare sheet has counted that case since [#393](https://github.com/byronwall/draftably/pull/393). The CLI does not yet.
+The rule found the safe change and showed me the trades next to it, and the trade was mine to make. The table also missed something. It said `v1` had 0 warnings, even with a line through a label. `check`'s label rule looks for a label over a box or another label. It does not catch a line through a label. The editor's Compare sheet has counted that case since [#393](https://github.com/byronwall/draftably/pull/393). The CLI does not yet.
 
 ## The same rule in the editor
 
@@ -145,12 +145,12 @@ The costs are what make it useful. Here is a denser diagram partway through a ru
 
 Two later changes made the sheet more trustworthy. The candidates are now computed in parallel ([#392](https://github.com/byronwall/draftably/pull/392)), and a candidate with a label collision ranks behind every clean one, even if it is smaller ([#393](https://github.com/byronwall/draftably/pull/393)).
 
-## Where the numbers stop
+## Where the measures and the eye disagree
 
 When Compare was rebuilt, an audit compared the measures against a visual judgment of the same pairs of drawings:
 
 <AgreementWaffle />
 
-So the numbers and the eye disagree more than a third of the time. That is not a reason to drop the numbers. They are good at catching what you skim past: a new crossing, a warning, a canvas that doubled. They are bad at whether a diagram reads well.
+So the numbers and the eye disagree more than a third of the time. The numbers are still worth keeping. They catch what you skim past: a new crossing, a warning, a canvas that doubled. They cannot tell you whether a diagram reads well.
 
 That is why every tile and card shows the drawing, and why the rule only recommends changes that need no judgment. For an agent, the default works well. Run `vary`. If it recommends something, apply it. If it says `v0`, the remaining options are trades, so show a person the contact sheet. That is what happened with the loop diagram. The tool found the safe option and laid out the trades, and I made the call from the picture.
