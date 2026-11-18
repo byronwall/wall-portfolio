@@ -1,42 +1,17 @@
 ---
-title: "Engineering analysis at Allison"
-description: "A shared time-series analysis platform that replaced Excel and MATLAB reporting for 100+ engineers at Allison Transmission"
+title: "Shifty"
+description: "An internal time series analysis platform for transmission test data, with user-defined events, calculations, and linked charts"
 date: "2023-02-01"
-publishedAt: "2026-11-16"
-summary: "A shared time-series analysis platform that replaced Excel and MATLAB reporting for 100+ engineers at Allison Transmission"
+publishedAt: "2026-11-17"
+summary: "An internal time series analysis platform for transmission test data, with user-defined events, calculations, and linked charts"
 tags: ["TypeScript", "React", "D3", "Crossfilter", "C#", "DSL"]
 image: "/images/projects/allison-platform/allison-analysis-flow.png"
 indexTier: "medium"
 indexOrder: "1"
 ---
 
-Engineers at Allison Transmission analyzed transmission and vehicle tests in Excel and MATLAB, one report at a time. I created and led a shared analysis platform that replaced that work. Telemetry showed more than 100 engineers using it.
+Shifty was the time series analysis platform I built at Allison Transmission. Engineers used it to find events in their test files, compute values for every event, filter the results in linked charts, and open the raw signals behind a pattern. More than 100 engineers used it.
 
-The important design choice was to let engineers ask new questions without a server change. They defined events and calculations themselves, filtered the results across every test, and opened the raw signals behind any pattern.
+It was internal software, so there are no screenshots here. I wrote up how it was built, how it grew, and what I learned in [Building a time series data analysis platform](/blog/building-a-time-series-data-analysis-platform).
 
-This was internal software, so there are no screenshots. The diagrams below show how it worked. [explorEDA](/projects/exploreda) is my clean-sheet, open-source take on the same linked-chart idea; it shares no code with this platform.
-
-## How an analysis worked
-
-The diagram at the top of the page shows the loop.
-
-- **Events**: engineers defined the moments they cared about, like an oscilloscope trigger. Range shifts were the most common. They previewed an event on sample files, then ran it across hundreds to tens of thousands of files.
-- **Analyses**: a second step computed values for each event, such as maximum engine speed or minimum pressure. A 2,000-hour durability test could yield half a million shifts with 10 to 30 values each.
-- **Exploration**: linked charts filtered every event at once. I first built them on dc.js, then rewrote every chart as custom D3 and SVG code on top of Crossfilter, so interaction stayed fast.
-- **Signal overlay**: from a filtered set, engineers opened the raw signals aligned on event start. A difference they spotted there, such as a fault 300 ms after the shift command, became the next analysis.
-
-## How it grew
-
-![How the platform grew: from Excel and MATLAB, to a first web app with hard-coded analyses, to user-defined analysis, to a shared platform used by 100+ engineers.](/images/projects/allison-platform/allison-platform-growth.png)
-
-It started as my own Excel pipeline and a reader for the test files. The first web app hard-coded each analysis on a C# server, so every new question needed a change and a recompile from me. The user-defined language for events and calculations removed that step. Later, engineers worked in shared databases, reused each other's calculations, and sent deep links to results.
-
-## Results
-
-- More than 100 engineers used the platform, measured by usage telemetry.
-- When I helped teams move their reporting pipelines onto it, their report work fell from hours to minutes. That is what I saw in those conversions, not an average across every user.
-- Tests on the calculation language checked parsing, numerical results, and drift, so I could refactor without changing answers.
-
-## My part
-
-I created the platform and led its development. I wrote its TypeScript frontend, about 60,000 lines, from scratch. I also helped teams convert their pipelines and mentored newer engineers on the code.
+[explorEDA](/projects/exploreda) is my open-source, clean-sheet take on the same linked-chart idea. It shares no code with Shifty.
