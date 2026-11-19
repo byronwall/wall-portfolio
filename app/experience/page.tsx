@@ -15,29 +15,33 @@ export default function ExperiencePage() {
   return (
     <main className={styles.page}>
       <header className="page-intro">
-        <h1 className="page-title">Experience</h1>
+        <div className={styles.titleRow}>
+          <h1 className="page-title">Experience</h1>
+          <a className="button button-secondary" href="/resume_byron_wall.pdf" target="_blank" rel="noreferrer">
+            View résumé <span aria-hidden="true">↗</span>
+          </a>
+        </div>
         <p className="page-lede">A concise record of the teams I’ve joined and the technical problems I’ve helped solve.</p>
       </header>
       <div className={styles.body}>
       <ol className={styles.timeline}>
         {experiences.map((item) => (
           <li className={styles.entry} key={item.slug}>
-            <div className={styles.dates}>{item.dates}</div>
+            <div className={styles.lead}>
+              <div className={styles.mark}>
+                <CompanyLogo item={item} />
+              </div>
+              <div className={styles.dates}>{item.dates}</div>
+            </div>
             <span className={styles.dot} aria-hidden="true" />
             <div className={styles.entryCopy}>
               <h2><Link href={`/experience/${item.slug}`}>{item.company}</Link></h2>
               <p className={styles.role}>{item.role}</p>
               <p className={styles.summary}>{item.summary}</p>
             </div>
-            <div className={styles.mark}>
-              <CompanyLogo item={item} />
-            </div>
           </li>
         ))}
       </ol>
-      <a className={styles.resume} href="/resume_byron_wall.pdf" target="_blank" rel="noreferrer">
-        View résumé <span aria-hidden="true">↗</span>
-      </a>
       </div>
     </main>
   );

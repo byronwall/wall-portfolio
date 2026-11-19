@@ -1,5 +1,6 @@
 import { PhotoPile } from "../photo-pile";
 import { CompanyLogo } from "../company-logo";
+import { InlineText } from "../inline-text";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -48,7 +49,7 @@ export default async function ExperienceDetailPage({ params }: { params: Promise
       <section className={styles.body}>
         <div className={styles.focus}>
           <h2>What I worked on</h2>
-          <ul>{item.focus.map((focus) => <li key={focus}>{focus}</li>)}</ul>
+          <ul>{item.focus.map((focus) => <li key={focus}><InlineText text={focus} /></li>)}</ul>
         </div>
         <aside className={styles.aside}>
           <h2>Systems &amp; tools</h2>
