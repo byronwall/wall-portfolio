@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ArticleToc } from "../components/article-toc";
 import styles from "../blog.module.css";
 import { getOgImageUrl } from "app/og-image";
+import { LightboxScope } from "app/components/lightbox";
 
 type BlogPageProps = {
   params: Promise<{ slug: string }>;
@@ -198,6 +199,7 @@ export default async function Blog({ params }: BlogPageProps) {
           )}
         </aside>
         <div className={`${styles.articleMain} ${isInteractive ? styles.interactiveMain : ""}`}>
+          <LightboxScope>
           <header className={styles.articleHeader}>
             <h1>
               {renderArticleTitle(
@@ -211,11 +213,12 @@ export default async function Blog({ params }: BlogPageProps) {
             <p className={styles.articleMobileMeta}>{formatDate(post.metadata.publishedAt)} · {readingTime}{interactionTime ? ` · ${interactionTime}` : ""} · {category}{relatedProject ? ` · ${relatedProject.metadata.title}` : ""}</p>
             {post.metadata.articleHero !== "false" && post.thumbnail && (
               <div className={styles.articleHero}>
-                <img className={styles.articleHeroImage} src={post.thumbnail} alt="" />
+                <img className={styles.articleHeroImage} src={post.thumbnail} alt={post.metadata.title} />
               </div>
             )}
           </header>
           <article className={`prose ${styles.articleBody} ${isInteractive ? styles.interactiveBody : ""}`}><CustomMDX source={post.content} /></article>
+          </LightboxScope>
           {relatedProject && (
             <footer className={styles.articleRelated}>
               <p>Part of <Link href={`/projects/${relatedProject.slug}`}>{relatedProject.metadata.title}</Link>.</p>

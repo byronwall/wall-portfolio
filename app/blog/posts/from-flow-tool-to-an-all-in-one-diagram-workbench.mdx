@@ -147,6 +147,8 @@ flow render path/to/diagrams --output-dir previews --contact-sheet
 
 The installed `flow` command, the packaged viewer, the repository specification, and the agent skill now use the same language. That matters more than a syntax score. A concise DSL is not useful if the formatter, examples, and machine-wide tool disagree about what is valid.
 
+Putting the diagram in a DSL is also what later led to [Draftably](/projects/draftably). Once a diagram was a text file that an agent could write and check, the next step was a tool built around that file: an agent writes it, I refine it in a live viewer, and my edits save back to the source.
+
 ## What all-in-one means here
 
 User Flow Workbench now has one project root, one `.diagram` extension, one CLI, one viewer, and explicit links across four kinds of artifact. That is enough to inspect a product from several useful distances without building four disconnected tools.
