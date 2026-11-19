@@ -118,7 +118,7 @@ body {
 /* Sticky so the nav and social links stay in reach; a hairline fades in once the page scrolls. */
 .site-header { position: sticky; top: 0; z-index: 20; padding: 18px var(--page-gutter) 10px; background: var(--surface-paper); }
 @supports (animation-timeline: scroll()) {
-  .site-header { animation: header-edge linear both; animation-timeline: scroll(); animation-range: 0 48px; }
+  .site-header { animation: header-edge linear both; animation-timeline: scroll(root); animation-range: 0 48px; }
 }
 @keyframes header-edge { to { box-shadow: 0 1px 0 var(--border-quiet); } }
 .site-nav-inner { display: flex; align-items: center; min-height: 34px; gap: 30px; }
