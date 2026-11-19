@@ -1,28 +1,33 @@
 .page { padding-bottom: 82px; }
+.titleRow { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px 24px; max-width: 920px; }
 .body { padding: 10px var(--page-gutter) 0; }
 .timeline { position: relative; max-width: 920px; margin: 0; padding: 0; list-style: none; }
 .timeline::before { position: absolute; top: 22px; bottom: 24px; left: 148px; width: 1px; background: var(--border-quiet); content: ""; }
-.entry { display: grid; grid-template-columns: 120px 28px minmax(0, 1fr) 128px; gap: 14px; align-items: start; padding: 0 0 38px; }
+.entry { display: grid; grid-template-columns: 120px 28px minmax(0, 1fr); gap: 14px; align-items: start; padding: 0 0 44px; }
 .entry:last-child { padding-bottom: 0; }
-.dates { padding-top: 7px; color: var(--ink-muted); font-size: 12px; line-height: 1.45; text-align: right; }
+.lead { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; padding-top: 4px; }
+.mark { display: flex; align-items: center; justify-content: flex-end; width: 120px; height: 44px; padding: 6px 0 6px 10px; border-radius: 5px; background: var(--surface-plate); box-sizing: border-box; }
+.mark img { display: block; width: 100%; height: 100%; object-fit: contain; object-position: right center; }
+.dates { color: var(--ink-muted); font-size: 12px; line-height: 1.45; text-align: right; }
 .dot { position: relative; z-index: 1; width: 9px; height: 9px; margin: 10px auto 0; border: 3px solid var(--surface-paper); border-radius: 50%; background: var(--action-primary); box-sizing: content-box; }
-.entryCopy { padding: 2px 0 30px; border-bottom: 1px solid var(--border-quiet); }
-.entry:last-child .entryCopy { border-bottom: 0; }
+.entryCopy { padding-top: 2px; }
 .entryCopy h2 { margin: 0 0 5px; font-size: 21px; font-weight: var(--heading-weight); line-height: 1.2; letter-spacing: -.025em; }
 .entryCopy h2 a { text-decoration: none; }
 .role { margin: 0 0 10px; color: var(--ink-primary); font-size: 14px; font-weight: 620; }
 .summary { max-width: 610px; margin: 0; color: var(--ink-body); font-size: 14px; line-height: 1.55; }
-.mark { display: grid; width: 128px; height: 64px; padding: 10px 12px; place-items: center; justify-self: end; border-radius: 6px; background: var(--surface-plate); box-sizing: border-box; }
-.mark img { display: block; width: 100%; height: 100%; max-height: 36px; object-fit: contain; }
-.resume { display: inline-flex; align-items: center; gap: 8px; margin: 44px 0 0 176px; padding: 11px 15px; border: 1px solid var(--action-border); border-radius: 5px; color: var(--action-primary); font-size: 13px; font-weight: 620; text-decoration: none; }
+
+/* The light plate keeps logos drawn for white backgrounds readable in dark mode. */
+:global([data-theme="dark"]) .mark { padding-right: 10px; justify-content: center; }
+:global([data-theme="dark"]) .mark img { object-position: center; }
 
 @media (max-width: 760px) {
   .page { padding-bottom: 60px; }
   .timeline::before { left: 6px; }
-  .entry { grid-template-columns: 14px minmax(0, 1fr) 74px; gap: 11px; padding-bottom: 31px; }
-  .dates { grid-column: 2 / 4; grid-row: 1; padding: 0; text-align: left; }
+  .entry { grid-template-columns: 14px minmax(0, 1fr); gap: 11px; padding-bottom: 34px; }
+  .lead { grid-column: 2; grid-row: 1; flex-direction: row; align-items: center; gap: 12px; padding: 0; }
+  .mark { width: 84px; height: 32px; padding: 4px 0; justify-content: flex-start; }
+  .mark img { object-position: left center; }
+  .dates { text-align: left; }
   .dot { grid-column: 1; grid-row: 2; margin-top: 8px; }
-  .entryCopy { grid-column: 2; grid-row: 2; padding-bottom: 24px; }
-  .mark { grid-column: 3; grid-row: 2; width: 74px; height: 48px; padding: 6px 8px; }
-  .resume { margin: 32px 0 0 25px; }
+  .entryCopy { grid-column: 2; grid-row: 2; }
 }

@@ -1,4 +1,5 @@
 import { socialLinks } from "../data/site-links";
+import { ThemeToggle } from "./theme-toggle";
 
 export function Footer() {
   return (
@@ -25,6 +26,7 @@ export function Footer() {
               {Icon && <Icon aria-hidden="true" />}
             </a>
           ))}
+        <ThemeToggle />
       </div>
     </footer>
   );

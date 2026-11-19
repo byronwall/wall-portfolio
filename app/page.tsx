@@ -1,4 +1,5 @@
-import { CompanyLogo } from "./experience/company-logo";
+import path from "node:path";
+import sharp from "sharp";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -10,7 +11,42 @@ import {
 } from "./blog/utils";
 import { experiences } from "./experience/data";
 
-export default function Home() {
+// Read a local thumbnail's size so the card reserves its exact aspect ratio before the image loads.
+async function imageSize(src?: string) {
+  if (!src?.startsWith("/")) return undefined;
+  try {
+    const { width, height } = await sharp(path.join(process.cwd(), "public", src)).metadata();
+    return width && height ? { width, height } : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+// "April 2025 – Present" -> "2025 – Present"; "June 2010 – July 2014" -> "2010 – 2014".
+const yearSpan = (dates: string) =>
+  dates.split("–").map((part) => part.match(/\d{4}/)?.[0] ?? part.trim()).join(" – ");
+
+function PreviewCard({ href, title, text, thumbnail, size }: {
+  href: string;
+  title: string;
+  text?: string;
+  thumbnail?: string;
+  size?: { width: number; height: number };
+}) {
+  return (
+    <Link className={`content-preview-card${thumbnail ? "" : " content-preview-card-text"}`} href={href}>
+      {thumbnail && (
+        <img src={thumbnail} alt="" className="content-preview-image" loading="lazy" width={size?.width} height={size?.height} />
+      )}
+      <div className="content-preview-copy">
+        <h2>{title}</h2>
+        {text && <p>{text}</p>}
+      </div>
+    </Link>
+  );
+}
+
+export default async function Home() {
   const projects = getProjects();
   const projectTitles = new Map(
     projects.map((project) => [project.slug, project.metadata.title]),
@@ -27,6 +63,8 @@ export default function Home() {
     .sort((a, b) => projectOrder(a.metadata.project) - projectOrder(b.metadata.project));
   const featuredSlugs = new Set(featuredPosts.map((post) => post.slug));
   const latestPosts = posts.filter((post) => !featuredSlugs.has(post.slug)).slice(0, 6);
+  const projectSizes = await Promise.all(featuredProjects.map((project) => imageSize(project.thumbnail)));
+  const postSizes = await Promise.all(featuredPosts.map((post) => imageSize(post.thumbnail)));
 
   return (
     <main className="home-page">
@@ -56,7 +94,7 @@ export default function Home() {
               RelationalAI
             </a>
             , working on the Rel app, where people build semantic models and
-            work with Rel, its decision agent in Snowflake. Before that, I created an engineering
+            work with Rel, its decision agent in Snowflake. Before that, I created a time series data
             analysis platform used by engineers at Allison Transmission.
           </p>
           <p className="home-years">
@@ -94,23 +132,22 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="home-section home-section-quiet" aria-labelledby="featured-projects-heading">
+      <section className="home-section" aria-labelledby="featured-projects-heading">
         <Link className="section-heading-link" href="/projects">
           <span className="section-label" id="featured-projects-heading">Projects</span>
           <span className="section-count">{projects.length}</span>
           <span aria-hidden="true">→</span>
         </Link>
         <div className="content-preview-grid">
-          {featuredProjects.map((project) => (
-            <Link className={`content-preview-card${project.thumbnail ? "" : " content-preview-card-text"}`} href={`/projects/${project.slug}`} key={project.slug}>
-              {project.thumbnail && (
-                <img src={project.thumbnail} alt="" className="content-preview-image" loading="lazy" />
-              )}
-              <div className="content-preview-copy">
-                <h2>{project.metadata.title}</h2>
-                <p>{project.metadata.description ?? project.metadata.summary}</p>
-              </div>
-            </Link>
+          {featuredProjects.map((project, i) => (
+            <PreviewCard
+              key={project.slug}
+              href={`/projects/${project.slug}`}
+              title={project.metadata.title}
+              text={project.metadata.description ?? project.metadata.summary}
+              thumbnail={project.thumbnail}
+              size={projectSizes[i]}
+            />
           ))}
         </div>
       </section>
@@ -122,16 +159,15 @@ export default function Home() {
           <span aria-hidden="true">→</span>
         </Link>
         <div className="content-preview-grid">
-          {featuredPosts.map((post) => (
-            <Link className={`content-preview-card${post.thumbnail ? "" : " content-preview-card-text"}`} href={`/blog/${post.slug}`} key={post.slug}>
-              {post.thumbnail && (
-                <img src={post.thumbnail} alt="" className="content-preview-image" loading="lazy" />
-              )}
-              <div className="content-preview-copy">
-                <h2>{post.metadata.title}</h2>
-                <p>{post.metadata.summary}</p>
-              </div>
-            </Link>
+          {featuredPosts.map((post, i) => (
+            <PreviewCard
+              key={post.slug}
+              href={`/blog/${post.slug}`}
+              title={post.metadata.title}
+              text={post.metadata.summary}
+              thumbnail={post.thumbnail}
+              size={postSizes[i]}
+            />
           ))}
         </div>
         <ul className="latest-list" aria-label="Latest posts">
@@ -160,7 +196,7 @@ export default function Home() {
         </p>
       </section>
 
-      <section className="home-section home-section-quiet" aria-labelledby="featured-experience-heading">
+      <section className="home-section" aria-labelledby="featured-experience-heading">
         <Link className="section-heading-link" href="/experience">
           <span className="section-label" id="featured-experience-heading">Experience</span>
           <span aria-hidden="true">→</span>
@@ -169,14 +205,9 @@ export default function Home() {
           {experiences.map((experience) => (
             <li key={experience.slug}>
               <Link className="experience-ledger-link" href={`/experience/${experience.slug}`}>
-                <div className="logo-plate">
-                  <CompanyLogo item={experience} />
-                </div>
-                <div className="experience-ledger-copy">
-                  <h3>{experience.company}</h3>
-                  <p>{experience.role}</p>
-                  <p className="experience-ledger-dates">{experience.dates}</p>
-                </div>
+                <span className="experience-ledger-dates">{yearSpan(experience.dates)}</span>
+                <span className="experience-ledger-company">{experience.company}</span>
+                <span className="experience-ledger-role">{experience.role}</span>
               </Link>
             </li>
           ))}

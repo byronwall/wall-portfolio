@@ -31,7 +31,7 @@ export const experiences: Experience[] = [
     overview: "RelationalAI lets teams describe their business as a semantic model over their Snowflake data. I work on the Rel app: the interfaces people use to explore those models, ask questions of them, and change them with Rel, the company’s decision agent.",
     focus: [
       "Primary author of SolidJS inspectors that turn semantic-model definitions into views users can explore.",
-      "Built a contenteditable query input with concept chips and autocomplete for multiword names.",
+      "Built a `contenteditable` query input with concept chips and autocomplete for multiword names.",
       "Built in-place model editing and agent result cards with chart/table views, saved results, and downloads.",
       "Built the first natural-language create path in Python and Pydantic, so users describe a concept or relationship and the application plans and builds it.",
       "Grew a starter kit into a shared SolidJS component library with design tokens, dark theme, and Storybook coverage.",
@@ -49,7 +49,7 @@ export const experiences: Experience[] = [
     role: "Senior Software Engineer, Engineering Systems",
     dates: "February 2023 – April 2025",
     location: "Indianapolis, Indiana",
-    summary: "Built an engineering analysis platform and the tools, documentation, and infrastructure around it.",
+    summary: "Built a time series data analysis platform and the tools, documentation, and infrastructure around it.",
     overview: "I moved into a dedicated software role after years of building engineering tools alongside product-development work. The central project was a large data-analysis platform used to turn test and simulation data into repeatable engineering decisions.",
     focus: [
       "Created and maintained a 100k+ line analysis platform using C#, TypeScript, React/SolidJS, and D3.",
@@ -122,7 +122,7 @@ export const experiences: Experience[] = [
     summary: "Designed a pilot-scale refining facility for an industrial client, from process simulation to hazard review.",
     overview: "Continental Technologies set out to supply turnkey pilot-scale process plants for industrial clients. I worked between process and project engineering on one pilot refining facility, from the first simulations to the hazard review with the client.",
     focus: [
-      "Simulated the client’s refinery processes in VMGSim and produced stream summaries and process diagrams.",
+      "Simulated the client’s refinery processes in [VMGSim](https://www.slb.com/products-and-services/delivering-digital-at-scale/software/symmetry-process-simulation-software) and produced stream summaries and process diagrams.",
       "Sized and selected vessels, equipment, and relief valves, and wrote the design documents and specification sheets.",
       "Took part in a process hazard analysis of the pilot design with the client’s engineers.",
     ],
@@ -151,7 +151,7 @@ export const experiences: Experience[] = [
       "Built time-series charts for morning reviews, so an upset such as flaring could be traced to its cause at a glance.",
     ],
     tools: ["Process engineering", "Operations", "Excel", "VBA", "Time-series analysis", "SAP"],
-    reflection: "Morning reviews of plant data were where I first learned to make a chart answer one question quickly. That thread runs straight through to the analysis software I built later.",
+    reflection: "In the morning review we went through what happened on the unit overnight. When something went wrong, like a flare, the question was why. The charts I built put the related tags on one time axis so the cause was easy to find. I kept working on that same problem at Allison, with test data instead of plant data.",
     externalUrl: "https://www.cpchem.com",
   },
 ];

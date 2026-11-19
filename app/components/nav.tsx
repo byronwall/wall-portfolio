@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { mainNavLinks, socialLinks } from "../data/site-links";
-import { ThemeToggle } from "./theme-toggle";
 
 export function Navbar() {
   const pathname = usePathname() ?? "/";
@@ -45,7 +44,6 @@ export function Navbar() {
                 {Icon && <Icon aria-hidden="true" />}
               </a>
             ))}
-          <ThemeToggle />
         </div>
       </nav>
     </header>

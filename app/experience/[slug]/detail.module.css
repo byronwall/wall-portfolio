@@ -10,16 +10,18 @@
 .role { margin: 0 0 18px; color: var(--ink-primary); font-size: 16px; font-weight: 620; }
 .meta { display: flex; flex-wrap: wrap; gap: 9px 18px; margin: 0 0 22px; color: var(--ink-muted); font-size: 12px; }
 .overview { margin: 0; color: var(--ink-body); font-size: 15px; line-height: 1.58; }
-.body { display: grid; grid-template-columns: minmax(210px, .4fr) minmax(0, 1fr); gap: 66px; padding-top: 52px; border-top: 1px solid var(--border-quiet); }
+.body { display: grid; grid-template-columns: minmax(210px, .4fr) minmax(0, 1fr); gap: 44px 66px; padding-top: 20px; }
 .body h2 { margin: 0 0 17px; font-size: 20px; letter-spacing: -.025em; }
 .focus ul { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
 .focus li { margin: 0; color: var(--ink-body); font-size: 15px; line-height: 1.58; }
+.focus code { padding: 1px 5px; border-radius: 4px; background: var(--surface-chip); color: var(--ink-primary); font-family: var(--font-geist-mono), ui-monospace, monospace; font-size: .88em; }
+.focus a { color: var(--action-primary); white-space: nowrap; }
 .aside { order: -1; }
 .aside h2 { font-size: 14px; }
 .tags { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 36px; }
 .tag { padding: 5px 7px; border-radius: 4px; background: var(--surface-chip); color: var(--ink-body); font-size: 11px; }
 .companyLink { color: var(--action-primary); font-size: 13px; font-weight: 600; }
-.reflection { grid-column: 2; margin-top: 40px; padding: 28px 30px; background: var(--surface-quiet); }
+.reflection { grid-column: 2; }
 .reflection h2 { margin-bottom: 12px; }
 .reflection p { margin: 0; color: var(--ink-body); font-size: 15px; line-height: 1.65; }
 
@@ -34,6 +36,5 @@
   .back { margin-bottom: 28px; }
   .hero { padding-bottom: 45px; }
   .artifact { min-height: 220px; padding: 18px; }
-  .body { padding-top: 40px; }
-  .reflection { padding: 23px 22px; }
+  .body { padding-top: 12px; }
 }
