@@ -33,14 +33,9 @@ export default function Home() {
       <section className="home-hero">
         <div className="home-intro">
           <h1>Byron Wall</h1>
-          <p className="home-lede">
-            Software engineer building web applications and data products.
-            Sixteen years in engineering, nine building software, and nearly
-            four in full-time software roles.
-          </p>
+          <p className="home-lede">I build interfaces for data and AI.</p>
           <p>
-            I build full-stack applications, data tools, and developer tooling.
-            I’m currently a <strong>Full Stack Engineer</strong> at{" "}
+            I’m a <strong>Full Stack Engineer</strong> at{" "}
             <a
               className="home-company-link"
               href="https://relational.ai"
@@ -60,17 +55,18 @@ export default function Home() {
               </svg>
               RelationalAI
             </a>
-            , working on an agentic and LLM-driven data modeling application for
-            Snowflake.
+            , building inspectors for semantic models and interfaces for
+            AI-assisted data modeling. Before that, I created an engineering
+            analysis platform used by 100+ engineers at Allison Transmission.
           </p>
-          <p>
-            I prefer TypeScript, SolidJS, and SolidStart, and care about clean
-            code, thoughtful interfaces, and measurable impact.
+          <p className="home-years">
+            Sixteen years in engineering, nine building software, nearly four
+            in full-time software roles. TypeScript, SolidJS, React, Python.
           </p>
 
           <div className="home-actions">
             <Link className="button button-primary" href="/projects">
-              View projects
+              Selected work
             </Link>
             <a
               className="button button-secondary"
