@@ -6,6 +6,8 @@ import { notFound } from "next/navigation";
 import styles from "../projects.module.css";
 import { getOgImageUrl } from "app/og-image";
 import { getProjectStatus } from "../status";
+import { experiences } from "app/experience/data";
+import { ProjectGallery, type GalleryImage } from "./project-gallery";
 
 type ProjectPageProps = { params: Promise<{ slug: string }> };
 
@@ -28,6 +30,24 @@ function getHeadings(content: string) {
     label: match[1].replace(/[*_`]/g, ""),
     id: slugifyHeading(match[1].replace(/[*_`]/g, "")),
   }));
+}
+
+// The thumbnail plus every image in the project's content, in order, once each.
+function getGalleryImages(thumbnail: string | undefined, title: string, content: string) {
+  const images: GalleryImage[] = [];
+  const add = (src: string | undefined, alt: string) => {
+    if (src && !images.some((image) => image.src === src)) images.push({ src, alt: alt.trim() || title });
+  };
+  const pattern = /!\[([^\]]*)]\(([^)\s]+)(?:\s+"[^"]*")?\)|<img\b[^>]*>/g;
+  const found = Array.from(content.matchAll(pattern)).map((match) => {
+    if (match[2]) return { src: match[2], alt: match[1] };
+    const tag = match[0];
+    return { src: tag.match(/\bsrc=["']([^"']+)["']/)?.[1], alt: tag.match(/\balt=["']([^"']*)["']/)?.[1] ?? "" };
+  });
+  const thumbAlt = found.find((image) => image.src === thumbnail)?.alt ?? `${title} interface`;
+  add(thumbnail, thumbAlt);
+  found.forEach((image) => add(image.src, image.alt));
+  return images;
 }
 
 export async function generateStaticParams() {
@@ -76,11 +96,13 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     ["Package", project.metadata.package],
     ["Documentation", project.metadata.docs],
   ].filter((entry): entry is [string, string] => typeof entry[1] === "string" && entry[1].length > 0);
+  const images = getGalleryImages(project.thumbnail, project.metadata.title, project.content);
+  const employer = experiences.find((entry) => entry.slug === project.metadata.employer);
 
   return (
     <main className={styles.detailPage}>
       <Link href="/projects" className={styles.backLink}>← Projects</Link>
-      <header className={`${styles.hero}${project.thumbnail ? "" : ` ${styles.heroTextOnly}`}`}>
+      <header className={`${styles.hero}${images.length ? "" : ` ${styles.heroTextOnly}`}`}>
         <div className={styles.heroCopy}>
           <h1 className={styles.heroTitle}>{typeof project.metadata.logo === "string" && <img className="project-logo-plate" src={project.metadata.logo} alt="" />}{project.metadata.title}</h1>
           <p>{project.metadata.description ?? project.metadata.summary}</p>
@@ -92,6 +114,15 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               ) : null}
             </p>
           )}
+          {employer && (
+            <Link className={styles.employer} href={`/experience/${employer.slug}`}>
+              {employer.logoUrl && <img className={styles.employerLogo} src={employer.logoUrl} alt="" />}
+              <span>
+                Built at {employer.company}
+                <small>{employer.role}</small>
+              </span>
+            </Link>
+          )}
           {projectLinks.length > 0 && (
             <nav className={styles.projectLinks} aria-label="Project links">
               {projectLinks.map(([label, href]) => (
@@ -100,11 +131,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             </nav>
           )}
         </div>
-        {project.thumbnail && (
-          <div className={styles.heroMedia}>
-            <img src={project.thumbnail} alt={`${project.metadata.title} interface`} />
-          </div>
-        )}
+        {images.length > 0 && <ProjectGallery images={images} />}
       </header>
 
       <div className={styles.story}>
