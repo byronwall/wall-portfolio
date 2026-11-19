@@ -151,6 +151,7 @@ body {
 .home-intro p { max-width: 570px; margin: 0; color: var(--ink-body); font-size: 15.5px; line-height: 1.6; }
 .home-intro p + p { margin-top: 16px; }
 .home-intro .home-lede { max-width: 550px; color: var(--ink-primary); font-size: 18.5px; line-height: 1.48; font-weight: 450; }
+.home-intro .home-years { color: var(--ink-muted); font-size: 14px; line-height: 1.5; }
 .home-intro strong { color: var(--ink-primary); font-weight: 650; }
 .home-company-link { display: inline-flex; align-items: center; gap: 5px; vertical-align: -.12em; white-space: nowrap; }
 .home-company-mark { width: 18px; height: 14px; overflow: visible; fill: none; stroke: currentColor; stroke-width: 3.69; stroke-linejoin: round; }
@@ -234,9 +235,15 @@ body {
   .page-intro { padding-top: 40px; padding-bottom: 34px; }
   .page-title { font-size: 44px; }
   .page-lede { margin-top: 18px; font-size: 16px; }
-  .home-hero { grid-template-columns: 1fr; gap: 26px; padding-top: 36px; padding-bottom: 40px; }
-  .home-intro h1 { margin-bottom: 22px; font-size: 46px; }
-  .home-portrait-wrap { grid-row: 1; justify-self: start; width: 132px; }
+  .home-hero { position: relative; grid-template-columns: 1fr; gap: 0; padding-top: 28px; padding-bottom: 28px; }
+  .home-intro h1 { margin-bottom: 16px; padding-right: 76px; font-size: 42px; line-height: 64px; }
+  .home-intro .home-lede { font-size: 18px; }
+  .home-intro p + p { margin-top: 12px; }
+  .home-intro p { font-size: 15px; line-height: 1.55; }
+  .home-actions { margin-top: 20px; gap: 8px; }
+  .home-actions .button { min-height: 40px; padding: 0 11px; font-size: 13px; }
+  .home-portrait-wrap { position: absolute; top: 28px; right: var(--page-gutter); width: 64px; }
+  .home-portrait { border-radius: 7px; }
   .home-section { padding-top: 28px; padding-bottom: 32px; }
   .content-preview-copy { padding: 16px; }
   .content-preview-copy h2 { font-size: 17.5px; }
