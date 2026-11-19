@@ -583,71 +583,7 @@ input[type='email'] {
   text-wrap: balance;
 }
 
-/* Projects index: make the reading order visible through three deliberate scales. */
-.project-index-group { padding: 12px var(--page-gutter) 44px; }
-.project-index-group-heading { margin-bottom: 18px; }
-.project-index-group-heading h2 { margin: 0; color: var(--ink-primary); font-size: 16px; font-weight: var(--heading-weight); letter-spacing: -.02em; }
-.project-index-grid { display: grid; align-items: stretch; gap: 18px; }
-.project-index-grid-featured { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 20px; }
-.project-index-grid-medium { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.project-index-grid-archive { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
-.project-index-card { display: flex; min-width: 0; flex-direction: column; overflow: hidden; border: 1px solid var(--border-quiet); border-radius: 8px; background: var(--surface-paper); transition: border-color 160ms ease, box-shadow 160ms ease; }
-.project-index-card:hover, .project-index-card:focus-within { border-color: var(--action-border); box-shadow: var(--shadow-hover); }
-.project-index-media-link { display: block; min-width: 0; color: inherit; line-height: 0; text-decoration: none; }
-.project-index-media-link:focus-visible { outline: 3px solid color-mix(in srgb, var(--action-border) 60%, transparent); outline-offset: -3px; }
-.project-index-media { display: flex; min-width: 0; aspect-ratio: 4 / 3; align-items: center; justify-content: center; overflow: hidden; border-bottom: 1px solid var(--border-quiet); background: var(--surface-quiet); }
-.project-index-media img { display: block; width: 100%; height: 100%; object-fit: contain; transition: transform 180ms ease; }
-.project-index-media-link:hover .project-index-media img { transform: scale(1.02); }
-.project-index-copy { display: flex; min-width: 0; flex: 1; flex-direction: column; padding: 19px 20px 21px; }
-.project-index-meta { display: flex; min-width: 0; flex-wrap: wrap; gap: 9px; align-items: center; color: var(--ink-muted); font-size: 10.5px; font-weight: 650; letter-spacing: .05em; line-height: 1.3; text-transform: uppercase; }
-.project-index-meta span + time::before { margin-right: 9px; content: "·"; }
-.project-index-copy h3 { margin: 0 0 9px; color: var(--ink-primary); font-weight: var(--heading-weight); font-size: 21px; line-height: 1.13; letter-spacing: -.035em; overflow-wrap: anywhere; }
-.project-index-meta + h3 { margin-top: 12px; }
-.project-index-copy h3 a { color: inherit; text-decoration: none; }
-.project-index-title-logo { display: inline-block; width: 1em; height: 1em; margin-right: .25em; vertical-align: -.1em; }
-.project-index-copy > p { margin: 0; color: var(--ink-body); font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
-.project-index-links { display: flex; flex-wrap: wrap; gap: 8px 17px; margin-top: 18px; }
-.project-index-links a { color: var(--action-primary); font-size: 12px; font-weight: 620; text-decoration: none; }
-.project-index-links a:hover, .project-index-links a:focus-visible { text-decoration: underline; text-decoration-color: currentColor; }
-.project-index-tags { display: flex; flex-wrap: wrap; gap: 2px 0; margin: auto 0 0; padding: 14px 0 0; list-style: none; color: var(--ink-muted); font-size: 12px; line-height: 1.4; }
-.project-index-tags li { white-space: nowrap; }
-.project-index-tags li:not(:last-child)::after { margin: 0 7px; color: var(--ink-tertiary); content: "·"; }
-.project-index-card-lead .project-index-media { min-height: 320px; aspect-ratio: 1.55; }
-.project-index-card-lead .project-index-copy { padding: 23px 25px 25px; }
-.project-index-card-lead .project-index-copy h3 { max-width: 16ch; font-size: clamp(28px, 3.2vw, 42px); line-height: 1.04; }
-.project-index-card-featured:not(.project-index-card-lead) .project-index-media { min-height: 270px; aspect-ratio: 1.35; }
-.project-index-card-featured:not(.project-index-card-lead) .project-index-copy h3 { font-size: clamp(25px, 2.6vw, 34px); }
-.project-index-card-medium .project-index-media { aspect-ratio: 1.2; }
-.project-index-card-medium .project-index-copy h3 { font-size: 21px; }
-.project-index-card-medium .project-index-copy > p { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 4; }
-.project-index-card-archive .project-index-media { aspect-ratio: 1.45; }
-.project-index-card-archive .project-index-copy { padding: 16px 17px 18px; }
-.project-index-card-archive .project-index-copy h3 { font-size: 18px; line-height: 1.12; }
-.project-index-card-archive .project-index-copy > p { display: -webkit-box; overflow: hidden; font-size: 13px; line-height: 1.45; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
-
-@media (max-width: 980px) {
-  .project-index-grid-medium { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .project-index-grid-archive { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-}
-
-@media (max-width: 760px) {
-  .project-index-group { padding: 27px var(--page-gutter) 34px; }
-  .project-index-grid-featured { grid-template-columns: 1fr; }
-  .project-index-card-lead .project-index-media { min-height: 260px; }
-  .project-index-card-featured:not(.project-index-card-lead) .project-index-media { min-height: 230px; }
-  .project-index-card-lead .project-index-copy h3 { max-width: none; }
-  .project-index-grid-archive { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-
-@media (max-width: 600px) {
-  .project-index-grid-medium, .project-index-grid-archive { grid-template-columns: 1fr; }
-  .project-index-card-lead .project-index-media, .project-index-card-featured:not(.project-index-card-lead) .project-index-media { min-height: 220px; }
-  .project-index-card-lead .project-index-copy { padding: 20px 19px 21px; }
-  .project-index-card-lead .project-index-copy h3 { font-size: 32px; }
-}
-
 /* Project logos are artifacts drawn for light backgrounds; give them a light plate in dark mode. */
-[data-theme="dark"] .project-index-title-logo,
 [data-theme="dark"] .project-logo-plate { padding: 2px; border-radius: 5px; background: var(--surface-plate); }
 
 /* Theme toggle shows the icon for the theme you would switch to. */
