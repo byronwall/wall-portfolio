@@ -90,6 +90,8 @@ Some of the instructions are about saving well, not about any one tool. For exam
 
 The first plan for Visual Notes said the agent could edit only notes it created. Ownership came from provenance, because the app has one user and no owner column: a note the connector creates gets `originalSource = "chatgpt"`.
 
+That rule turned out to be the wrong guard. The agents made careful, targeted edits. They did not run amok. The limit was the problem: I caught myself asking an agent to create a note just so it would be allowed to edit it later.
+
 In November I replaced that rule with guidance. The agent may edit any note. On a note I wrote, it edits when I asked or when the edit plainly serves the request, it prefers block edits, and it keeps my wording. What makes that acceptable is that every edit keeps a version I can restore, and deleting stays mine. The agent cancels tasks and hides cards; it does not delete them. When I ask for a review instead of a change, `notes_propose_edits` puts suggestions inline for me to accept one by one.
 
 The explorEDA plan handles a different risk, two editors at once. A write fails if the file changed since the agent read it, and the result tells the agent to read it again. My edits made while the agent works are not silently lost.
