@@ -192,7 +192,7 @@ export default async function Home() {
           })}
         </ul>
         <p className="home-start-here">
-          New here? <Link href="/blog#start-here">Start with five posts →</Link>
+          New here? <Link href="/blog#start-here">Start with three posts →</Link>
         </p>
       </section>
 
