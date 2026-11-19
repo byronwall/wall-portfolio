@@ -1,15 +1,15 @@
 ---
 title: "Plan Viewer"
-description: "A local reading desk for Markdown plans and tasks, with a PR review view that reads diffs from the clone already on disk"
+description: "A local reading desk for Markdown plans and tasks, with a live view of every Codex and Claude Code thread and a PR review view that reads diffs from the clone already on disk"
 date: "2026-10-18"
 publishedAt: "2026-11-02"
-summary: "A local reading desk for Markdown plans and tasks, with a PR review view that reads diffs from the clone already on disk"
+summary: "A local reading desk for Markdown plans and tasks, with a live view of every Codex and Claude Code thread and a PR review view that reads diffs from the clone already on disk"
 tags: ["TypeScript", "Node.js", "Markdown", "Code Review", "Git", "AI Agents"]
 image: "/images/projects/plan-viewer/pr-treemap.png"
 repo: "https://github.com/byronwall/plan-viewer"
 ---
 
-Plan Viewer turns a folder of Markdown daily plans and tasks into a fast, keyboard-driven app. It also shows the code those plans touch: worktrees, open PRs, commits, and a full diff viewer for review. The viewer never edits your files. The Markdown stays the source of truth, and agents make the changes.
+Plan Viewer turns a folder of Markdown daily plans and tasks into a fast, keyboard-driven app. It shows every agent thread the work starts, and the code those plans touch: worktrees, open PRs, commits, and a full diff viewer for review. The viewer never edits your files. The Markdown stays the source of truth, and agents make the changes.
 
 - Source: [byronwall/plan-viewer](https://github.com/byronwall/plan-viewer)
 
@@ -21,6 +21,19 @@ Today's plan opens on launch. Each section is a card, and each card or next acti
   <img
     src="https://raw.githubusercontent.com/byronwall/plan-viewer/main/docs/images/today.png"
     alt="Plan Viewer showing today's plan with scheduled tasks and milestone cards"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+</div>
+
+## Agent threads
+
+Chat Threads lists every local Codex and Claude Code thread in one table: what waits for you, what is running, and what waits on a background command. Subagents and side sessions sit under the thread that started them, each with its model, reasoning effort, and token use. Click a title to open the conversation in its desktop app. The [Chat Threads post](/blog/plan-viewer-chat-threads) covers how it reads that from the session files.
+
+<div className="not-prose mt-6">
+  <img
+    src="https://raw.githubusercontent.com/byronwall/plan-viewer/main/docs/images/chats.png"
+    alt="Chat Threads with waiting, running, and background threads, and subagents nested under their orchestrator"
     className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
     loading="lazy"
   />
@@ -66,12 +79,14 @@ Review notes are local Markdown files in the planning repository. Each note keep
 - A Node server with no dependencies reads the planning folder and serves a plain JavaScript front end.
 - PR files, refs, and diffs come from the tracked local clone first, so large PRs and whole stacks open fast, even when GitHub's diff view gives up.
 - Review notes live in `plans/pr-notes/` as Markdown. An agent can read them, post them as a GitHub review, or work through them.
+- Chat Threads reads Codex's thread index and logs, Claude Code's session files and transcripts, and `lsof`, so it needs no hooks in either app. Token totals and background tasks come from one incremental pass over each log.
 - `plan-viewer lint` and `plan-viewer links` keep task front matter, work breakdowns, and links valid.
 
 ## Highlights
 
 - Plans, tasks with dependency graphs, a week calendar, and an issues page for Jira and Linear
 - One-click handoff of any card or next action to a Codex or Claude draft
+- Chat Threads: subagent families, model and effort per thread, Claude and Codex token totals, and a Background tasks status
 - Change treemap with PNG export, split and unified diffs, and Viewed marks that remember when
 - Keyboard review flow: `D` for the description, `G` to widen, `X` to mark a file viewed and go to the next one
 - `⌘K` search across documents, tasks, PRs, and issues

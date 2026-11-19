@@ -1,0 +1,104 @@
+---
+title: "Plan Viewer's Chat Threads page: what every agent is doing right now"
+publishedAt: 2026-11-19
+summary: 'Chat Threads in Plan Viewer lists every local Codex and Claude Code thread. A redesign nests subagents under their parents, names the model and effort, adds Claude token totals, and gives threads that wait on a background task their own status.'
+image: "/images/posts/plan-viewer-chat-threads/after.png"
+project: plan-viewer
+type: feature
+---
+
+On a busy day I have a lot of agent threads going. A Codex orchestrator with five or six subagents, a couple of Claude Code sessions in worktrees, a CLI session running a long test pass. The question I keep asking is simple: what is waiting on me, and what is still working?
+
+[Plan Viewer](https://github.com/byronwall/plan-viewer) has a Chat Threads page for that. It reads the session files Codex and Claude Code already write on my Mac and puts every thread in one table. The first version worked, in the sense that the data was there. It was not useful.
+
+<div className="not-prose mt-6">
+  <img
+    src="/images/posts/plan-viewer-chat-threads/before-active.png"
+    alt="The first Chat Threads page: a flat table of active threads with raw model IDs and no icons"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+</div>
+
+The screenshots in this post use a fictional team's week, not my real threads, but the page is the real one.
+
+## What was wrong with it
+
+An agent that is terrible at UI built that page. My list of problems:
+
+- Rows moved around while I was reading them.
+- I could not tell a subagent from an agent. "profile bundle" above is a worker inside the cold-start orchestrator, but it reads like its own thread.
+- The model column showed IDs like `gpt-6.1-terra`, and nothing about reasoning effort.
+- No color and no icons. Every row looks the same.
+- The layout did not match the rest of the app.
+
+The moving rows had a plain cause. The page refreshes every five seconds and sorted everything by last activity. For a running Codex thread, last activity is the last write to its log, so a busy thread jumped ahead of its neighbours on every refresh. Live threads now keep the order they started in. They only move when they change state.
+
+## The redesign
+
+<div className="not-prose mt-6">
+  <img
+    src="/images/posts/plan-viewer-chat-threads/after.png"
+    alt="The redesigned Chat Threads page with Waiting, Running and Background sections, subagents nested under their parents, and model names with family colors"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+</div>
+
+The page now answers the question in its first screen. **Waiting for you** comes first, with a pale amber row. Then **Running**, then **Background tasks**, then finished threads by day. The first column is a status rail: a spinner while a turn runs, an amber dot when the thread wants input, an hourglass when it waits on a background task, a check when it is done. The toolbar and table use the same shell as the Code and Plans pages.
+
+### Subagents under their parents
+
+The biggest change is that agents spawned by other agents sit under them.
+
+<div className="not-prose mt-6">
+  <img
+    src="/images/posts/plan-viewer-chat-threads/subagents.png"
+    alt="A Codex orchestrator thread on GPT-6 Astra with three subagents, Kepler, Hypatia and Pascal, nested under it on GPT-6 Luna and GPT-6.1 Terra"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+</div>
+
+The data was there all along. Codex records each subagent's parent thread ID, the nickname it gave the worker, and the task path the orchestrator assigned. Claude Desktop records which session started a side session. The old page threw that away.
+
+It also mattered for history. My Codex history has more than 3,000 subagent threads. The page kept the last 50 finished threads per app, so on a heavy day the workers pushed the threads I cared about off the list. Now only top-level threads count toward that limit, and their subagents come along with them.
+
+The model column is readable too. `claude-opus-5-5` reads as Opus 5.5, `gpt-6-luna` as GPT-6 Luna, each with a dot in its family's color. Reasoning effort is five small bars at the right edge of the column, so they line up down the page. With the families nested, an Astra orchestrator handing work to Luna and Terra workers is obvious at a glance.
+
+### Claude token totals
+
+Codex reports a token total per thread. Claude Code does not, so every Claude row used to say "Unreported". But Claude Code writes the usage of every reply into the session transcript. The viewer now adds those up, counting each message once, because a reply that writes several content blocks repeats its usage on each one. It reads only what was appended since the last refresh, so a 9 MB transcript costs nothing after the first read.
+
+The totals are big. One of my sessions came to 14.1M tokens, and only about 35K of that was output. Nearly all of it is cached input, read again on every turn. Hover a total to see the split.
+
+### Waiting on a background task
+
+This is the one I asked for after the redesign. A lot of the time a thread looks finished, but it is really waiting on something it started in the background: a test suite, a dev server, a `gh pr checks --watch` that will merge when CI goes green.
+
+<div className="not-prose mt-6">
+  <img
+    src="/images/posts/plan-viewer-chat-threads/background.png"
+    alt="The Background tasks section: a Codex thread waiting on pnpm worker:dev and a Claude Code CLI thread waiting on an e2e test run"
+    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
+    loading="lazy"
+  />
+</div>
+
+For Claude Code, the transcript has what we need. A tool call with `run_in_background` starts a task, and a task notification naming that call ends it. Across my last 80 sessions, 133 of 141 background launches had a matching notification. So "launched, not yet notified, and the session process is still alive" looked like a good signal.
+
+The first run on my real sessions flagged one thread as waiting on a server that was not running. The agent had stopped it with `TaskStop`, and a stopped task writes no notification. The fix was to map each task's short ID, from the "running in background with ID" result, back to its launch, so a stop clears it too. After that, the only thread it flagged was a real one: a session watching CI for a Visual Notes PR, still waiting.
+
+Codex is harder. It runs commands as terminal sessions inside a JavaScript tool, and its log records a session ID in a result while the command runs, then an exit code with no ID when a later poll finds it done. The viewer tracks those IDs per thread. A Codex restart kills every terminal but leaves the log as it was, so a session only counts if it started after the Codex process that holds the thread. I checked the parser against 60 recent Codex logs, and every session it saw start, it also saw end. No Codex thread was waiting on a terminal while I built this, so that path has passed its tests but I have not watched it catch a live one yet.
+
+## How it got built
+
+I did not write this by hand. I ran two passes with agents. The first was a "10x" pass: get the structure right, meaning sections, families, model names and stable order. The second was a "100x" pass: a ledger of 33 small defects, from a toggle hit target 2px too small to warnings that only showed under the last row of a long list.
+
+Two problems came out of that second pass that I would not have guessed. Codex history went empty because its database could not be opened read-only once Codex had quit and left no shared-memory file. And the Claude and Codex marks were hand-drawn stand-ins until I had a subagent go find the real ones, which also turned up a bug where two ⌘K rows drew an empty icon.
+
+After that I had three more notes: the effort bars stepped down the column like a staircase, the "medium" and "high" labels were noise, and the CLI tag at the end of each title looked goofy. The bars now sit at the right edge, the level is in a tooltip, and how a thread started is a small badge on its app mark.
+
+## What is next
+
+The main open question is Codex background detection on a live thread. The parser passes its tests and reads my history cleanly, but the real check is the first time a Codex thread finishes a turn with a dev server still running and lands in Background tasks instead of Today.
