@@ -1,7 +1,8 @@
 import { indexMetadata } from "../og-image";
-import { getProjectIndexTier, getProjects, getProjectYears, sortProjectsForIndex, type ProjectIndexTier } from "app/blog/utils";
+import { getProjectIndexTier, getProjects, getProjectYears, sortProjectsForIndex } from "app/blog/utils";
 import Link from "next/link";
 import { getProjectStatus } from "./status";
+import styles from "./index.module.css";
 
 export const metadata = indexMetadata(
   "Projects",
@@ -11,173 +12,80 @@ export const metadata = indexMetadata(
 
 type Project = ReturnType<typeof getProjects>[number];
 
-const tierLabels: Record<ProjectIndexTier, string> = {
-  featured: "Featured work",
-  medium: "More to explore",
-  archive: "Project archive",
-};
-
-function getProjectTitle(project: Project) {
-  return project.metadata.title?.trim() || project.slug;
-}
-
-function getProjectDescription(project: Project) {
-  return (
-    project.metadata.description?.trim() ||
-    project.metadata.summary?.trim()
-  );
-}
-
-function getOptionalMetadataText(value: string | string[] | undefined) {
+function text(value: string | string[] | undefined) {
   return typeof value === "string" && value.trim() ? value.trim() : undefined;
 }
 
-function getProjectLinks(project: Project) {
+function getLinks(project: Project) {
   const links: Array<[string, string | undefined]> = [
-    ["Live demo", getOptionalMetadataText(project.metadata.demo)],
-    ["Source", getOptionalMetadataText(project.metadata.repo)],
-    ["Docs", getOptionalMetadataText(project.metadata.docs)],
-    ["Package", getOptionalMetadataText(project.metadata.package)],
+    ["Live demo", text(project.metadata.demo)],
+    ["Source", text(project.metadata.repo)],
+    ["Docs", text(project.metadata.docs)],
+    ["Package", text(project.metadata.package)],
   ];
-
-  return links
-    .filter((link): link is [string, string] => Boolean(link[1]))
-    .slice(0, 2);
+  return links.filter((link): link is [string, string] => Boolean(link[1])).slice(0, 2);
 }
 
-function ProjectMedia({ project, eager }: { project: Project; eager: boolean }) {
-  return (
-    <div className="project-index-media">
-      <img
-        src={project.thumbnail}
-        alt=""
-        loading={eager ? "eager" : "lazy"}
-      />
-    </div>
-  );
-}
-
-function ProjectMeta({ project }: { project: Project }) {
-  const year = getProjectYears(project.metadata);
-  const status = getProjectStatus(project.metadata.status);
-
-  if (!status && !year) return null;
-
-  return (
-    <div className="project-index-meta">
-      {status && <span>{status}</span>}
-      {year && <span>{year}</span>}
-    </div>
-  );
-}
-
-function ProjectTags({ project, limit }: { project: Project; limit: number }) {
-  const tags = Array.isArray(project.metadata.tags)
-    ? project.metadata.tags.filter(Boolean).slice(0, limit)
-    : [];
-
-  if (!tags.length) return null;
-
-  return (
-    <ul className="project-index-tags" aria-label="Technologies">
-      {tags.map((tag) => (
-        <li key={tag}>{tag}</li>
-      ))}
-    </ul>
-  );
-}
-
-function ProjectCard({
-  project,
-  tier,
-  position,
-}: {
-  project: Project;
-  tier: ProjectIndexTier;
-  position: number;
-}) {
-  const title = getProjectTitle(project);
-  const description = getProjectDescription(project);
-  const links = tier === "featured" ? getProjectLinks(project) : [];
-  const isFeaturedLead = tier === "featured" && position === 0;
+function ProjectRow({ project, lead, eager }: { project: Project; lead?: boolean; eager?: boolean }) {
+  const href = `/projects/${project.slug}`;
+  const title = project.metadata.title?.trim() || project.slug;
+  const description = text(project.metadata.description) ?? text(project.metadata.summary);
+  const logo = text(project.metadata.logo);
   const hasImage = Boolean(project.thumbnail) && project.metadata.indexImage !== "placeholder";
+  const featured = getProjectIndexTier(project.metadata) === "featured";
+  const facts = [featured ? "Featured" : undefined, getProjectStatus(project.metadata.status), getProjectYears(project.metadata)].filter(Boolean);
+  const tags = Array.isArray(project.metadata.tags) ? project.metadata.tags.filter(Boolean).slice(0, 5) : [];
+  const links = getLinks(project);
 
   return (
-    <article
-      className={`project-index-card project-index-card-${tier}${
-        isFeaturedLead ? " project-index-card-lead" : ""
-      }${hasImage ? "" : " project-index-card-text"}`}
-      data-tier={tier}
-    >
-      {hasImage && (
-        <Link
-          className="project-index-media-link"
-          href={`/projects/${project.slug}`}
-          aria-label={`Open ${title}`}
-        >
-          <ProjectMedia project={project} eager={tier === "featured" && position < 2} />
-        </Link>
-      )}
-      <div className="project-index-copy">
-        <ProjectMeta project={project} />
-        <h3>
-          <Link href={`/projects/${project.slug}`}>
-            {typeof project.metadata.logo === "string" && <img src={project.metadata.logo} alt="" className="project-index-title-logo" />} {title}
+    <article className={lead ? styles.lead : styles.row}>
+      <Link className={styles.thumb} href={href} aria-hidden="true" tabIndex={-1}>
+        {hasImage ? (
+          <img src={project.thumbnail} alt="" loading={eager ? "eager" : "lazy"} />
+        ) : logo ? (
+          <img className={styles.thumbLogo} src={logo} alt="" loading="lazy" />
+        ) : (
+          <span className={styles.thumbInitial}>{title.charAt(0)}</span>
+        )}
+      </Link>
+      <div className={styles.copy}>
+        {facts.length > 0 && (
+          <p className={styles.facts}>
+            {facts.map((fact, i) => (
+              <span key={fact} className={i === 0 && featured ? styles.featured : undefined}>{fact}</span>
+            ))}
+          </p>
+        )}
+        <h2 className={styles.title}>
+          <Link href={href}>
+            {logo && <img className={styles.titleLogo} src={logo} alt="" />}
+            {title}
           </Link>
-        </h3>
-        {description && <p>{description}</p>}
-        {tier === "featured" && links.length > 0 && (
-          <nav className="project-index-links" aria-label={`${title} links`}>
-            {links.map(([label, href]) => (
-              <a key={label} href={href} target="_blank" rel="noreferrer">
+        </h2>
+        {description && <p className={styles.summary}>{description}</p>}
+        {(tags.length > 0 || links.length > 0) && (
+          <p className={styles.meta}>
+            {tags.length > 0 && <span>{tags.join(" · ")}</span>}
+            {links.map(([label, url]) => (
+              <a key={label} href={url} target="_blank" rel="noreferrer">
                 {label} <span aria-hidden="true">↗</span>
               </a>
             ))}
-          </nav>
+          </p>
         )}
-        {tier !== "archive" && <ProjectTags project={project} limit={4} />}
       </div>
     </article>
   );
 }
 
-function ProjectGroup({
-  tier,
-  projects,
-}: {
-  tier: ProjectIndexTier;
-  projects: Project[];
-}) {
-  if (!projects.length) return null;
-
-  const headingId = `project-index-${tier}-heading`;
-
-  return (
-    <section className={`project-index-group project-index-group-${tier}`} aria-labelledby={headingId}>
-      <div className="project-index-group-heading">
-        <h2 id={headingId}>{tierLabels[tier]}</h2>
-      </div>
-      <div className={`project-index-grid project-index-grid-${tier}`}>
-        {projects.map((project, index) => (
-          <ProjectCard key={project.slug} project={project} tier={tier} position={index} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
 export default function ProjectsPage() {
   const projects = sortProjectsForIndex(getProjects());
-  const projectsByTier = projects.reduce<Record<ProjectIndexTier, Project[]>>(
-    (groups, project) => {
-      groups[getProjectIndexTier(project.metadata)].push(project);
-      return groups;
-    },
-    { featured: [], medium: [], archive: [] },
-  );
+  const main = projects.filter((p) => getProjectIndexTier(p.metadata) !== "archive");
+  const archive = projects.filter((p) => getProjectIndexTier(p.metadata) === "archive");
+  const [lead, ...rest] = main;
 
   return (
-    <main className="project-index-page">
+    <main className={styles.page}>
       <header className="page-intro">
         <h1 className="page-title">Projects</h1>
         <p className="page-lede">
@@ -187,10 +95,30 @@ export default function ProjectsPage() {
         </p>
       </header>
 
-      <div className="project-index-groups">
-        <ProjectGroup tier="featured" projects={projectsByTier.featured} />
-        <ProjectGroup tier="medium" projects={projectsByTier.medium} />
-        <ProjectGroup tier="archive" projects={projectsByTier.archive} />
+      <div className={styles.body}>
+        {lead && <ProjectRow project={lead} lead eager />}
+        <ul className={styles.rows}>
+          {rest.map((project, i) => (
+            <li key={project.slug}>
+              <ProjectRow project={project} eager={i < 3} />
+            </li>
+          ))}
+        </ul>
+
+        {archive.length > 0 && (
+          <section className={styles.archive} aria-labelledby="project-archive-heading">
+            <h2 id="project-archive-heading" className={styles.groupLabel}>
+              Archive <span>{archive.length}</span>
+            </h2>
+            <ul className={styles.rows}>
+              {archive.map((project) => (
+                <li key={project.slug}>
+                  <ProjectRow project={project} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
       </div>
     </main>
   );
