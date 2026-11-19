@@ -27,8 +27,8 @@ export const experiences: Experience[] = [
     role: "Full Stack Engineer",
     dates: "April 2025 – Present",
     location: "Remote",
-    summary: "Building interfaces for semantic models and AI-assisted data modeling.",
-    overview: "RelationalAI lets teams describe their business as a semantic model over their Snowflake data. I build the interfaces people use to explore those models, ask questions of them, and change them with an AI agent.",
+    summary: "Working on the Rel app, where people build semantic models and work with Rel, RelationalAI’s decision agent in Snowflake.",
+    overview: "RelationalAI lets teams describe their business as a semantic model over their Snowflake data. I work on the Rel app: the interfaces people use to explore those models, ask questions of them, and change them with Rel, the company’s decision agent.",
     focus: [
       "Primary author of SolidJS inspectors that turn semantic-model definitions into views users can explore.",
       "Built a contenteditable query input with concept chips and autocomplete for multiword names.",
