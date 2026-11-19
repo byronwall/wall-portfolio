@@ -1,5 +1,5 @@
 import { indexMetadata } from "../og-image";
-import { getProjectIndexTier, getProjects, sortProjectsForIndex, type ProjectIndexTier } from "app/blog/utils";
+import { getProjectIndexTier, getProjects, getProjectYears, sortProjectsForIndex, type ProjectIndexTier } from "app/blog/utils";
 import Link from "next/link";
 import { getProjectStatus } from "./status";
 
@@ -32,10 +32,6 @@ function getOptionalMetadataText(value: string | string[] | undefined) {
   return typeof value === "string" && value.trim() ? value.trim() : undefined;
 }
 
-function getProjectYear(project: Project) {
-  return project.metadata.publishedAt?.match(/\d{4}/)?.[0];
-}
-
 function getProjectLinks(project: Project) {
   const links: Array<[string, string | undefined]> = [
     ["Live demo", getOptionalMetadataText(project.metadata.demo)],
@@ -62,7 +58,7 @@ function ProjectMedia({ project, eager }: { project: Project; eager: boolean }) 
 }
 
 function ProjectMeta({ project }: { project: Project }) {
-  const year = getProjectYear(project);
+  const year = getProjectYears(project.metadata);
   const status = getProjectStatus(project.metadata.status);
 
   if (!status && !year) return null;
@@ -70,7 +66,7 @@ function ProjectMeta({ project }: { project: Project }) {
   return (
     <div className="project-index-meta">
       {status && <span>{status}</span>}
-      {year && <time dateTime={project.metadata.publishedAt}>{year}</time>}
+      {year && <span>{year}</span>}
     </div>
   );
 }

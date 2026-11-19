@@ -170,6 +170,16 @@ export function getGames() {
   return getMDXData(gamesDirectory);
 }
 
+/** "2009–2013" for finished work, "Started 2025" otherwise. Falls back to the `date` year. */
+export function getProjectYears(metadata: BaseMetadata) {
+  const year = (value: unknown) => (typeof value === "string" ? value.match(/\d{4}/)?.[0] : undefined);
+  const started = year(metadata.started) ?? year(metadata.date);
+  if (!started) return undefined;
+  const ended = year(metadata.ended);
+  if (!ended) return `Started ${started}`;
+  return ended === started ? started : `${started}–${ended}`;
+}
+
 export function getProjectIndexTier(metadata: BaseMetadata): ProjectIndexTier {
   if (metadata.featured === "true") return "featured";
   if (metadata.indexTier === "medium") return "medium";
