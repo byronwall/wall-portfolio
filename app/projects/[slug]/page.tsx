@@ -1,4 +1,4 @@
-import { formatDate, getPostCategory, getPostsForProject, getProjects } from "app/blog/utils";
+import { formatDate, getPostCategory, getPostsForProject, getProjects, getProjectYears } from "app/blog/utils";
 import { CustomMDX } from "app/components/mdx";
 import { baseUrl } from "app/sitemap";
 import Link from "next/link";
@@ -69,7 +69,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   const headings = getHeadings(project.content);
   const relatedPosts = getPostsForProject(project.slug);
   const status = getProjectStatus(project.metadata.status);
-  const year = project.metadata.publishedAt?.slice(0, 4);
+  const year = getProjectYears(project.metadata);
   const projectLinks = [
     ["Live demo", project.metadata.demo],
     ["Source", project.metadata.repo],
