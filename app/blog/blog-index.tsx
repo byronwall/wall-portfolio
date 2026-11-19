@@ -18,19 +18,24 @@ export type BlogIndexPost = {
   thumbnail?: string;
 };
 
-type Facet = { value: string; label: string; count: number };
+export type StartHerePick = BlogIndexPost & { why: string };
 
-function countBy(posts: BlogIndexPost[], key: (post: BlogIndexPost) => [string, string] | undefined): Facet[] {
+type Facet = { value: string; label: string; count: number; logo?: string };
+
+// How many projects get a chip; the rest go in the "More" select.
+const TOP_PROJECTS = 6;
+
+function countBy(posts: BlogIndexPost[], key: (post: BlogIndexPost) => Omit<Facet, "count"> | undefined): Facet[] {
   const counts = new Map<string, Facet>();
   for (const post of posts) {
     const entry = key(post);
     if (!entry) continue;
-    const [value, label] = entry;
-    const facet = counts.get(value) ?? { value, label, count: 0 };
+    const facet = counts.get(entry.value) ?? { ...entry, count: 0 };
     facet.count += 1;
-    counts.set(value, facet);
+    counts.set(entry.value, facet);
   }
-  return Array.from(counts.values()).sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+  // Posts arrive newest first, so ties keep the most recently active project first.
+  return Array.from(counts.values()).sort((a, b) => b.count - a.count);
 }
 
 export function highlight(text: string, query: string): ReactNode {
@@ -55,10 +60,19 @@ function writeUrl(q: string, category: string, project: string) {
   if (category) params.set("category", category);
   if (project) params.set("project", project);
   const search = params.toString();
-  window.history.replaceState(null, "", `${window.location.pathname}${search ? `?${search}` : ""}`);
+  window.history.replaceState(null, "", `${window.location.pathname}${search ? `?${search}` : ""}${window.location.hash}`);
 }
 
-export function BlogIndex({ posts }: { posts: BlogIndexPost[] }) {
+function ProjectIcon({ title, logo }: { title: string; logo?: string }) {
+  if (logo) return <img className={`${styles.icon} project-logo-plate`} src={logo} alt="" />;
+  return (
+    <span className={styles.monogram} aria-hidden="true">
+      {title.charAt(0).toUpperCase()}
+    </span>
+  );
+}
+
+export function BlogIndex({ posts, picks }: { posts: BlogIndexPost[]; picks: StartHerePick[] }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("");
   const [project, setProject] = useState("");
@@ -100,11 +114,16 @@ export function BlogIndex({ posts }: { posts: BlogIndexPost[] }) {
   const matchesProject = (post: BlogIndexPost) => !project || post.projectSlug === project;
   const visible = posts.filter((post) => matchesQuery(post) && matchesCategory(post) && matchesProject(post));
 
-  // Facet order is fixed from the full list so options never jump around;
+  // Option order is fixed from the full list so nothing jumps around;
   // counts reflect the other active filters so a zero means "no results".
-  const categoryOrder = useMemo(() => countBy(posts, (post) => [post.category, post.category]), [posts]);
+  const categoryOrder = useMemo(() => countBy(posts, (post) => ({ value: post.category, label: post.category })), [posts]);
   const projectOrder = useMemo(
-    () => countBy(posts, (post) => (post.projectSlug && post.projectTitle ? [post.projectSlug, post.projectTitle] : undefined)),
+    () =>
+      countBy(posts, (post) =>
+        post.projectSlug && post.projectTitle
+          ? { value: post.projectSlug, label: post.projectTitle, logo: post.projectLogo }
+          : undefined,
+      ),
     [posts],
   );
   const categoryPool = posts.filter((post) => matchesQuery(post) && matchesProject(post));
@@ -117,6 +136,9 @@ export function BlogIndex({ posts }: { posts: BlogIndexPost[] }) {
     ...facet,
     count: projectPool.filter((post) => post.projectSlug === facet.value).length,
   }));
+  const topProjects = projects.slice(0, TOP_PROJECTS);
+  const moreProjects = projects.slice(TOP_PROJECTS);
+  const moreSelected = moreProjects.some((facet) => facet.value === project);
 
   const groups: Array<{ month: string; posts: BlogIndexPost[] }> = [];
   for (const post of visible) {
@@ -128,44 +150,99 @@ export function BlogIndex({ posts }: { posts: BlogIndexPost[] }) {
   const isFiltered = Boolean(needle || category || project);
 
   return (
-    <div className={styles.layout}>
-      <aside className={styles.rail} aria-label="Filter posts">
-        <label className={styles.search}>
-          <span className={styles.srOnly}>Search posts</span>
-          <svg viewBox="0 0 20 20" aria-hidden="true">
-            <circle cx="8.5" cy="8.5" r="5.5" />
-            <path d="m13 13 4 4" />
-          </svg>
-          <input
-            ref={searchRef}
-            type="search"
-            placeholder="Search posts"
-            value={query}
-            onChange={(event) => update({ q: event.target.value })}
-            onKeyDown={(event) => {
-              if (event.key === "Escape") update({ q: "" });
-            }}
-          />
-          <kbd aria-hidden="true">/</kbd>
-        </label>
+    <div className={styles.page}>
+      <header className={styles.head}>
+        <h1 className={styles.heading}>Blog</h1>
+        <p className={styles.lede}>Notes from building software: experiments, debugging, and product decisions.</p>
+        <div className={styles.tools}>
+          <label className={styles.typeSelect}>
+            <span className={styles.srOnly}>Post type</span>
+            <select value={category} onChange={(event) => update({ category: event.target.value })}>
+              <option value="">All types</option>
+              {categories.map((facet) => (
+                <option key={facet.value} value={facet.value}>
+                  {facet.label} ({facet.count})
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className={styles.search}>
+            <span className={styles.srOnly}>Search posts</span>
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              <circle cx="8.5" cy="8.5" r="5.5" />
+              <path d="m13 13 4 4" />
+            </svg>
+            <input
+              ref={searchRef}
+              type="search"
+              placeholder="Search posts"
+              value={query}
+              onChange={(event) => update({ q: event.target.value })}
+              onKeyDown={(event) => {
+                if (event.key === "Escape") update({ q: "" });
+              }}
+            />
+            <kbd aria-hidden="true">/</kbd>
+          </label>
+        </div>
+      </header>
 
-        <FacetList
-          title="Type"
-          allLabel="All posts"
-          total={categoryPool.length}
-          facets={categories}
-          selected={category}
-          onSelect={(value) => update({ category: value })}
-        />
-        <FacetList
-          title="Project"
-          allLabel="Any project"
-          total={projectPool.length}
-          facets={projects}
-          selected={project}
-          onSelect={(value) => update({ project: value })}
-        />
-      </aside>
+      <div className={styles.toolbar}>
+        <nav className={styles.projects} aria-label="Filter by project">
+          <button type="button" className={styles.chip} aria-pressed={!project} onClick={() => update({ project: "" })}>
+            All
+          </button>
+          {topProjects.map((facet) => (
+            <button
+              key={facet.value}
+              type="button"
+              className={styles.chip}
+              data-empty={facet.count === 0 || undefined}
+              aria-pressed={project === facet.value}
+              onClick={() => update({ project: project === facet.value ? "" : facet.value })}
+            >
+              <ProjectIcon title={facet.label} logo={facet.logo} />
+              {facet.label}
+              <span className={styles.count}>{facet.count}</span>
+            </button>
+          ))}
+          {moreProjects.length > 0 && (
+            <label className={styles.more} data-selected={moreSelected || undefined}>
+              <span className={styles.srOnly}>More projects</span>
+              <select value={moreSelected ? project : ""} onChange={(event) => update({ project: event.target.value })}>
+                <option value="">More projects…</option>
+                {moreProjects.map((facet) => (
+                  <option key={facet.value} value={facet.value}>
+                    {facet.label} ({facet.count})
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+        </nav>
+
+      </div>
+
+      {!isFiltered && picks.length > 0 && (
+        <section className={styles.startHere} id="start-here" aria-labelledby="start-here-heading">
+          <h2 className={styles.sectionLabel} id="start-here-heading">Start here</h2>
+          <ol className={styles.picks}>
+            {picks.map((pick) => (
+              <li key={pick.slug}>
+                <Link className={styles.pick} href={`/blog/${pick.slug}`}>
+                  <span className={styles.pickImage}>
+                    {pick.thumbnail && <img src={pick.thumbnail} alt="" />}
+                  </span>
+                  <span className={styles.pickCopy}>
+                    <span className={styles.pickTitle}>{pick.title}</span>
+                    <span className={styles.pickWhy}>{pick.why}</span>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
 
       <div className={styles.results}>
         <p className={styles.resultLine} aria-live="polite">
@@ -177,7 +254,7 @@ export function BlogIndex({ posts }: { posts: BlogIndexPost[] }) {
               </button>
             </>
           ) : (
-            <>{posts.length} posts, newest first</>
+            <>All {posts.length} posts, newest first</>
           )}
         </p>
 
@@ -219,62 +296,6 @@ export function BlogIndex({ posts }: { posts: BlogIndexPost[] }) {
           </section>
         ))}
       </div>
-    </div>
-  );
-}
-
-function FacetList({
-  title,
-  allLabel,
-  total,
-  facets,
-  selected,
-  onSelect,
-}: {
-  title: string;
-  allLabel: string;
-  total: number;
-  facets: Facet[];
-  selected: string;
-  onSelect: (value: string) => void;
-}) {
-  return (
-    <div className={styles.facet}>
-      <h2 className={styles.facetTitle}>{title}</h2>
-      <select
-        className={styles.facetSelect}
-        value={selected}
-        onChange={(event) => onSelect(event.target.value)}
-        aria-label={title}
-      >
-        <option value="">{allLabel}</option>
-        {facets.map((facet) => (
-          <option key={facet.value} value={facet.value}>
-            {facet.label} ({facet.count})
-          </option>
-        ))}
-      </select>
-      <ul className={styles.facetList}>
-        <li>
-          <button type="button" aria-pressed={!selected} onClick={() => onSelect("")}>
-            <span>{allLabel}</span>
-            <span className={styles.count}>{total}</span>
-          </button>
-        </li>
-        {facets.map((facet) => (
-          <li key={facet.value}>
-            <button
-              type="button"
-              className={facet.count === 0 ? styles.facetEmpty : undefined}
-              aria-pressed={selected === facet.value}
-              onClick={() => onSelect(selected === facet.value ? "" : facet.value)}
-            >
-              <span>{facet.label}</span>
-              <span className={styles.count}>{facet.count}</span>
-            </button>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }
