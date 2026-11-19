@@ -55,8 +55,8 @@ export default function Home() {
               </svg>
               RelationalAI
             </a>
-            , building inspectors for semantic models and interfaces for
-            AI-assisted data modeling. Before that, I created an engineering
+            , working on the Rel app, where people build semantic models and
+            work with Rel, its decision agent in Snowflake. Before that, I created an engineering
             analysis platform used by 100+ engineers at Allison Transmission.
           </p>
           <p className="home-years">
