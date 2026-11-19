@@ -1,0 +1,111 @@
+---
+title: Things I consider when building an MCP server
+publishedAt: 2026-11-19
+summary: 'What I do in the Visual Notes MCP server, and plan for explorEDA: put agent output where people already work, make every error fixable, register every tool one way, read the call log, treat instructions as code, and let the agent file feedback.'
+project: visual-notes
+type: reference
+---
+
+I have one MCP server running in production and a second one planned. [Visual Notes](https://github.com/byronwall/visual-notes) is my notes app, and Claude and ChatGPT both connect to it as a custom connector: about 100 tools across notes, research topics, tasks, events, collections, and people. [explorEDA](https://github.com/byronwall/explorEDA) is a data analysis tool, and its MCP plan lets an outside agent build analyses in a local project folder.
+
+This is the list of things I keep coming back to. It is not a spec. Every point comes from code I wrote or a plan I am working from, and I link to the real thing where I can.
+
+## Put the output where people already look
+
+The first question is not "which tools?" It is "where does the agent's work end up, and who reads it next?"
+
+For Visual Notes, the problem was that ChatGPT's useful output (research write-ups, plans, chat digests) stayed stuck in ChatGPT. The intent brief says it plainly: the goal is a single knowledge base, not a ChatGPT feature. The agent becomes one more author next to me. A note it saves is an ordinary note. I can see it in the app, edit it, and search for it, and it gets embeddings like everything else. The brief lists "a parallel ChatGPT storage area" under things to avoid.
+
+The explorEDA plan has the same rule in different words: "Agent output is the same project text a person produces. There is no separate agent format." An agent writes `.eda` files, and the open browser tab reloads them through the file watching that already exists. The person drags a chart, and the agent can see that change on its next look.
+
+If the agent gets its own storage, you now maintain two products, and the second one has no user interface.
+
+## Make every failure something the agent can fix
+
+An agent with no docs is going to get things wrong. What matters is whether the next call is better.
+
+In Visual Notes, every error a store throws for bad input goes through one function, [`toRefusal`](https://github.com/byronwall/visual-notes/blob/main/app/src/server/mcp/tool-registry.ts), which maps it to a short code (`not_found`, `invalid`, `duplicate`) and a message. A batch that fails says so in one fixed form:
+
+```text
+invalid: Nothing was written. Fix these and retry:
+- [[…|cmabc123]] links to a note that does not exist
+- {{collection-view:v42}} is not a collection view
+```
+
+Two things in that message do real work. "Nothing was written" tells the agent it does not need to clean up a partial write. The list tells it exactly what to change. Anything that is not a known input error becomes "Internal error while handling the request," and the details go to the server log, not into the agent's context.
+
+explorEDA takes this further, because the whole plan depends on it. Every write returns the check result, so check-and-fix is one loop:
+
+```text
+write_eda  { path: "returns.eda", text: "eda query=orders\nhist orders.region ..." }
+  → { saved: true, views: 2, problems: [{ line: 4, message: "Unknown field returnedAt", fix: "Did you mean returned_at?" }] }
+```
+
+The first milestone is a test of exactly this. A cold agent gets a CSV and a request for a dashboard, and it has only four tools. If it reaches a built analysis in about five check-fix rounds, whole-file writes are enough. If it stalls on syntax, finer edit tools move up the plan. I would rather learn that from one recorded session than design 30 tools on a guess.
+
+## Register every tool one way
+
+Visual Notes has about 100 tools in a dozen files, and none of them sets its own scope, annotations, logging, or error handling. Each family registers through `tools.read` or `tools.write`:
+
+```ts
+tools.write(
+  "inbox_claim",
+  {
+    title: "Claim a request",
+    description: "Take an open request so other agents skip it. ...",
+    input: { id: z.string().min(1).describe("Request id from inbox_get") },
+    idempotent: true,
+  },
+  async (args) => { /* ... */ },
+);
+```
+
+The [registrar](https://github.com/byronwall/visual-notes/blob/main/app/src/server/mcp/tool-registry.ts) turns `read` versus `write` into the OAuth scope (`notes:read` or `notes:write`) and the MCP `readOnlyHint`. It records the call, wraps the handler so failures become refusals, and tags every change the call makes with one call id. When a caller lacks a scope, it returns the exact result shape ChatGPT needs to show its "reconnect" screen. That shape lives in one place, so no tool has to know it.
+
+The October commit that did this is called "Make the MCP connector consistent across every tool family." The consistency also shows up in the data the agent gets back. `appUrl` always opens the record in Visual Notes, and `url` is always a web address. A tool's own records are `id`, and other records are `noteId`, `listId`, and so on. Lists always come back under a named key. Small rules like these mean the agent can guess right about a tool it has not used yet.
+
+## Log every call, then actually read the log
+
+The registrar writes one activity event per tool call: the tool, the outcome (`ok`, `refused`, `failed`, `denied`), the duration, and the arguments trimmed to 60 characters per string, so note bodies do not fill the log. Every write made during that call carries the same call id, so the Activity page shows what each call changed. Agents can read the same log with `activity_query domain=mcp`.
+
+The log is where I learned most of what was wrong. A late-October audit of the research tools read every MCP call from four days. There were about 300 calls and zero errors. By the error rate, everything was fine. It was not:
+
+- After it wrote a 67-card research topic, an agent made about 70 parallel `research_get_card` calls, one per card, to check its work. The write result did not give it enough to trust the write.
+- Nothing in the descriptions said how to group cards, so one topic came out as a single question with 19 children, and another as one criterion with 31 sources under it. On the canvas, that is one tall column.
+- The agent made 67 links between cards that the UI showed only for the selected card.
+
+None of those failures is an error. You only see them when you read what the agent did and compare it with what a person would want.
+
+## Treat the server instructions as code
+
+The server instructions and tool descriptions are the only docs most agents ever read, so I change them from evidence, the same way I fix a bug.
+
+One real example: an agent saved seven meetups as plain collection rows, with the date in the note body. They never reached the Events pages or the calendar feeds. Then it copied those bad rows for the next ones, because nothing in a row showed that it was not an event. The fix was partly code (collection results now show each row's event, and a plain row added to a collection of events gets a notice with the fix) and partly words. The event rule now leads the event instructions.
+
+Order matters too. A comment in [`tools.ts`](https://github.com/byronwall/visual-notes/blob/main/app/src/server/mcp/tools.ts) says why events and collections come early in the instructions: "some clients cut long instructions short." If a rule matters, it goes near the top.
+
+Some of the instructions are about saving well, not about any one tool. For example: `Name the one record that holds the current decision; label other copies 'snapshot as of <date>'.` An earlier review found the same insurance research saved in three copies that had drifted apart.
+
+## Decide what the agent may change, and make it undoable
+
+The first plan for Visual Notes said the agent could edit only notes it created. Ownership came from provenance, because the app has one user and no owner column: a note the connector creates gets `originalSource = "chatgpt"`.
+
+In November I replaced that rule with guidance. The agent may edit any note. On a note I wrote, it edits when I asked or when the edit plainly serves the request, it prefers block edits, and it keeps my wording. What makes that acceptable is that every edit keeps a version I can restore, and deleting stays mine. The agent cancels tasks and hides cards; it does not delete them. When I ask for a review instead of a change, `notes_propose_edits` puts suggestions inline for me to accept one by one.
+
+The explorEDA plan handles a different risk, two editors at once. A write fails if the file changed since the agent read it, and the result tells the agent to read it again. My edits made while the agent works are not silently lost.
+
+Two smaller guards are worth copying. `notes_create` takes an optional idempotency key, so a retried call returns the note it already made, not a second one. And notes from `notes_get` end each block with a `^blockId` tag, so the agent can change one paragraph with `notes_edit_blocks` without sending the whole note back.
+
+## Let the agent tell you what is wrong
+
+This one came from a post by @matt_ambrogi: give the MCP server a `submit_feedback` tool, so the calling agent files a report with a proposed fix.
+
+The agent is the one user that reads every tool description, hits every confusing error, and wishes for a missing field in the middle of real work. Until now, I found those problems only by reading the call log after the fact, as in the audit above.
+
+The Visual Notes version is [`feedback_submit`](https://github.com/byronwall/visual-notes/pull/356) (named to match the server's `<area>_<verb>` style). The agent gives a kind (`bug`, `confusing`, or `missing`), a one-line summary, the tool, what happened, and a proposed fix. The server has no GitHub token, and I did not want to add one for this, so each report becomes a note at `work.visual-notes.feedback` that starts with a task line. That puts it in my Tasks inbox, where I already triage work. The server instructions tell the agent to use it once, after it finishes or gives up on my request, and not for my content.
+
+I do not know yet how often agents will call it, or whether the proposed fixes will be any good. The explorEDA plan already asks the same question in a different way. Its first proof records "which problems lacked a usable fix." A feedback tool asks the agent to write that list for you.
+
+## Where I would start
+
+If I started a new MCP server tomorrow, I would build these in order: one registrar that every tool goes through, errors that say what to change, a call log I read every week, and a feedback tool. Then I would put one cold agent in front of three or four tools and watch what it does before I add the rest.
