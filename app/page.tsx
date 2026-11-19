@@ -57,7 +57,7 @@ export default function Home() {
             </a>
             , working on the Rel app, where people build semantic models and
             work with Rel, its decision agent in Snowflake. Before that, I created an engineering
-            analysis platform used by 100+ engineers at Allison Transmission.
+            analysis platform used by engineers at Allison Transmission.
           </p>
           <p className="home-years">
             Sixteen years in engineering, nine building software, nearly four
