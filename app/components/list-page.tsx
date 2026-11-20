@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import styles from "./list-page.module.css";
 
 export { styles as listStyles };
@@ -48,7 +48,7 @@ export function SearchBox({ label, value, onChange }: { label: string; value: st
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       const target = event.target;
-      if (event.key !== "/" || (target instanceof Element && target.closest("input, textarea, select, [contenteditable]"))) return;
+      if (event.key !== "/" || (target instanceof Element && target.closest("input, textarea, select, [contenteditable], [role=listbox]"))) return;
       event.preventDefault();
       ref.current?.focus();
     };
@@ -78,6 +78,9 @@ export function SearchBox({ label, value, onChange }: { label: string; value: st
   );
 }
 
+export type SelectOption = { value: string; label: string };
+
+/** A button that opens a menu of options. Not a native select, so it matches the site in every browser. */
 export function Select({
   label,
   value,
@@ -85,25 +88,150 @@ export function Select({
   options,
   quiet,
   width,
+  placeholder,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
-  options: Array<{ value: string; label: string }>;
+  options: SelectOption[];
   quiet?: boolean;
+  /** Button text when no option matches the value. */
+  placeholder?: string;
   width?: number;
 }) {
+  const id = useId();
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLUListElement>(null);
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(0);
+  const current = options.find((option) => option.value === value) ?? (placeholder ? undefined : options[0]);
+
+  const place = () => {
+    const button = buttonRef.current;
+    const menu = menuRef.current;
+    if (!button || !menu) return;
+    const rect = button.getBoundingClientRect();
+    const left = Math.max(8, Math.min(rect.left, window.innerWidth - menu.offsetWidth - 8));
+    const below = rect.bottom + 4;
+    const top = below + menu.offsetHeight > window.innerHeight - 8 ? Math.max(8, rect.top - 4 - menu.offsetHeight) : below;
+    menu.style.left = `${left}px`;
+    menu.style.top = `${top}px`;
+    menu.style.minWidth = `${rect.width}px`;
+  };
+
+  const show = (index: number) => {
+    setActive(index);
+    if (!menuRef.current?.matches(":popover-open")) menuRef.current?.showPopover();
+    menuRef.current?.focus();
+  };
+
+  const choose = (index: number) => {
+    const option = options[index];
+    if (option) onChange(option.value);
+    menuRef.current?.hidePopover();
+    buttonRef.current?.focus();
+  };
+
+  useEffect(() => {
+    if (!open) return;
+    place();
+    menuRef.current?.focus();
+    // Keep the menu under its button while the page scrolls.
+    const follow = (event: Event) => {
+      if (event.target instanceof Node && menuRef.current?.contains(event.target)) return;
+      place();
+    };
+    window.addEventListener("resize", follow);
+    window.addEventListener("scroll", follow, true);
+    return () => {
+      window.removeEventListener("resize", follow);
+      window.removeEventListener("scroll", follow, true);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (open) menuRef.current?.children[active]?.scrollIntoView({ block: "nearest" });
+  }, [open, active]);
+
+  const onMenuKey = (event: React.KeyboardEvent) => {
+    const last = options.length - 1;
+    const moves: Record<string, number> = { ArrowDown: Math.min(last, active + 1), ArrowUp: Math.max(0, active - 1), Home: 0, End: last };
+    if (event.key in moves) {
+      event.preventDefault();
+      setActive(moves[event.key]);
+    } else if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      choose(active);
+    } else if (event.key === "Tab") {
+      menuRef.current?.hidePopover();
+    } else if (event.key.length === 1) {
+      const key = event.key.toLowerCase();
+      const match = options.findIndex((option, index) => index > active && option.label.toLowerCase().startsWith(key));
+      const wrap = options.findIndex((option) => option.label.toLowerCase().startsWith(key));
+      if (match !== -1 || wrap !== -1) setActive(match !== -1 ? match : wrap);
+    }
+  };
+
+  const selectedIndex = current ? options.indexOf(current) : 0;
+
   return (
-    <label className={styles.select} data-quiet={quiet || undefined} data-selected={(quiet && value) || undefined}>
-      <span className={styles.srOnly}>{label}</span>
-      <select value={value} onChange={(event) => onChange(event.target.value)} style={width ? { width } : undefined}>
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
+    <>
+      <button
+        ref={buttonRef}
+        type="button"
+        className={styles.select}
+        data-quiet={quiet || undefined}
+        data-selected={(quiet && value) || undefined}
+        data-open={open || undefined}
+        style={width ? { minWidth: width } : undefined}
+        aria-label={`${label}: ${current?.label ?? placeholder}`}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-controls={id}
+        popoverTarget={id}
+        onKeyDown={(event) => {
+          if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+            event.preventDefault();
+            show(selectedIndex);
+          }
+        }}
+        onClick={() => setActive(selectedIndex)}
+      >
+        <span className={styles.selectLabel}>{current?.label ?? placeholder}</span>
+        <svg viewBox="0 0 16 16" aria-hidden="true">
+          <path d="m4.5 6.5 3.5 3.5 3.5-3.5" />
+        </svg>
+      </button>
+      <ul
+        ref={menuRef}
+        id={id}
+        popover="auto"
+        role="listbox"
+        aria-label={label}
+        tabIndex={-1}
+        aria-activedescendant={`${id}-${active}`}
+        className={styles.menu}
+        onToggle={(event) => setOpen((event as unknown as ToggleEvent).newState === "open")}
+        onKeyDown={onMenuKey}
+      >
+        {options.map((option, index) => (
+          <li
+            key={option.value}
+            id={`${id}-${index}`}
+            role="option"
+            aria-selected={option.value === current?.value}
+            data-active={index === active || undefined}
+            onPointerMove={() => setActive(index)}
+            onClick={() => choose(index)}
+          >
             {option.label}
-          </option>
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="m3.5 8.5 3 3 6-7" />
+            </svg>
+          </li>
         ))}
-      </select>
-    </label>
+      </ul>
+    </>
   );
 }
 
@@ -164,10 +292,8 @@ export function FacetChips({
           width={132}
           value={moreSelected ? value : ""}
           onChange={onChange}
-          options={[
-            { value: "", label: `${moreLabel}…` },
-            ...more.map((facet) => ({ value: facet.value, label: `${facet.label} (${facet.count})` })),
-          ]}
+          placeholder={`${moreLabel}…`}
+          options={more.map((facet) => ({ value: facet.value, label: `${facet.label} (${facet.count})` }))}
         />
       )}
     </nav>
