@@ -31,6 +31,12 @@ export type ProjectItem = {
 
 // Languages and frameworks get chips; every other tag goes in the "More" select.
 const CHIP_TAGS = ["TypeScript", "Python", "React", "SolidJS"];
+const TAG_LOGOS: Record<string, string> = {
+  TypeScript: "/images/tech/typescript.svg",
+  Python: "/images/tech/python.svg",
+  React: "/images/tech/react.svg",
+  SolidJS: "/images/tech/solidjs.svg",
+};
 const FILTER_KEYS = ["q", "tag", "status", "sort"] as const;
 
 function ProjectRow({ project, needle, eager }: { project: ProjectItem; needle: string; eager?: boolean }) {
@@ -120,7 +126,7 @@ export function ProjectsIndex({ projects }: { projects: ProjectItem[] }) {
   const matchesStatus = (p: ProjectItem) => !status || (status === "archived") === p.archived;
 
   const tagOrder = useMemo(() => {
-    const facets = countFacets(projects, (p) => p.tags.map((t) => ({ value: t, label: t })));
+    const facets = countFacets(projects, (p) => p.tags.map((t) => ({ value: t, label: t, logo: TAG_LOGOS[t] })));
     const pinned = CHIP_TAGS.flatMap((name) => facets.filter((facet) => facet.value === name));
     return [...pinned, ...facets.filter((facet) => !CHIP_TAGS.includes(facet.value))];
   }, [projects]);
@@ -155,13 +161,14 @@ export function ProjectsIndex({ projects }: { projects: ProjectItem[] }) {
           onChange={(value) => update({ tag: value })}
           top={CHIP_TAGS.length}
           moreLabel="More tags"
+          icons
         />
         <div className={ui.tools}>
           <Select
             label="Status"
             value={status}
             onChange={(value) => update({ status: value })}
-            width={128}
+            width={112}
             options={[
               { value: "", label: "Any status" },
               { value: "active", label: `Active (${activeCount})` },
@@ -172,7 +179,7 @@ export function ProjectsIndex({ projects }: { projects: ProjectItem[] }) {
             label="Sort"
             value={sort}
             onChange={(value) => update({ sort: value })}
-            width={120}
+            width={100}
             options={[
               { value: "", label: "Featured" },
               { value: "newest", label: "Newest" },

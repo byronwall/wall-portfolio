@@ -31,9 +31,11 @@
 .select svg { width: 14px; height: 14px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; opacity: .7; transition: transform 140ms ease; }
 .select[data-open] svg { transform: rotate(180deg); }
 .select[data-quiet] { background-color: transparent; }
+/* A long chosen tag must not push the tools to a second row. */
+.select[data-quiet][data-selected] { max-width: 124px; }
 .select[data-selected], .select[data-open] { background-color: var(--surface-chip); color: var(--ink-primary); }
 .select:focus-visible { outline: 2px solid var(--action-border); outline-offset: 1px; }
-.selectLabel { overflow: hidden; text-overflow: ellipsis; }
+.selectLabel { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 
 .menu { position: fixed; inset: auto; max-height: min(340px, calc(100vh - 16px)); margin: 0; padding: 4px; overflow-y: auto; border: 1px solid var(--border-quiet); border-radius: 8px; background: var(--surface-paper); box-shadow: var(--shadow-hover); color: var(--ink-body); font-size: 13.5px; list-style: none; outline: none; }
 .menu li { display: flex; min-height: 30px; align-items: center; justify-content: space-between; gap: 16px; padding: 0 8px 0 9px; border-radius: 5px; white-space: nowrap; cursor: pointer; }

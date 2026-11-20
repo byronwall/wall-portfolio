@@ -185,6 +185,7 @@ export function Select({
         data-open={open || undefined}
         style={width ? { minWidth: width } : undefined}
         aria-label={`${label}: ${current?.label ?? placeholder}`}
+        title={current?.label ?? placeholder}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={id}
@@ -289,7 +290,6 @@ export function FacetChips({
         <Select
           label={moreLabel}
           quiet
-          width={132}
           value={moreSelected ? value : ""}
           onChange={onChange}
           placeholder={`${moreLabel}…`}
