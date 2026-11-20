@@ -57,8 +57,16 @@ export default async function Home() {
   const projectOrder = (slug?: string | string[]) =>
     Number(projects.find((project) => project.slug === slug)?.metadata.indexOrder ?? Infinity);
   const posts = sortPostsNewestFirst(getBlogPosts());
-  const featuredPosts = posts
-    .filter((post) => post.metadata.featured === "true")
+  // Writing cards must not repeat the project cards above: skip posts about those projects.
+  // Featured posts come first, then the newest posts with an image.
+  const shownProjects = new Set(featuredProjects.map((project) => project.slug));
+  const postCandidates = posts.filter(
+    (post) => post.thumbnail && !shownProjects.has(String(post.metadata.project)),
+  );
+  const featuredPosts = [
+    ...postCandidates.filter((post) => post.metadata.featured === "true"),
+    ...postCandidates.filter((post) => post.metadata.featured !== "true"),
+  ]
     .slice(0, 2)
     .sort((a, b) => projectOrder(a.metadata.project) - projectOrder(b.metadata.project));
   const featuredSlugs = new Set(featuredPosts.map((post) => post.slug));
