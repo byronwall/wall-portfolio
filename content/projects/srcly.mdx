@@ -1,58 +1,54 @@
 ---
 title: "Srcly"
-description: "An interactive codebase treemap, metrics, and code-flow viewer for finding code hotspots"
+description: "A local codebase map: treemap, hotspots, import and data-flow graphs, and PR compare, with a headless CLI for agents"
 date: "2026-05-03"
 started: "2025"
 publishedAt: "2026-05-03"
-status: "Content coming soon"
+status: "active"
 repo: "https://github.com/byronwall/srcly"
 summary: "An interactive codebase treemap, metrics, and code-flow viewer for finding code hotspots"
 tags: ["Python", "FastAPI", "SolidJS", "TypeScript", "Tree-sitter", "Static Analysis"]
-image: "/images/projects/srcly/00-main.png"
+image: "/images/projects/srcly/01-treemap.jpg"
 indexTier: "medium"
 indexOrder: "8"
 ---
-
-Srcly is a local-first tool for exploring codebases through a treemap, metrics, and code-flow views. It combines Lizard with tree-sitter analyzers to build a hierarchical model of folders, files, functions, and nested scopes, then renders the result as an explorable browser UI.
+Srcly is a local tool for looking at a codebase as a whole. You point it at a repo and it shows where the code is, how complex it is, how often it changes, and how the pieces connect. Since 1.0 shipped on October 16, 2026, twelve more releases have shipped, and it is a very different tool from the dark treemap that used to be here.
 
 - Try it: `uvx srcly`
 - Source: [byronwall/srcly](https://github.com/byronwall/srcly)
+- Related: [TSX Data Flow](/projects/tsx-data-flow), which now lives inside Srcly as the Data flow graph
 
 ## Interface
 
-<div className="not-prose mt-6">
-  <img
-    src="/images/projects/srcly/00-main.png"
-    alt="Srcly codebase treemap, explorer, and code analysis interface"
-    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
-    loading="lazy"
-  />
-</div>
+The treemap sizes every folder, file, and function by lines of code and colors it by a metric. This is Srcly looking at itself: 51,271 lines, 381 files, 4,355 functions.
+
+<img src="/images/projects/srcly/01-treemap.jpg" alt="Srcly treemap of its own repo, colored by max complexity, with the explorer sidebar" />
+
+The 2×2 puts complexity against git commits. The top-right corner is the one I care about: code that is both complex and changing often is where a refactor pays off first.
+
+<img src="/images/projects/srcly/02-activity-2x2.jpg" alt="Srcly Hot Spots ranking beside the activity 2x2 of complexity against commits" />
+
+The Graph view has three modes. Imports shows folder and file dependencies, and folders expand in place:
+
+<img src="/images/projects/srcly/03-dependency-graph.jpg" alt="Srcly imports graph drilled into client/src with folder boxes, hub badges and bundled edges" />
+
+Symbols centers on one function and shows what references it and what it references:
+
+<img src="/images/projects/srcly/04-symbols.jpg" alt="Srcly Symbols mode centered on placeAndRoute with referenced-by and references columns" />
+
+Data flow traces a value from where it starts to where it renders. That is the old [TSX Data Flow](/projects/tsx-data-flow) analyzer.
+
+## What it does now
+
+- **One map, three views.** Treemap, Graph, and 2×2 share the same metrics model, with real back navigation and URL state.
+- **Metrics that tell zero apart from not measured.** Cyclomatic and cognitive complexity, comment noise, and React and Solid component metrics.
+- **Git activity.** Change frequency and churn per file, with 2×2 presets for activity, blast radius, component weight, comment noise, and findings.
+- **Findings with no setup.** tsc, eslint, ruff, and Srcly's own TypeScript rules, plus reachability from the import graph and any ast-grep rules in `.srcly/rules`.
+- **Compare.** `srcly compare` and a compare UI with side-by-side treemaps and before/after graphs on one shared layout. It can pick from open PRs, worktrees, and branches, and step through a PR one commit at a time.
+- **Symbols.** A reference index for TypeScript and Python: the path between two symbols, dead and hub overlays, and the HTTP seam that joins client requests to server routes.
+- **A headless CLI for agents and CI.** `report`, `explain`, `hotspots`, `compare`, `fix`, `check --ratchet` for a size budget, and `scan`.
+- **Fast reruns.** Scans are cached until files change, and the UI shows live scan progress.
 
 ## How it works
 
-Srcly runs as a FastAPI-backed local application with a SolidJS frontend:
-
-- **Static analysis**:
-  - Uses Lizard for broad complexity and LOC coverage.
-  - Adds tree-sitter analyzers for TypeScript/TSX, Python, CSS/SCSS, Markdown, and notebooks.
-  - Extracts functions, nested scopes, complexity, comments, TODOs, imports, JSX signals, and language-specific quality metrics.
-- **Codebase model**:
-  - Builds a folder/file/function tree that mirrors the repository structure.
-  - Represents nested scopes and remaining body fragments so treemap area does not double-count code.
-  - Aggregates metrics upward so folders and files can be sorted, colored, and ranked.
-- **Interactive UI**:
-  - Shows a LOC-sized treemap with selectable hotspot coloring.
-  - Provides an explorer sidebar with sorting, file-type filters, and Hot Spots ranking.
-  - Opens source in a syntax-highlighted code viewer with metrics, scope overlays, and flow views.
-- **Agent-ready reports**:
-  - Supports headless commands for reports, hotspots, tree summaries, findings, and focused file explanations.
-  - Emits compact artifacts designed to help coding agents understand a repository before making changes.
-
-## Highlights
-
-- One-command local usage with `uvx srcly`
-- Treemap, explorer, and hotspot views backed by the same metrics model
-- TypeScript/TSX dependency graph, scope flow, and data-flow inspection
-- Source viewer with Shiki highlighting and Markdown/notebook previews
-- Report mode for generating `report.md`, `findings.json`, metric schemas, and compact tree summaries
+Srcly is a FastAPI server with a SolidJS client. It combines Lizard with tree-sitter analyzers to build a tree of folders, files, functions, and nested scopes, then rolls the metrics up so any level can be sorted, colored, and ranked. The data-flow engine is TypeScript and runs as a lazy Node child process when you open that view.

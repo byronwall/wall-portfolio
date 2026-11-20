@@ -1,46 +1,57 @@
 ---
 title: "Visual Notes"
-description: "A markdown note ingestion and visualization app with embeddings, UMAP projections, and a visual canvas"
+description: "My notes workspace: writing, voice memos with transcripts, tasks, collections, research, and people, with search, an embedding map, and an MCP connector so agents can work in it too"
 date: "2026-05-03"
 started: "2025"
 publishedAt: "2026-05-03"
-status: "Content coming soon"
+status: "active"
 repo: "https://github.com/byronwall/visual-notes"
-summary: "A markdown note ingestion and visualization app with embeddings, UMAP projections, and a visual canvas"
+summary: "My notes workspace: writing, voice memos with transcripts, tasks, collections, research, and people, with search, an embedding map, and an MCP connector"
 tags: ["SolidStart", "TypeScript", "Prisma", "PostgreSQL", "OpenAI", "Data Visualization"]
-image: "/images/projects/visual-notes/main-ui.png"
+image: "/images/projects/visual-notes/01-voice-memo-transcript.jpg"
 ---
-
-Visual Notes is an app for ingesting markdown documents, storing them as structured records, and exploring them visually. The project started with a minimal markdown ingest flow and grew into an embeddings and UMAP-backed canvas for arranging notes by semantic similarity.
+Visual Notes started as a small markdown ingest app with an embeddings canvas. It has turned into the place where I keep notes, tasks, voice memos, research, and people, and where agents read and edit that information with me. It replaced two of my other projects: [Plantasktic](/projects/1-plantasktic) for tasks and [Video to Context](/projects/video-to-context) for voice memos.
 
 - Source: [byronwall/visual-notes](https://github.com/byronwall/visual-notes)
 
+The screenshots below use a demo database with invented notes.
+
 ## Interface
 
-<div className="not-prose mt-6">
-  <img
-    src="/images/projects/visual-notes/main-ui.png"
-    alt="Visual Notes markdown ingest and document viewer interface"
-    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
-    loading="lazy"
-  />
-</div>
+A voice memo recorded on a note. The audio is transcribed, then a planning pass writes a summary, splits the transcript into titled sections, and pulls out tasks with timestamps.
+
+<img src="/images/projects/visual-notes/01-voice-memo-transcript.jpg" alt="Visual Notes note with a recording, AI summary, three extracted tasks, and a sectioned transcript" />
+
+The editor is borderless and saves as you type. Notes are filed by path, and tags work inline.
+
+<img src="/images/projects/visual-notes/02-note-editor.jpg" alt="Visual Notes editor with a path breadcrumb, toolbar, a table of measurements and a #perf tag" />
+
+Tasks are written in notes and collected into one inbox, where each task links back to the note it came from.
+
+<img src="/images/projects/visual-notes/04-tasks.jpg" alt="Visual Notes task inbox where each task links back to its note" />
+
+The canvas lays out notes by embedding similarity and labels the regions it finds.
+
+<img src="/images/projects/visual-notes/03-canvas-map.jpg" alt="Visual Notes canvas map of note embeddings with six labeled regions" />
+
+Research topics open as a mind map of criteria, options, questions, tasks, and sources.
+
+<img src="/images/projects/visual-notes/05-research-map.jpg" alt="Visual Notes research topic shown as an expanded mind map" />
+
+## What it does now
+
+- **Capture.** A borderless editor with autosave, a slash menu, and a keyboard-driven notes list.
+- **Voice memos.** Record on a note or drop memos in. Transcripts are searchable and turn into summaries, sections, and tasks.
+- **Tasks.** Checkboxes in notes are real tasks, with lists, due days, and one inbox.
+- **Collections.** Typed collections whose rows are notes, shown as a table, board, gallery, or calendar, and embeddable live in a note.
+- **Research and pathways.** Research topics with streams, typed links, and comments addressed to the agent. Pathways are decision maps with lanes and voting.
+- **People.** Profiles, organizations, relationships, and a reconnect queue.
+- **Cleanup.** A daily card stack for revisiting and archiving old notes.
+- **Search and canvas.** Full-text and embedding search together, and a UMAP canvas with labeled regions.
+- **Agents.** An MCP connector covers notes, tasks, collections, research, pathways, people, events, and search. Agents can propose edits that I accept inline.
+
+It moves fast: 766 commits on `main` in the last three months.
 
 ## How it works
 
-Visual Notes treats markdown as source material for a searchable and visual note workspace:
-
-- Ingests markdown through API routes or the client form.
-- Converts markdown to normalized HTML for document viewing.
-- Persists documents with Prisma and PostgreSQL.
-- Computes OpenAI embeddings for stored documents.
-- Trains UMAP projections and stores 2D or 3D point layouts.
-- Uses the latest UMAP run to position notes on the visual canvas.
-
-## Highlights
-
-- Minimal end-to-end markdown ingest and viewer flow
-- Embedding runs with model and dimension metadata
-- UMAP train and project workflows with persisted artifacts
-- Canvas visualization backed by semantic note positions
-- Docker Compose setup for Postgres and the app
+Visual Notes is a SolidStart app on Prisma and PostgreSQL. Notes are markdown with block IDs, so an agent can edit one block without rewriting the note. OpenAI embeddings and UMAP drive the canvas, and Groq Whisper does the transcription.
