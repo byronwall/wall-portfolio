@@ -1,14 +1,14 @@
 ---
 title: "Agents write the DSL, I look at the output"
 publishedAt: 2026-11-19
-summary: 'Draftably and ExplorEDA share one shape: a small text format, a CLI that does the domain work, a skill that teaches the agent the loop, and a visual editor for the rare manual fix. The agent works the text. I mostly look at the diagram or dashboard it compiles to.'
+summary: 'Draftably and explorEDA share one shape: a small text format, a CLI that does the domain work, a skill that teaches the agent the loop, and a visual editor for the rare manual fix. The agent works the text. I mostly look at the diagram or dashboard it compiles to.'
 image: "/images/posts/agents-write-the-dsl-i-look-at-the-output/loop.png"
 articleHero: false
 project: draftably
 type: reflection
 ---
 
-Two of my projects ended up with the same shape without me planning it. [Draftably](/projects/draftably) makes diagrams. [ExplorEDA](/projects/exploreda) makes dashboards. Both have four parts:
+Two of my projects ended up with the same shape without me planning it. [Draftably](/projects/draftably) makes diagrams. [explorEDA](/projects/exploreda) makes dashboards. Both have four parts:
 
 - A small text format (a DSL) that holds the whole thing.
 - A CLI that checks it, compiles it, and does the domain work.
@@ -23,31 +23,46 @@ My claim is that this combination is a very efficient interface for working with
 
 Here is a real Draftably file, from the [diagram file docs](https://draftably.dev/docs):
 
-```text
+```draft
 diagram "Checkout architecture" version=1
+subtitle "Orders persist before payment is authorized"
+
+group clients "Customer channels" color=blue
+node web "Web app" in=clients
+node mobile "Mobile app" in=clients
 
 group platform "Commerce platform" color=mint
 node api "API gateway" in=platform
 group services "Domain services" in=platform
 node orders "Orders" in=services
 node payments "Payments" in=services shape=pill
+
 node db "Postgres" color=violet
 
+legend blue "Clients"
+legend mint "Our services"
+legend violet "Data stores"
+legend line solid "Request path"
+legend line dashed "Background write"
+
+edge checkout web -> api "HTTPS"
+edge native mobile -> api "HTTPS"
 edge dispatch api -> orders "create order"
+edge charge orders -> payments "authorize"
 edge persist orders -> db "persist" kind=async
 
 layout root flow gap=48
-layout services row gap=24
-near payments orders side=right gap=32
+layout platform column gap=28
+layout services row gap=56
 ```
 
 That compiles to this:
 
-![The checkout file compiled by the Draftably CLI: the API gateway and a Domain services group with Orders and Payments sit inside a Commerce platform group. Orders persists to Postgres with a dashed async line.](/images/posts/agents-write-the-dsl-i-look-at-the-output/checkout-diagram.png)
+![The checkout file compiled by the current Draftably CLI: Web and Mobile apps in a blue Customer channels group call the API gateway over HTTPS. Inside the green Commerce platform group, the gateway sends "create order" to Orders, which authorizes Payments and persists to a violet Postgres box with a dashed line. A key under the drawing names the colors and line styles.](/images/posts/agents-write-the-dsl-i-look-at-the-output/checkout-diagram.png)
 
-And here is a real ExplorEDA dashboard, the [earthquake depth piece](https://exploreda.dev/daily/earthquakes-depth/) from the daily collection. This is its `.eda` file, without the record table at the bottom:
+And here is a real explorEDA dashboard, the [earthquake depth piece](https://exploreda.dev/daily/earthquakes-depth/) from the daily collection. This is its `.eda` file, without the record table at the bottom:
 
-```text
+```eda
 eda query=events
 dashboard "How deep do strong earthquakes start?"
 grid columns=12 rowHeight=76
@@ -69,7 +84,7 @@ scatter @db-earthquakes-depth-mag x=depth y=mag color=band title="Depth and magn
 
 Seventeen lines, and this is what they turn into:
 
-![The compiled ExplorEDA dashboard: a world map of earthquakes colored by depth band, a depth band bar chart, a busiest areas bar chart, a depth histogram with a spike at 10 km, and a depth against magnitude scatter plot.](/images/posts/agents-write-the-dsl-i-look-at-the-output/exploreda-dashboard.jpg)
+![The compiled explorEDA dashboard: a world map of earthquakes colored by depth band, a depth band bar chart, a busiest areas bar chart, a depth histogram with a spike at 10 km, and a depth against magnitude scatter plot.](/images/posts/agents-write-the-dsl-i-look-at-the-output/exploreda-dashboard.jpg)
 
 Both are readable. You can open one and tell what it will draw. But sitting there typing them by hand is tedious, and I don't do it. The agent can write this kind of text much faster than I can, and with higher quality. For the agent, the format gives just enough structure: one statement per line, IDs to point at, errors that name a line.
 
@@ -112,9 +127,9 @@ The diagram in the middle existed just long enough to show that something wasn't
 
 Which ones do I keep? The ones that serve whatever I was originally trying to do. Usually that means a diagram in the PR so I can explain the change more simply to other people, or an architecture diagram that goes into the repo.
 
-## ExplorEDA is partway there
+## explorEDA is partway there
 
-ExplorEDA points in the same direction, but it doesn't have this loop yet. It started as much more of a client and server app in the browser, not a CLI. It does have the text side now. Dashboard text compiles to the same settings the visual editor saves, and settings export back to text. On the published pieces, a **Source** button puts the file right above the live dashboard:
+explorEDA points in the same direction, but it doesn't have this loop yet. It started as much more of a client and server app in the browser, not a CLI. It does have the text side now. Dashboard text compiles to the same settings the visual editor saves, and settings export back to text. On the published pieces, a **Source** button puts the file right above the live dashboard:
 
 ![The earthquake piece on exploreda.dev with Source selected: the depth.eda text sits above the live map and depth band chart it produces.](/images/posts/agents-write-the-dsl-i-look-at-the-output/exploreda-source-view.jpg)
 

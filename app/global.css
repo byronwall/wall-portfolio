@@ -355,6 +355,68 @@ a.project-card-link:hover {
   color: var(--ink-primary);
 }
 
+/* ```draft blocks: Draftably's site colors (draftably site/site.css), with
+   lighter dark-theme versions. See app/components/dsl-highlight.ts. */
+:root {
+  --tok-command: #6650d9;
+  --tok-string: #2d7a5c;
+  --tok-attr: #8a6420;
+  --tok-value: #2b5fa8;
+  --tok-muted: #6a7082;
+  --tok-removed: #b13c50;
+  --tok-changed: #a2611a;
+  --eda-dsl-keyword: hsl(262 55% 48%);
+  --eda-dsl-type: hsl(190 75% 30%);
+  --eda-dsl-key: hsl(215 70% 40%);
+  --eda-dsl-string: hsl(140 55% 29%);
+  --eda-dsl-number: hsl(25 85% 38%);
+  --eda-dsl-constant: hsl(330 60% 44%);
+}
+:root[data-theme="dark"] {
+  --tok-command: #a99cf5;
+  --tok-string: #6fcca5;
+  --tok-attr: #e0b66e;
+  --tok-value: #8ab6f0;
+  --tok-muted: #8794a6;
+  --tok-removed: #f08a9b;
+  --tok-changed: #e9a865;
+  --eda-dsl-keyword: hsl(262 85% 78%);
+  --eda-dsl-type: hsl(185 60% 62%);
+  --eda-dsl-key: hsl(210 85% 74%);
+  --eda-dsl-string: hsl(120 40% 68%);
+  --eda-dsl-number: hsl(30 85% 68%);
+  --eda-dsl-constant: hsl(330 75% 76%);
+}
+.tok-command { color: var(--tok-command); }
+.tok-mark { font-weight: 700; }
+.tok-mark-added, .tok-string { color: var(--tok-string); }
+.tok-mark-removed { color: var(--tok-removed); }
+.tok-mark-changed { color: var(--tok-changed); }
+.tok-mark-context, .tok-arrow, .tok-comment { color: var(--tok-muted); }
+.tok-attr { color: var(--tok-attr); }
+.tok-value, .tok-number { color: var(--tok-value); }
+.tok-body { color: var(--ink-body); }
+
+/* ```diff blocks: whole-line bands for added and removed lines. */
+.diff-added, .diff-removed {
+  display: inline-block;
+  min-width: 100%;
+  margin: 0 -0.75rem;
+  padding: 0 0.75rem;
+}
+.diff-added { background: color-mix(in srgb, #2d7a5c 14%, transparent); color: var(--tok-string); }
+.diff-removed { background: color-mix(in srgb, #b13c50 12%, transparent); color: var(--tok-removed); }
+.diff-hunk { color: var(--tok-muted); }
+
+/* ```eda blocks: explorEDA's dashboard text colors (explorEDA apps/demo/src/index.css). */
+.eda-dsl-keyword { color: var(--eda-dsl-keyword); }
+.eda-dsl-type, .eda-dsl-reference { color: var(--eda-dsl-type); }
+.eda-dsl-key { color: var(--eda-dsl-key); }
+.eda-dsl-string { color: var(--eda-dsl-string); }
+.eda-dsl-number { color: var(--eda-dsl-number); }
+.eda-dsl-constant { color: var(--eda-dsl-constant); }
+.eda-dsl-operator, .eda-dsl-comment { color: var(--ink-muted); }
+
 .prose .code-block {
   position: relative;
   margin: 1.75rem 0;

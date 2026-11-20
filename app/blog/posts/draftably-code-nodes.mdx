@@ -24,7 +24,7 @@ So code is now its own shape. The release adds four things:
 
 The body goes between `<<TS` and a line that holds only `TS`. Everything in between is verbatim. Quotes, `#`, `//` and backslashes are text, so you paste code in unchanged.
 
-```text
+```draft
 diagram "A retry, in code"
 
 node call "Checkout calls the payments API" color=blue
@@ -54,7 +54,7 @@ The hard requirement was that every renderer puts every character in the same pl
 
 `lang=` picks the colors: `sql`, `python`, `ts`, `js`, `json`, `yaml`, `sh` or `diff`. Keywords, strings, numbers, comments, function names, operators and punctuation each get a color from the theme's own families. Here are four of them in Blueprint, the dark theme:
 
-```text
+```draft
 diagram "Four of the seven languages"
 theme blueprint
 
@@ -89,7 +89,7 @@ SQL, JSON, YAML and diff are exact. Python, TS/JS and shell are close but not ex
 
 A listing by itself doesn't explain much. What explains code is pointing at a part of it. So you can now name lines of a code node, and the name works like any other object.
 
-```text
+```draft
 range sql.scan1 lines=3-5 color=red "scan 1"
 range sql.scan2 match="COUNT\\(\\*\\)" span=3 color=red "scan 2"
 range fix.one lines=4-5 color=green "one scan"
@@ -107,7 +107,7 @@ That is the `code-review` example that ships with Draftably. A range draws a ban
 
 Here is the original six-copies query. There are seven ranges: six red copies, and a blue block that holds copies 4 to 6. Ranges can nest and overlap. Bands blend, bars stand side by side and labels stack.
 
-```text
+```draft
 node sql "generated query" shape=code lang=sql numbers=on <<SQL
   ... 29 lines of SQL ...
 SQL
@@ -136,7 +136,7 @@ An inline body is a copy. For a short excerpt that is fine. For a 200-line query
 
 `src=` reads the lines from the file instead:
 
-```text
+```draft
 diagram "Where the orders report reads"
 subtitle "One pass over orders gives both totals and counts"
 
@@ -152,9 +152,25 @@ edge runs report -> sql.pass "runs"
 
 `draftably open` watches the file. Save it in your editor and the open diagram redraws in place, without a page reload:
 
-| Before the edit | After the edit |
-| --- | --- |
-| ![The viewer before the edit: lines 3 to 7 of orders.sql, with a red "columns" range on SELECT id, total.](/images/posts/draftably-code-nodes/src-before.png) | ![The viewer after the edit: the comment and the column list changed, and the node grew to fit.](/images/posts/draftably-code-nodes/src-after.png) |
+Here the diagram shows lines 3 to 7 of `orders.sql`, with a red `columns` range on the `SELECT` list. This is the edit, made in the editor, not in the diagram:
+
+```diff
+--- orders
++-- orders, edited on disk
+ SELECT id,
+-       total
++       total, placed_at
+ FROM orders
+ WHERE total > 10;
+```
+
+Before the save:
+
+![The viewer before the edit: lines 3 to 7 of orders.sql, with a red "columns" range on SELECT id, total.](/images/posts/draftably-code-nodes/src-before.png)
+
+After the save, with nothing else touched. The comment on line 3 and `placed_at` on line 5 are new, the node grew wider to fit them, and the `columns` range still covers lines 4 and 5:
+
+![The viewer after the edit: line 3 reads "orders, edited on disk", line 5 adds placed_at, and the node is wider. The red "columns" range still covers lines 4 and 5.](/images/posts/draftably-code-nodes/src-after.png)
 
 That changes what a diagram can be. An agent can draw a diagram that explains a real file, and the diagram follows the file as the code changes. When the code moves out from under a range, `check` says so: a range past the end of the file, or a `match=` that no longer hits, is an error.
 
