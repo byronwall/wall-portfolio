@@ -7,7 +7,8 @@ import { ViewerScope } from "app/components/image-viewer";
 import { getOgImageUrl } from "app/og-image";
 import { baseUrl } from "app/sitemap";
 import projectStyles from "../../projects/projects.module.css";
-import { getSkillFiles, SKILLS_REPO, toSkillItem } from "../data";
+import { ProjectGallery } from "../../projects/[slug]/project-gallery";
+import { formatDay, getSkillFiles, getSkillItems, SKILLS_REPO, toSkillItem, type SkillLink } from "../data";
 import styles from "./skill.module.css";
 
 type SkillPageProps = { params: Promise<{ slug: string }> };
@@ -47,24 +48,62 @@ export default async function SkillPage({ params }: SkillPageProps) {
   const item = toSkillItem(skill);
   const headings = Array.from(skill.content.matchAll(/^##\s+(.+)$/gm)).map((match) => match[1].replace(/[*_`]/g, ""));
   headings.push("Read the skill");
-  const images = Array.from(skill.content.matchAll(/!\[([^\]]*)]\(([^)\s]+)\)/g)).map((match) => ({ src: match[2], alt: match[1] }));
+  // Every example image, with the skill's chosen image (its strongest output) first.
+  const images = Array.from(skill.content.matchAll(/!\[([^\]]*)]\(([^)\s]+)\)/g))
+    .map((match) => ({ src: match[2], alt: match[1] }))
+    .sort((a, b) => Number(b.src === skill.metadata.image) - Number(a.src === skill.metadata.image));
+  const all = getSkillItems();
+  const at = all.findIndex((entry) => entry.slug === slug);
+  const prev = all[at - 1];
+  const next = all[at + 1];
+  const relations: Array<[string, SkillLink[]]> = [
+    ["Calls", item.uses],
+    ["Hands off to", item.feeds],
+    ["Called by", item.usedBy],
+    ["Gets input from", item.fedBy],
+  ];
 
   return (
     <main className={projectStyles.detailPage}>
       <Link href="/skills" className={projectStyles.backLink}>← Skills</Link>
       <ViewerScope images={images}>
-        <header className={`${projectStyles.hero} ${projectStyles.heroTextOnly}`}>
+        <header className={`${projectStyles.hero}${images.length ? "" : ` ${projectStyles.heroTextOnly}`}`}>
           <div className={projectStyles.heroCopy}>
             <h1 className={projectStyles.heroTitle}>{item.title}</h1>
             <p>{item.summary}</p>
-            <p className={projectStyles.heroFacts}>
-              {item.category} · {item.fileCount} {item.fileCount === 1 ? "file" : "files"}
-              <span className={projectStyles.heroTags}>
+            <dl className={styles.facts}>
+              <dt>Stage</dt>
+              <dd>
+                <Link href={`/skills?stage=${item.category}`}>{item.category}</Link>
+              </dd>
+              <dt>Skill</dt>
+              <dd>
                 {item.folders.map((folder) => (
                   <code key={folder} className={styles.folder}>{folder}</code>
                 ))}
-              </span>
-            </p>
+              </dd>
+              <dt>Size</dt>
+              <dd>
+                {item.lines} lines · {item.fileCount} {item.fileCount === 1 ? "file" : "files"}
+              </dd>
+              <dt>Updated</dt>
+              <dd>{formatDay(item.updated)}</dd>
+              {relations
+                .filter(([, links]) => links.length > 0)
+                .map(([label, links]) => (
+                  <div key={label} className={styles.factRow}>
+                    <dt>{label}</dt>
+                    <dd>
+                      {links.map((partner, index) => (
+                        <span key={partner.slug}>
+                          {index > 0 && ", "}
+                          <Link href={`/skills/${partner.slug}`}>{partner.title}</Link>
+                        </span>
+                      ))}
+                    </dd>
+                  </div>
+                ))}
+            </dl>
             <nav className={projectStyles.projectLinks} aria-label="Skill links">
               <a href="#read-the-skill">Read the skill ↓</a>
               {item.folders.map((folder) => (
@@ -75,6 +114,7 @@ export default async function SkillPage({ params }: SkillPageProps) {
               {item.projectSlug && <Link href={`/projects/${item.projectSlug}`}>Project: {item.projectTitle} →</Link>}
             </nav>
           </div>
+          {images.length > 0 && <ProjectGallery images={images} />}
         </header>
 
         <div className={projectStyles.story}>
@@ -109,9 +149,25 @@ export default async function SkillPage({ params }: SkillPageProps) {
         ))}
       </section>
 
-      <footer className={projectStyles.nextProject}>
-        <Link href="/skills">All skills →</Link>
-      </footer>
+      <nav className={styles.pager} aria-label="Other skills">
+        {prev ? (
+          <Link href={`/skills/${prev.slug}`}>
+            <span>← Previous</span>
+            {prev.title}
+          </Link>
+        ) : (
+          <span />
+        )}
+        <Link className={styles.pagerAll} href="/skills">All skills</Link>
+        {next ? (
+          <Link className={styles.pagerNext} href={`/skills/${next.slug}`}>
+            <span>Next →</span>
+            {next.title}
+          </Link>
+        ) : (
+          <span />
+        )}
+      </nav>
     </main>
   );
 }

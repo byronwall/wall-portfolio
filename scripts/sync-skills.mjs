@@ -1,6 +1,7 @@
 // Copy the skill folders named in content/skills/*.mdx from ~/.agents into
 // public/skills/<name>/, so the Skills pages can show the real files.
 // Copies only files tracked in the public byronwall/.agents repo, text only.
+// It also writes content/skills-manifest.json with each skill's git history.
 // Run: node scripts/sync-skills.mjs
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
@@ -12,6 +13,7 @@ const root = process.cwd();
 const textExt = new Set([".md", ".mjs", ".js", ".py", ".json", ".dot", ".css", ".yaml", ".yml", ".sh", ".txt"]);
 
 const names = new Set();
+const manifest = {};
 for (const file of fs.readdirSync(path.join(root, "content/skills"))) {
   if (!file.endsWith(".mdx")) continue;
   const text = fs.readFileSync(path.join(root, "content/skills", file), "utf8");
@@ -37,5 +39,13 @@ for (const name of names) {
     fs.copyFileSync(path.join(agents, rel), dest);
     count += 1;
   }
-  console.log(`${name}: ${count} files`);
+  // How much real use the skill has seen: commits that touched it, and the dates of the first and last.
+  const dates = execFileSync("git", ["-C", agents, "log", "--format=%cs", "--", `skills/${name}`], { encoding: "utf8" })
+    .split("\n")
+    .filter(Boolean);
+  const lines = fs.readFileSync(path.join(agents, "skills", name, "SKILL.md"), "utf8").split("\n").length;
+  manifest[name] = { revisions: dates.length, first: dates.at(-1), last: dates[0], lines };
+  console.log(`${name}: ${count} files, ${dates.length} revisions`);
 }
+
+fs.writeFileSync(path.join(root, "content/skills-manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`);

@@ -60,3 +60,20 @@
 @media (prefers-reduced-motion: reduce) {
   .thumb img { transition: none; }
 }
+
+/* Rows grouped by stage, like the blog's months. */
+.stage { margin-top: 18px; }
+.stageLabel { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 0; padding: 8px 0; border-bottom: 1px solid var(--border-quiet); color: var(--ink-primary); font-size: 14px; font-weight: 650; }
+.stageLabel span { color: var(--ink-muted); font-size: 13px; font-weight: 400; }
+.stage .rows { margin-top: 0; border-top: 0; }
+
+/* The connection map: a Draftably SVG, light in both themes, with linked boxes. */
+.map { padding-top: 44px; }
+.mapLede { max-width: 640px; margin: -4px 0 14px; color: var(--ink-body); font-size: 14px; line-height: 1.5; }
+.mapFigure { max-width: 900px; overflow: hidden; border-radius: 10px; }
+.mapFigure svg { display: block; width: 100%; height: auto; }
+.mapFigure a:focus-visible { outline: 2px solid var(--action-border); outline-offset: 2px; }
+/* Boxes link to skill pages on this site: no outbound mark, no underline, a quiet hover. */
+.mapFigure :global(.link-mark) { display: none; }
+.mapFigure a, .mapFigure a * { text-decoration: none !important; }
+.mapFigure a:hover rect { filter: brightness(.96); }

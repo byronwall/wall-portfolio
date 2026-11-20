@@ -1,11 +1,12 @@
 ---
 title: Queued Orchestrator
 skills: [queued-orchestrator]
-category: Agent workflow
+category: Build
 summary: One session coordinates. Worker sessions build in parallel, each in its own worktree. Dependent work waits for its parent, and everything lands as one PR stack.
 pick: 3
 why: Splits big work across parallel sessions by file ownership and assembles one PR stack.
-order: 8
+order: 5
+uses: [consider-contrast, software-design-sleuth]
 image: /images/skills/queued-orchestrator.png
 ---
 

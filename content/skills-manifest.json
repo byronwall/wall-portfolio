@@ -1,0 +1,80 @@
+{
+  "100x": {
+    "revisions": 3,
+    "first": "2026-10-16",
+    "last": "2026-11-02",
+    "lines": 98
+  },
+  "10x": {
+    "revisions": 5,
+    "first": "2026-10-16",
+    "last": "2026-10-26",
+    "lines": 120
+  },
+  "analyze-codex-threads": {
+    "revisions": 1,
+    "first": "2026-09-11",
+    "last": "2026-09-11",
+    "lines": 150
+  },
+  "byron-ui-taste": {
+    "revisions": 13,
+    "first": "2026-10-14",
+    "last": "2026-11-19",
+    "lines": 153
+  },
+  "consider-contrast": {
+    "revisions": 1,
+    "first": "2026-09-11",
+    "last": "2026-09-11",
+    "lines": 70
+  },
+  "context-recorder-breakdown": {
+    "revisions": 5,
+    "first": "2026-11-03",
+    "last": "2026-11-19",
+    "lines": 72
+  },
+  "diagram-led-technical-brief": {
+    "revisions": 3,
+    "first": "2026-10-14",
+    "last": "2026-11-17",
+    "lines": 323
+  },
+  "prepare-chatgpt-pro-repo-prompt": {
+    "revisions": 5,
+    "first": "2026-09-11",
+    "last": "2026-10-28",
+    "lines": 88
+  },
+  "queued-orchestrator": {
+    "revisions": 6,
+    "first": "2026-10-21",
+    "last": "2026-11-12",
+    "lines": 244
+  },
+  "retro": {
+    "revisions": 6,
+    "first": "2026-10-21",
+    "last": "2026-11-17",
+    "lines": 88
+  },
+  "software-design-sleuth-full": {
+    "revisions": 9,
+    "first": "2026-09-11",
+    "last": "2026-11-19",
+    "lines": 394
+  },
+  "solid-ssr-change-safety": {
+    "revisions": 1,
+    "first": "2026-09-11",
+    "last": "2026-09-11",
+    "lines": 83
+  },
+  "solid-ssr-hydration-debug-playbook": {
+    "revisions": 1,
+    "first": "2026-09-11",
+    "last": "2026-09-11",
+    "lines": 94
+  }
+}
