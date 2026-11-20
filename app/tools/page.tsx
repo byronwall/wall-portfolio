@@ -1,5 +1,7 @@
 import { indexMetadata } from "../og-image";
 import Link from "next/link";
+import { ListHeader } from "../components/list-page";
+import ui from "../components/list-page.module.css";
 import styles from "./tools.module.css";
 
 export const metadata = indexMetadata(
@@ -54,45 +56,36 @@ function TablePreview() {
 
 export default function ToolsPage() {
   return (
-    <main className={styles.page}>
-      <header className="page-intro">
-        <h1 className="page-title">Tools</h1>
-        <p className="page-lede">
-          Tools are small, focused utilities for making one practical task
-          easier. These are the things I build when a simple, useful surface is
-          better than a larger application.
-        </p>
-      </header>
-
-      <section className={styles.body}>
-        <div className={styles.grid}>
+    <main className={ui.page}>
+      <ListHeader
+        title="Tools"
+        lede="Small, focused utilities for one practical task, for when a simple surface is better than a larger application."
+      />
+      <div className={ui.section}>
+        <ul className={ui.picks}>
           {tools.map((tool) => (
-            <article className={styles.card} key={tool.title}>
-              <a
-                className={styles.cardVisual}
-                href={tool.toolHref}
-                aria-label={`Open ${tool.title} tool`}
-              >
-                <TablePreview />
-              </a>
-              <div className={styles.cardBody}>
-                <h3>
-                  <Link href={tool.toolHref}>
-                    {tool.title}
-                  </Link>
-                </h3>
-                <p>{tool.description}</p>
-                <nav className={styles.cardActions} aria-label={`${tool.title} links`}>
-                  <Link href={tool.permanentHref}>Read the story</Link>
+            <li key={tool.title}>
+              <article className={styles.pickCard}>
+                <a className={ui.pick} href={tool.toolHref}>
+                  <span className={`${ui.pickImage} ${styles.pickPreview}`}>
+                    <TablePreview />
+                  </span>
+                  <span className={ui.pickCopy}>
+                    <span className={ui.pickTitle}>{tool.title}</span>
+                    <span className={ui.pickWhy}>{tool.description}</span>
+                  </span>
+                </a>
+                <nav className={styles.pickLinks} aria-label={`${tool.title} links`}>
                   <a href={tool.toolHref} target="_blank" rel="noreferrer">
                     Open tool <span aria-hidden="true">↗</span>
                   </a>
+                  <Link href={tool.permanentHref}>Read the story</Link>
                 </nav>
-              </div>
-            </article>
+              </article>
+            </li>
           ))}
-        </div>
-      </section>
+        </ul>
+      </div>
     </main>
   );
 }

@@ -1,0 +1,98 @@
+/* Shared shell for the list pages (Projects, Games, Tools, Blog):
+   a header row, then one controls row, then the picks and the list. */
+.page { padding: 0 var(--page-gutter) 72px; }
+
+/* Header row: title and one-line lede. */
+.head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 20px; padding: 40px 0 0; }
+.heading { margin: 0; color: var(--ink-primary); font-size: 34px; font-weight: var(--title-weight); line-height: 1.05; letter-spacing: -.035em; }
+.lede { max-width: 720px; margin: 0; color: var(--ink-body); font-size: 14.5px; line-height: 1.45; text-wrap: pretty; }
+
+/* Controls row: every filter in one row, set apart from the header above
+   and closed by a rule below. */
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-top: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--border-quiet); }
+.chips { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; min-width: 0; margin-left: -8px; }
+.tools { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+
+.chip { display: inline-flex; height: 30px; align-items: center; gap: 7px; padding: 0 9px 0 8px; border: 0; border-radius: 6px; background: transparent; color: var(--ink-body); font: inherit; font-size: 13.5px; line-height: 1; white-space: nowrap; cursor: pointer; transition: background-color 140ms ease, color 140ms ease; }
+.chip[aria-pressed="true"] { background: var(--surface-chip); color: var(--ink-primary); }
+.chip[data-empty]:not([aria-pressed="true"]) { color: var(--ink-tertiary); }
+.chip:active { transform: scale(.97); }
+.chip:focus-visible { outline: 2px solid var(--action-border); outline-offset: 1px; }
+.icon { width: 16px; height: 16px; flex: none; object-fit: contain; }
+.monogram { display: grid; width: 16px; height: 16px; flex: none; place-items: center; border-radius: 4px; background: var(--surface-chip); color: var(--ink-muted); font-size: 10px; font-weight: 700; }
+.chip[aria-pressed="true"] .monogram { background: var(--surface-paper); color: var(--ink-primary); }
+.count { color: var(--ink-muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.chip[data-empty] .count { color: var(--ink-tertiary); }
+
+/* Native selects, styled to sit with the chips and search. */
+.select select { height: 30px; padding: 0 26px 0 9px; border: 0; border-radius: 6px; appearance: none; background: var(--surface-quiet) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='m4.5 6.5 3.5 3.5 3.5-3.5' fill='none' stroke='%2368758a' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 6px center / 14px; color: var(--ink-body); font: inherit; font-size: 13.5px; cursor: pointer; transition: background-color 140ms ease, color 140ms ease; }
+.select[data-quiet] select { background-color: transparent; }
+.select[data-selected] select { background-color: var(--surface-chip); color: var(--ink-primary); }
+.select select:focus-visible { outline: 2px solid var(--action-border); outline-offset: 1px; }
+
+.search { position: relative; display: flex; width: 176px; align-items: center; height: 30px; border-radius: 6px; background: var(--surface-quiet); box-shadow: inset 0 0 0 1px transparent; transition: box-shadow 140ms ease; cursor: text; }
+.search:focus-within { box-shadow: inset 0 0 0 1px var(--action-border); }
+.search svg { position: absolute; left: 9px; width: 14px; height: 14px; fill: none; stroke: var(--ink-muted); stroke-width: 1.7; stroke-linecap: round; pointer-events: none; }
+.search input { width: 100%; height: 100%; min-width: 0; padding: 0 28px 0 29px; border: 0; border-radius: 6px; background: transparent; color: var(--ink-primary); font: inherit; font-size: 13.5px; outline: none; }
+.search input::placeholder { color: var(--ink-muted); }
+.search input::-webkit-search-cancel-button { display: none; }
+.search kbd { position: absolute; right: 7px; display: grid; width: 17px; height: 17px; place-items: center; border: 1px solid var(--border-quiet); border-radius: 4px; color: var(--ink-muted); font-family: inherit; font-size: 11px; line-height: 1; pointer-events: none; }
+.search:focus-within kbd { opacity: 0; }
+
+@media (hover: hover) {
+  .chip:hover { background: var(--surface-quiet); color: var(--ink-primary); }
+  .chip[aria-pressed="true"]:hover { background: var(--surface-chip); }
+  .select select:hover { background-color: var(--surface-chip); color: var(--ink-primary); }
+}
+
+/* Picks: the few big items above the list, each with its image. */
+.section { padding-top: 24px; }
+.head + .section { padding-top: 32px; }
+.sectionLabel { margin: 0 0 12px; color: var(--ink-muted); font-size: 11.5px; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; }
+.picks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; margin: 0; padding: 0; list-style: none; }
+.picks[data-columns="2"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.pick,
+.pick:visited { display: flex; flex-direction: column; gap: 12px; color: inherit; text-decoration: none; }
+.pick:hover { color: inherit; text-decoration: none; }
+.pick:focus-visible { outline: 2px solid var(--action-border); outline-offset: 4px; border-radius: 8px; }
+.pickImage { display: block; aspect-ratio: 16 / 10; overflow: hidden; border-radius: 8px; background: var(--surface-quiet); }
+.pickImage img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top center; transition: transform 200ms ease; }
+.pick:hover .pickImage img { transform: scale(1.02); }
+.pickCopy { display: flex; flex-direction: column; gap: 5px; }
+.pickTitle { color: var(--ink-primary); font-size: 17px; font-weight: var(--heading-weight); line-height: 1.28; letter-spacing: -.012em; text-wrap: pretty; transition: color 140ms ease; }
+.pick:hover .pickTitle { color: var(--action-primary); }
+.pickWhy { color: var(--ink-body); font-size: 14px; line-height: 1.5; }
+
+/* Result line above the list. */
+.resultLine { display: flex; align-items: center; gap: 14px; min-height: 30px; margin: 28px 0 0; color: var(--ink-muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.resultLine button { padding: 0; border: 0; background: none; color: var(--action-primary); font: inherit; font-weight: 600; cursor: pointer; }
+.resultLine button:hover { text-decoration: underline; }
+.empty { margin: 24px 0 0; color: var(--ink-body); font-size: 15px; }
+
+.srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+@media (max-width: 900px) {
+  .picks { gap: 18px; }
+  .pickTitle { font-size: 15.5px; }
+  .pickWhy { font-size: 13.5px; }
+  .tools { width: 100%; margin-left: 0; }
+  .search { flex: 1; width: auto; }
+}
+
+@media (max-width: 640px) {
+  .head { padding-top: 26px; }
+  .heading { font-size: 30px; }
+  .controls { margin-top: 18px; }
+  .tools { flex-wrap: wrap; }
+  .search { flex: 1 1 100%; }
+  .chips { width: 100%; flex-wrap: nowrap; margin-right: calc(-1 * var(--page-gutter)); padding-right: var(--page-gutter); overflow-x: auto; scrollbar-width: none; contain: inline-size; }
+  .chips::-webkit-scrollbar { display: none; }
+  .picks, .picks[data-columns="2"] { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .pick,
+  .pick:visited { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 14px; align-items: start; }
+  .pickImage { aspect-ratio: 4 / 3; border-radius: 6px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pickImage img { transition: none; }
+}

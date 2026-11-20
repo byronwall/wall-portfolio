@@ -1,32 +1,33 @@
 ---
 title: "TSX Data Flow"
-description: "A static render-path data-flow analyzer for TypeScript and TSX UI code"
+description: "A static render-path data-flow analyzer for TypeScript and TSX UI code, now the Data flow graph in Srcly"
 date: "2026-06-23"
 publishedAt: "2026-06-23"
-status: "Content coming soon"
+status: "now part of Srcly"
+ended: "2026"
 indexTier: "medium"
 indexOrder: "30"
 repo: "https://github.com/byronwall/tsx-data-flow"
 summary: "A static render-path data-flow analyzer for TypeScript and TSX UI code"
 tags: ["TypeScript", "TSX", "SolidJS", "Static Analysis", "Developer Tools", "CLI"]
-image: "/images/projects/tsx-data-flow/thumbnail.svg"
+image: "/images/projects/tsx-data-flow/srcly-data-flow.jpg"
 ---
+
+**TSX Data Flow is now part of [Srcly](/projects/srcly).** The analyzer moved into Srcly on October 24, 2026, and it is the Data flow mode of Srcly's Graph view. It also handles JavaScript, React, Solid, zustand, and Python now. New work happens in Srcly, not in the standalone CLI.
 
 TSX Data Flow is a CLI analyzer for finding high-leverage cleanup work in TypeScript and TSX UI code. It traces values from source expressions to JSX render sinks, then turns the graph into ranked work packets for prop relay, fan-out and fan-in pressure, repeated object wrapping, broad prop bundles, and defensive checks that TypeScript already proves unnecessary.
 
-- Try it: `npx tsx-data-flow --help`
+- In Srcly: run `uvx srcly`, open Graph, choose Data flow, and pick a route, file, or function as the anchor
+- Old CLI: `npx tsx-data-flow --help`
 - Source: [byronwall/tsx-data-flow](https://github.com/byronwall/tsx-data-flow)
 
 ## Interface
 
-<div className="not-prose mt-6">
-  <img
-    src="/images/projects/tsx-data-flow/thumbnail.svg"
-    alt="TSX Data Flow render-path analyzer showing sources, transformations, and JSX sinks"
-    className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
-    loading="lazy"
-  />
-</div>
+This is the Data flow graph in Srcly, tracing the Visual Notes `/collections/[id]` route forward from `CollectionRoute`. Boxes are grouped by function, and the inspector says the trace is partial and lists exactly where it stops.
+
+<img src="/images/projects/tsx-data-flow/srcly-data-flow.jpg" alt="Srcly Data flow graph tracing a Visual Notes route from CollectionRoute, with the inspector listing where the trace stops and its terminals" />
+
+Every trace states its outcome: proven, assumed, partial, stale, unsupported, stopped at budget, or not analyzed. Each one also lists where the trace stops and which library steps it assumed, so the graph does not claim more than the evidence shows.
 
 ## How it works
 
