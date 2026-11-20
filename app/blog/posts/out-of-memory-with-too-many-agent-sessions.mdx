@@ -39,7 +39,7 @@ The skill is now a shell script plus a short playbook:
 - Each TypeScript server is traced back to the Claude session that started it. If that session is not running, its server is idle and gets killed without asking.
 - Test runs, dev servers, and GUI apps go to one question at the end instead of being killed.
 
-Testing it found some bugs in my own assumptions. The first version filed the Docker VM under "never touch" because its path starts with `/System`. An orphaned node process that had been running for a day turned out to be the Plan Viewer server on port 4192, which is why serving a port is now a reason to ask. A planted 250 MB test process showed as 51 MB in `ps`, which is a good reminder of why the first pass was wrong.
+Testing it found some bugs in my own assumptions. The first version filed the Docker VM under "never touch" because its path starts with `/System`. An orphaned node process that had been running for a day turned out to be the Plan Viewer (now Planboard) server on port 4192, which is why serving a port is now a reason to ask. A planted 250 MB test process showed as 51 MB in `ps`, which is a good reminder of why the first pass was wrong.
 
 On a live run, the script found nothing in the safe tier. Matching against the session list found three TypeScript servers for sessions that were idle or already merged. Killing those freed about 1.8 GB and dropped the kernel's pressure level from warning to normal.
 

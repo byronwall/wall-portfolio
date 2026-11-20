@@ -2,7 +2,7 @@
 title: "Analytics and Search Console for six sites, in one Codex thread and one Claude thread"
 publishedAt: 2026-11-04
 summary: 'Codex did the Google console work in 25 minutes. Claude turned it into six merged PRs, working sitemaps, a read-only metrics script, and a retired Umami server in about 45. Then the daily review started reading the numbers.'
-project: plan-viewer
+project: planboard
 type: tooling
 articleHero: false
 ---
@@ -90,7 +90,7 @@ The agent did all the preparation. I did the one step that cannot be undone.
 
 ## What the daily review does now
 
-The daily review is a scheduled Claude task. Each morning it syncs my repos, cleans up worktrees, checks open PRs and issues, runs local checks on `main`, and writes my plan for the day in the planning repo. The [Plan Viewer](/projects/plan-viewer) app shows that plan. Before tonight, the only site check was "does each URL answer".
+The daily review is a scheduled Claude task. Each morning it syncs my repos, cleans up worktrees, checks open PRs and issues, runs local checks on `main`, and writes my plan for the day in the planning repo. The [Plan Viewer](/projects/planboard) app (now Planboard) shows that plan. Before tonight, the only site check was "does each URL answer".
 
 Now it also runs `npm run site-metrics`. Each day's JSON is saved under `tmp/site-metrics/`, so the review can compare against yesterday without calling the APIs again. The `## Sites` section of the plan gets one line per site:
 

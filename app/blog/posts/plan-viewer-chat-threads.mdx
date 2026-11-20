@@ -3,13 +3,13 @@ title: "Plan Viewer's Chat Threads page: what every agent is doing right now"
 publishedAt: 2026-11-19
 summary: 'Chat Threads in Plan Viewer lists every local Codex and Claude Code thread. A redesign nests subagents under their parents, names the model and effort, adds Claude token totals, and gives threads that wait on a background task their own status.'
 image: "/images/posts/plan-viewer-chat-threads/after.png"
-project: plan-viewer
+project: planboard
 type: feature
 ---
 
 On a busy day I have a lot of agent threads going. A Codex orchestrator with five or six subagents, a couple of Claude Code sessions in worktrees, a CLI session running a long test pass. The question I keep asking is simple: what is waiting on me, and what is still working?
 
-[Plan Viewer](https://github.com/byronwall/plan-viewer) has a Chat Threads page for that. It reads the session files Codex and Claude Code already write on my Mac and puts every thread in one table. The first version worked, in the sense that the data was there. It was not useful.
+[Plan Viewer](https://github.com/byronwall/planboard) (now Planboard) has a Chat Threads page for that. It reads the session files Codex and Claude Code already write on my Mac and puts every thread in one table. The first version worked, in the sense that the data was there. It was not useful.
 
 <div className="not-prose mt-6">
   <img
