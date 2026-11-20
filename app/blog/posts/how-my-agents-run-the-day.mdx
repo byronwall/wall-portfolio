@@ -10,6 +10,8 @@ type: reflection
 
 [Plan Viewer](/projects/planboard) (now Planboard) is the interface I built for my daily coding work. [The first post](/blog/a-dedicated-interface-for-the-task-at-hand) is about the interface itself. This one is about how it hands work to coding agents, and how a day of agent work actually runs.
 
+![The day as one loop. Inputs: GitHub, Jira, Slack, telemetry and yesterday's items feed a 6:30 a.m. daily plan run, and my clicks in Planboard queue notes on disk that a task sweep picks up every 10 minutes. The sweep hands new items to one orchestrator thread, which routes each item to a new child thread or the one that already has the context. Outputs: today's plan, a task folder with steps, screenshots and reviews, PRs and commits, and the child's summary, which I read and follow up on.](/images/posts/how-my-agents-run-the-day/loops.png)
+
 ## One thread per click did not work
 
 Where I started: at various points in the UI you could click a button and get a prompt box. Say you are looking at a PR. You click "discuss this PR", type a note, and hit Enter. That opened a new chat thread in the Claude or ChatGPT desktop app, and you went and ran it.
