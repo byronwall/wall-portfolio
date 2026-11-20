@@ -21,7 +21,7 @@ export default function ExperiencePage() {
             View résumé <span aria-hidden="true">↗</span>
           </a>
         </div>
-        <p className="page-lede">A concise record of the teams I’ve joined and the technical problems I’ve helped solve.</p>
+        <p className="page-lede">These are the places I’ve worked. Each one links to what I built there.</p>
       </header>
       <div className={styles.body}>
       <ol className={styles.timeline}>
