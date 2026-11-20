@@ -1,0 +1,63 @@
+---
+title: "Ask for ten, then ask for 10x"
+publishedAt: 2026-11-19
+summary: 'How I get more useful work out of AI: have it explore ten options instead of handing back one, implement in a straight line, then flip it from building to evaluating with a 10x pass. It usually overshoots, and a simplifying pass dials it back.'
+image: "/images/posts/ask-for-ten-then-ask-for-10x/loop.svg"
+articleHero: false
+type: reflection
+---
+
+People ask me where to get started with AI. My answer is always the same. Take some task you think it could do, and then imagine a version of that task that is ten times more, or ten times better, than what you would normally do.
+
+A lot of people say, "I'll have it write an email for me." Fine. Instead of one email, have it write ten. Make each one different in some way, or have each one emphasize something different about what you are trying to say.
+
+Then mix and match. I like the tone of number one. I like the layout of number three. Give me five more like that. Then pick the best one.
+
+By the time you are done, you have generated fifteen emails to send one. The fifteen are the point. You have seen a wide range of choices, and if you know what good looks like, seeing a bunch of options is way more empowering than getting one and having to iterate on it.
+
+So wherever I can, I get the AI to do the exploration for me. I review options instead of describing what I want, and that tends to open up what is possible. I did the same thing with a migration plan: instead of one more architecture review, I [asked for ten product questions](/blog/product-first-plan-review), and those questions turned out to be the most useful review.
+
+## Explore, then build in a straight line
+
+Once that space is open, it is much easier to decide what to do next. On bigger work, I couple these exploration steps with a lot of linear work.
+
+For a UI, the exploration step is a set of mockups. I have Codex use its image generation to make mockups that differ in some way. I play with them a bit, get to something I like, and then kick it into implementation mode.
+
+Implementing is a straight line. The work might branch into steps that run in parallel, but there is not much exploration going on. When it is done, I am back to giving feedback.
+
+![A five-step loop. Explore: ask for ten options, then mix and pick. Build: implement in a straight line. Evaluate: run 10x to infer the goal, list the gaps, rank them and close them, then simplify what it overdid. A dashed arrow returns to feedback or the next round.](/images/posts/ask-for-ten-then-ask-for-10x/loop.svg)
+
+## Flip from implementing to evaluating
+
+Pretty much always, the first version of an implementation is fine. And it always stops short in some dimension. If you are really skilled, you could stare at it and list every way it falls short of the best version.
+
+I have found it is way easier to flip the AI around, from implementing to evaluating. I have a skill called 10x, and at its core it says: this thing you just did, go make it ten times better.
+
+That prompt works on its own. The skill adds a little more:
+
+1. Look at what just got made and figure out its goals. What is this feature actually supposed to do? What is a user looking for here?
+2. Ask how well this implementation helps the user reach that goal.
+3. List the gaps: every place where we technically meet the bar, but a better version exists.
+4. Rank the gaps by importance, then implement all of them.
+
+You can pin it down for a domain. The UI version includes things like: consider how this looks at different viewport sizes, in light mode and dark mode, and when the text is really short or really long.
+
+I am pretty confident you can build a version of this for nearly any domain. I think of my skills as two halves. `consider-contrast` is the "give me options" half: generate a list of options and compare them. `10x` is the other half: infer the goal, evaluate, find the gaps, close the gaps.
+
+There is something about a nudge that says "do better." That is the license it needs. It varies a bit by model, but Opus 5.5 is particularly good at this. Once you have landed on something that works, you can pretty much guarantee a much better version by running 10x and telling it to make the thing way better.
+
+For a real example, the [Chat Threads page in Plan Viewer](/blog/plan-viewer-chat-threads) got two passes like this: a 10x pass for the structure, then a 100x pass with a ledger of 33 small defects.
+
+## Let it overshoot, then simplify
+
+Often 10x overdoes it. Way too much interactivity, too dense, too much progressive disclosure, or just too much ink on the screen.
+
+That is fine. You don't know exactly what you want until you see it, and you don't know exactly what you want to avoid until you see that too.
+
+So I come back with a simplifying pass: simplify this, this, and this, but don't remove any of the other interactivity. Once it has overshot, dialing it back in is very straightforward, and you don't end up all the way back where you started.
+
+## The short version
+
+Ask for ten, not one. Build the one you pick in a straight line. Then ask for 10x, and trim what it overdid.
+
+The other half of this is what to do when the request itself is too thin to act on. That is [the next post](/blog/have-the-agent-write-the-prompt-first).
