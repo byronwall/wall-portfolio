@@ -5,6 +5,8 @@
 /* Header row: title and one-line lede. */
 .head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 20px; padding: 40px 0 0; }
 .heading { margin: 0; color: var(--ink-primary); font-size: 34px; font-weight: var(--title-weight); line-height: 1.05; letter-spacing: -.035em; }
+/* A longer lede goes under the title instead of beside it. */
+.head[data-stacked] { flex-direction: column; align-items: flex-start; gap: 12px; }
 .lede { max-width: 720px; margin: 0; color: var(--ink-body); font-size: 14.5px; line-height: 1.45; text-wrap: pretty; }
 .lede a { color: var(--action-primary); text-decoration: none; white-space: nowrap; }
 .lede a:hover { text-decoration: underline; }

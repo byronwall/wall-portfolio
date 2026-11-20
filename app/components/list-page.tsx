@@ -7,9 +7,9 @@ export { styles as listStyles };
 
 export type Facet = { value: string; label: string; count: number; logo?: string };
 
-export function ListHeader({ title, lede }: { title: string; lede: ReactNode }) {
+export function ListHeader({ title, lede, stacked }: { title: string; lede: ReactNode; stacked?: boolean }) {
   return (
-    <header className={styles.head}>
+    <header className={styles.head} data-stacked={stacked || undefined}>
       <h1 className={styles.heading}>{title}</h1>
       <p className={styles.lede}>{lede}</p>
     </header>

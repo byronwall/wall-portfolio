@@ -1,8 +1,13 @@
-/* /games index cards: the shared pick plus tags and a Play link. */
-.pickCard { display: flex; flex-direction: column; gap: 10px; }
+/* /games index cards: the shared pick plays the game; tags, then Play and Read about it. */
+.pickCard { display: flex; height: 100%; flex-direction: column; gap: 10px; }
 .pickTags { margin: 0; color: var(--ink-muted); font-size: 12.5px; line-height: 1.4; }
-.play { align-self: flex-start; color: var(--action-primary); font-size: 13px; font-weight: 600; text-decoration: none; }
-.play:hover { text-decoration: underline; }
+.cardActions { display: flex; align-items: center; gap: 18px; margin-top: auto; padding-top: 6px; }
+.cardActions :global(.button) { min-height: 38px; padding: 0 16px; }
+.about { color: var(--action-primary); font-size: 13.5px; font-weight: 600; text-decoration: none; }
+.about:hover { text-decoration: underline; }
+@media (max-width: 640px) {
+  .pickCard { padding-bottom: 18px; }
+}
 
 .detailPage { padding-top: 60px; }
 
