@@ -1,39 +1,74 @@
 ---
 title: "Have the agent write the prompt first"
 publishedAt: 2026-11-19
-summary: 'When all I have is a thin request like "make this denser", I ask the AI to evaluate the thing and write the prompt that would do it. The expanded prompt usually goes to a clean context. The same two steps, expand and then eval, give me a much better first eval pipeline for an LLM process.'
-image: "/images/posts/have-the-agent-write-the-prompt-first/expand.svg"
+summary: 'When all I have is a thin request like "make this denser", I have the agent look at the real thing and write the prompt for the change instead of making it. That prompt usually goes to a clean context. The same two steps, expand and then eval, also give me a much better first eval pipeline for an LLM process.'
+image: "/images/posts/have-the-agent-write-the-prompt-first/expand.png"
 articleHero: false
 type: reflection
 ---
 
 Sometimes all I have is a very thin description of what I want. This UI is a little too airy. I want it a bit denser.
 
-You can give a frontier model that prompt and it will do something useful. But some agents will do the laziest possible thing. Let me trim some padding, 24 to 20 pixels. That'll make it dense.
+You can give a frontier model that prompt and it will do something useful. But some agents will do the laziest possible thing: trim some padding, 24 to 20 pixels, and call it dense.
 
-In a lot of cases I want way more than that, and it is hard to explain. "Make it denser by changing these six things" only works if I am willing to sit there and list all six. It is very difficult to pin down exactly what I want.
+In a lot of cases I want way more than that, and it is hard to explain. "Make it denser by changing these six things" only works if I am willing to sit there and list all six, and I usually can't name all six up front.
 
-So instead I say: I want this to be denser. Go evaluate it, and write the prompt I could give an agent to make that happen.
+So I don't ask for the change. I say: I want this to be denser. Go look at it, and write the prompt I could give an agent to make that happen.
+
+![A thin request, "make this denser", goes to an agent that looks at the real thing and writes the prompt instead of making the change. The expanded prompt says what to change, what to keep and how to check, and then goes to the same context, a clean context (most often), or a subagent or child session.](/images/posts/have-the-agent-write-the-prompt-first/expand.png)
 
 ## Decompression
 
-It is almost a planning step, but not quite. It is not that detailed. But forcing the AI to write the prompt lets you see all the words you could use to actually get what you want.
+It is almost a planning step, but not quite. It is not that detailed. But making the agent write the prompt shows you all the words you could use to get what you want.
 
 I think of it as decompression. If you had a page of instructions and compressed it down to "make this more dense", this goes the other way.
 
-The prompt it writes tends to be way more detailed and actionable. And it tends to be exactly the sort of thing an agent can make sense of.
+The prompt it writes tends to be way more detailed and actionable, and it is exactly the sort of thing an agent can act on.
 
-![A thin request, "Make this denser", goes to a step that asks the agent to evaluate the UI and write the prompt instead. The prompt then goes to the same context, a clean context (most often), or a subagent or child session.](/images/posts/have-the-agent-write-the-prompt-first/expand.svg)
+## A before and after
+
+Here is one, run for this post on the post list at [/blog](/blog). The thin version:
+
+```text
+The blog list is a little airy. Make it denser.
+```
+
+And the prompt the agent wrote after it looked at the page at 1300 × 900:
+
+```text
+Make the post list on /blog denser without losing what a reader scans for.
+
+What is there now: each row is about 138 px tall. A 168 × 105 thumbnail
+sits on the left, then the title, a two-line summary, and a separate line
+for date, type, project and read time. Below the three Start here cards,
+only about four rows fit on the first screen.
+
+Change:
+1. Put the date, type and project on the title line, right-aligned and
+   muted. Drop the read time from the row.
+2. Cut the summary to one line with an ellipsis.
+3. Shrink the thumbnail to about 96 × 60 and line it up with the title.
+4. Make the Start here cards shorter: crop the images to about 120 px.
+
+Keep: the title size, the month headings with their counts, keyboard
+focus on each row, and dark mode.
+
+Check: at 1300 × 900, at least nine rows show on the first screen once
+you scroll past Start here. At 375 px wide, nothing wraps into a second
+metadata line. Take before and after screenshots at both sizes.
+```
+
+The second one is better because it is about this page. It has the numbers the agent measured, so "denser" now means something it can check: nine rows instead of four. It names four specific changes, and a list of things to keep, which is what stops both the laziest version and the version that throws out the month headings. And it ends with a check, so whoever picks it up knows when it is done.
 
 ## Where the prompt goes
 
 Sometimes I paste that exact prompt right back into the same context: go do it.
 
-More often I give it to a clean context. That way the new agent works only on that piece. Or I take the prompt and have it run in a subagent or a [child session](/blog/how-my-agents-run-the-day).
+More often I give it to a clean context, so the new agent works only on that piece. Or I have it run in a subagent or a [child session](/blog/how-my-agents-run-the-day).
 
 ## The same two steps for evals
 
-This works really well for evaluating LLM pipelines. With a very simple instruction like "run a subagent that evaluates this whole process", you are typically two steps away from a thorough eval pipeline.
+This works really well for evaluating LLM pipelines. Start from a very simple instruction like "run a subagent that evaluates this whole process", and you are typically two steps away from a thorough eval pipeline.
 
 The first step is the expansion. Consider everything about this pipeline that might matter. What are the possible ways it could be configured? What are the inputs? What are the best possible outputs? Really think about it and map the space out.
 
@@ -41,7 +76,7 @@ The second step: write a prompt for a subagent to run an eval pipeline that hill
 
 What comes back is a pipeline with a whole world of depth and nuance that would have been incredibly difficult to put together on my own for that specific scenario. The eval it runs gives a result that is radically better than what I had before, and better than what a plain "please go eval" gives.
 
-That matters most on the first pass, when you just need an initial pipeline in place. The pipeline is good enough that you can run it for real and then dig into what you would change. Often the first pipeline you create is so far from what you want that you don't even know where to start changing things.
+That helps most on the first pass, when you just need an initial pipeline in place. The pipeline is good enough that you can run it for real and then dig into what you would change. Often the first pipeline you write by hand is so far from what you want that you don't even know where to start changing things.
 
 For the hill-climb shape itself, with a measure and a gate on each change, see [hill-climbing Draftably's layout speed](/blog/hill-climbing-draftably-layout-speed). That one climbed speed, not an LLM pipeline, but the loop is the same.
 
