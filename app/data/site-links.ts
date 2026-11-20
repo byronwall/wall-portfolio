@@ -6,6 +6,7 @@ export interface SiteLink {
   external?: boolean;
   Icon?: React.ComponentType<{ className?: string }>;
   shouldShowInNav?: boolean;
+  startsGroup?: boolean;
 }
 
 export const mainNavLinks: SiteLink[] = [
@@ -13,7 +14,8 @@ export const mainNavLinks: SiteLink[] = [
   { href: "/games", label: "Games" },
   { href: "/tools", label: "Tools" },
   { href: "/blog", label: "Blog" },
-  { href: "/experience", label: "Experience" },
+  // The divider in the nav sits before this link: list pages first, then the pages about me.
+  { href: "/experience", label: "Experience", startsGroup: true },
   { href: "/about", label: "About" },
 ];
 

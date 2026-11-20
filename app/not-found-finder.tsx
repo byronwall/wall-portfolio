@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { highlight } from "./blog/blog-index";
+import { highlight } from "./components/list-page";
 import { NotFoundArt } from "./not-found-art";
 import styles from "./not-found.module.css";
 

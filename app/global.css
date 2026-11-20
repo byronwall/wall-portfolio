@@ -131,6 +131,7 @@ body {
 .nav-link[aria-current="page"] { color: var(--ink-primary); }
 .nav-link::after { position: absolute; right: 0; bottom: 0; left: 0; height: 2px; border-radius: 1px; background: var(--action-primary); content: ""; opacity: 0; transform: scaleX(.4); transition: opacity 160ms ease, transform 160ms ease; }
 .nav-link[aria-current="page"]::after { opacity: 1; transform: none; }
+.nav-divider { width: 1px; height: 16px; margin: 0 -4px; background: var(--ink-tertiary); opacity: .45; }
 .nav-socials { display: flex; align-items: center; gap: 6px; margin-left: 14px; }
 .nav-icon-button,
 .nav-icon-button:visited { display: grid; width: 30px; height: 30px; padding: 0; place-items: center; border: 0; border-radius: 6px; background: transparent; color: var(--ink-muted); line-height: 0; cursor: pointer; transition: color 140ms ease, background-color 140ms ease; }
@@ -250,6 +251,7 @@ body {
   .site-nav-inner { gap: 4px 12px; flex-wrap: wrap; }
   .nav-links { order: 3; width: 100%; justify-content: space-between; gap: 4px; flex-wrap: wrap; margin-left: 0; padding: 4px 0 0; }
   .nav-link, .nav-link:visited { font-size: 13px; }
+  .nav-divider { height: 14px; margin: 0; }
   .nav-socials { margin-left: auto; margin-right: -6px; }
   .page-intro { padding-top: 40px; padding-bottom: 34px; }
   .page-title { font-size: 44px; }

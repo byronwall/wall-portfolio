@@ -17,7 +17,8 @@ export function Navbar() {
           {mainNavLinks.map((link) => {
             const isActive =
               pathname === link.href || pathname.startsWith(`${link.href}/`);
-            return (
+            return [
+              link.startsGroup && <span key={`${link.href}-divider`} className="nav-divider" aria-hidden="true" />,
               <Link
                 key={link.href}
                 href={link.href}
@@ -25,8 +26,8 @@ export function Navbar() {
                 aria-current={isActive ? "page" : undefined}
               >
                 {link.label}
-              </Link>
-            );
+              </Link>,
+            ];
           })}
         </div>
         <div className="nav-socials">
