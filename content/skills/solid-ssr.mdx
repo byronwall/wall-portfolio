@@ -1,0 +1,38 @@
+---
+title: SolidJS SSR
+skills: [solid-ssr-change-safety, solid-ssr-hydration-debug-playbook]
+category: Code
+summary: Two skills with strong opinions on server-rendered SolidJS. One keeps edits from breaking hydration. The other finds the mismatch fast when they do.
+order: 12
+image: /images/skills/solid-ssr-output.jpg
+---
+
+## What it does
+
+Most of my newer apps are SolidStart. In a server-rendered Solid app, the classic bug is a hydration mismatch. The server renders one DOM tree, the client builds a different one, and you get `template2 is not a function` or content that flashes and disappears.
+
+These aren't steps in a workflow. They are strong opinions about how to write this code, so the agent writes it the safe way the first time.
+
+## Change safety
+
+The core rule: the server-rendered tree and the first client render must match, node for node. Change attributes, text, and content after mount, never the shape.
+
+- No render-time branches on `window`, viewport size, time, or random values.
+- Don't pass JSX elements through props and insert them conditionally inside a shared shell.
+- Give each independent async resource its own `Suspense` island.
+- Keep list ordering deterministic on both sides.
+
+## Debug playbook
+
+When it breaks anyway: comment out a large suspect subtree, confirm hydration is stable, then turn chunks back on one at a time until the mismatch returns. Rewrite only that chunk. For async pages, reduce the route to static content and bring each async section back on its own.
+
+## What it made
+
+![A solution note for a Solid hydration crash: Problem and Symptoms](/images/skills/solid-ssr-output.jpg)
+
+*A write-up from Pluck UI. Removing the filter bar fixed the page. Rendering a single popover broke it again. That narrowing is the debug playbook. The change-safety rules warn about the same pattern: JSX passed through props into a shared wrapper.*
+
+## It's working if
+
+- A hard refresh shows no hydration warnings.
+- The fix touches one chunk, not the whole page.

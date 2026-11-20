@@ -1,0 +1,40 @@
+---
+title: 100x
+skills: [100x]
+category: UI
+summary: The craft pass after 10x. Captures every region in every state, writes a defect ledger of 30 or more items, fixes them by system, and proves it with a before and after contact sheet.
+order: 6
+image: /images/skills/100x-after.jpg
+---
+
+## What it does
+
+After [10x](/skills/10x) the structure is right. What's left is the gap between "radically better" and "this feels like a professional product." That gap is a lot of small things: a misaligned baseline, a hover state that shifts layout, an empty state nobody designed, a column that breaks at 1100 px.
+
+100x finds them by looking closer than a person usually does, and fixes them without adding features.
+
+## How it works
+
+1. **State matrix.** Capture each region empty, with one item, typical, many, with long names, and with missing values. Then at rest, hover, focus, selected, and disabled. Then loading, error, every popover open, and five viewport widths.
+2. **Ledger.** Zoom in on each capture and write a table of defects with severity: S1 broken, S2 visibly off, S3 a refinement a careful reviewer would notice. Fewer than 15 rows means you aren't looking closely enough.
+3. **Fix by system.** Tokens and shared components first, then layout, states, copy, and motion. One token fix beats ten local overrides.
+4. **Prove it.** Re-capture the same matrix and build a side-by-side contact sheet.
+
+The same method works on things with no UI. For a CLI or a skill, the state matrix is bad inputs, missing tools, and wrong folders, and the proof is the command output before and after.
+
+## What it made
+
+A craft pass on the explorEDA landing page.
+
+![Part of the 100x defect ledger for the explorEDA landing page: rows with region, defect, fix, and severity](/images/skills/100x-output.jpg)
+
+![explorEDA landing page before the 100x pass, light only](/images/skills/100x-before.jpg)
+
+![explorEDA landing page after the 100x pass, with a dark theme and a theme toggle](/images/skills/100x-after.jpg)
+
+*Part of the ledger, then the hero before and after. The biggest find was an S1: the docs had a dark theme and the landing page didn't, so going from Docs to Home flipped the page to light.*
+
+## It's working if
+
+- The ledger has rows you would never have found from a full-page screenshot.
+- Every row ends as fixed, deferred with a reason, or rejected with a reason.

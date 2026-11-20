@@ -1,0 +1,40 @@
+---
+title: ChatGPT Pro Repo Prompt
+skills: [prepare-chatgpt-pro-repo-prompt]
+category: Planning
+summary: Packs a repository question into one prompt for ChatGPT Pro, or runs the whole loop from submission to a pull request with the result.
+order: 3
+image: /images/skills/chatgpt-pro-output.jpg
+---
+
+## What it does
+
+Some questions deserve the strongest research model available: a feature design that should match how the best tools solve it, a statistical method with edge cases, a product strategy. ChatGPT Pro is good at those, but it starts with zero context, and I only get about 50 messages a week.
+
+This skill reads the repository first, then writes one prompt that carries everything: the repo URL and ref, one main mission, ranked questions, the files to read, evidence rules, non-goals, and the exact deliverable. It saves the prompt in the repo so I can see what was asked.
+
+I use it all the time. It is one of the highest-leverage skills I have.
+
+## Modes
+
+| Mode | Pro hands back |
+| --- | --- |
+| Design | A feature design grounded in how strong tools solve it, plus a milestone plan |
+| Methods | The right algorithm or statistic, edge cases, and test cases with exact values |
+| Strategy | Positioning against named products and ranked bets |
+| Review | Ranked problems with evidence and fixes |
+
+## The full loop
+
+Ask it to "run autonomously" and it goes further: submit in my signed-in browser, check back about an hour later, collect every report and attachment, follow up once if a priority question is unanswered, then fold the result into `docs/intent/` and open a PR. Pro researches and designs. The coding agent owns the repository changes.
+
+## What it made
+
+![The start of a ChatGPT Pro prompt for Context Recorder: Mission and decision, User intent](/images/skills/chatgpt-pro-output.jpg)
+
+*The start of a prompt that asked Pro whether a narrated screen recording can unfold into a spatial canvas. Note the stop condition: a justified NO-GO counts as a useful answer. Pro's report and proof plan went back into the repo next to the prompt.*
+
+## It's working if
+
+- One message gets an answer I can build from.
+- Every recommendation cites a file in the repo or a primary source.

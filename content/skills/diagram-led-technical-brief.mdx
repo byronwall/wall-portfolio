@@ -1,0 +1,38 @@
+---
+title: Diagram-Led Technical Brief
+skills: [diagram-led-technical-brief]
+category: Planning
+summary: Builds the smallest diagram that gives the right mental model, with a title, subtitle, and legend baked in. It became Draftably, which draws all my diagrams now.
+project: draftably
+order: 4
+image: /images/projects/draftably/playground.jpg
+---
+
+## What it does
+
+A lot of technical explanation is really a picture: what talks to what, where the state lives, what changes between before and after. This skill starts from one sentence, "the viewer should understand that ___", and builds the smallest diagram that makes it true.
+
+Every image stands on its own. It has a practical title, a one-line subtitle, and a legend when color or shape means something, so it still makes sense after it gets pasted into Slack without the doc around it. Before and after go side by side in one image, with the same visual grammar on both sides.
+
+## How it works
+
+1. Write the intended understanding in one sentence.
+2. Pull out the actors, stores, boundaries, and the direction of data and control.
+3. Pick a form for the question: flow, sequence, state, dependency graph, or side-by-side comparison.
+4. Write Graphviz DOT, render a PNG at 180 DPI, and look at the actual image.
+5. Revise the DOT, not a screenshot. Keep the `.dot` next to the `.png`.
+
+## What it made
+
+![Draftably diagram titled Queued orchestrator, with a subtitle and a color key](/images/skills/queued-orchestrator.png)
+
+*The diagram on the [Queued Orchestrator](/skills/queued-orchestrator) page. Draftably drew it, and the rules from this skill are still there: a title that names the process, a one-line takeaway, and a key for every color. The [.draft source](/images/skills/queued-orchestrator.draft) is a short text file, and the PNG carries a copy of it.*
+
+## Where it went
+
+I used this one so much that it turned into a product. [Draftably](/projects/draftably) is a diagram tool with its own text format and automatic layout, and it ships its own agent skill. Draftably makes all my diagrams now. This skill is where the rules came from: say what the viewer should understand, make each image stand alone, and use color only when it means something.
+
+## It's working if
+
+- Someone can tell what the diagram is about with no caption.
+- Removing a box would lose information. Adding one would add noise.

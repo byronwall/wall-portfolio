@@ -1,0 +1,11 @@
+.folder { margin-right: 10px; font-size: 13px; }
+.prose :global(table) { font-size: 14px; }
+.prose :global(pre) { font-size: 13px; }
+/* The project page styles its first child as a lead paragraph; here the story starts with a heading. */
+.prose > :global(h2:first-child) { margin-bottom: 0 !important; font-size: 27px; line-height: 1.25; }
+.prose :global(img) { cursor: zoom-in; }
+/* The skill files get the full page width, so long lines and file names have room. */
+.files { max-width: 1120px; margin: 0 auto; padding: 8px var(--page-gutter) 48px; }
+.files h2 { margin: 0; color: var(--ink-primary); font-size: 27px; font-weight: var(--heading-weight); letter-spacing: -.025em; }
+.files > p { max-width: 720px; margin: 10px 0 0; color: var(--ink-body); font-size: 15px; line-height: 1.6; }
+.files :global(pre) { white-space: pre-wrap; overflow-wrap: anywhere; }

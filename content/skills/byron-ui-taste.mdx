@@ -1,0 +1,31 @@
+---
+title: Byron UI Taste
+skills: [byron-ui-taste]
+category: UI
+summary: The UI corrections I keep making, written down once, so agents apply them before I have to say it again.
+order: 7
+image: /images/skills/byron-ui-taste-output.jpg
+---
+
+## What it does
+
+Every rule in this skill is a correction I gave an agent more than once. Too much padding. Cards inside cards. A toast that pushes the page down. A pill on every row. Links that break across lines. Once I've said it twice, it goes in the file.
+
+Other UI skills ([10x](/skills/10x), [100x](/skills/100x)) read it first. It shows up a lot.
+
+## A few of the rules
+
+- **Dense by default.** "Over-padded" and "too cardy" are my most common complaints. Tighten before you add.
+- **Zero layout shift.** Results arriving, a toast, or a copy confirmation must not move other content.
+- **Links are colored text.** Same weight as body text, no underline, one shared hover.
+- **Show full text in lists.** Truncate only inline references, and back each one with a hover card that adds information.
+- **Remove low-value things** instead of restyling them.
+- **Diagrams** get soft, low-chroma fills, and saturated color only on the data.
+
+## How it works
+
+It is mostly a rule list, grouped by density, borders, layout stability, links, truncation, hierarchy, and controls. It also has a small control-states CSS layer to copy and an audit script that captures every control at rest, hover, focus, and pressed without changing any data.
+
+## It's working if
+
+- I review a new screen and don't repeat a correction that's already in the file.

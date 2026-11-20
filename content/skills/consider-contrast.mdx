@@ -1,0 +1,46 @@
+---
+title: Consider and Contrast
+skills: [consider-contrast]
+category: Planning
+pick: 4
+why: Real options, scored only on what matters for this decision. I use it all the time.
+summary: A short decision checkpoint. Two to four real options, scored only on dimensions that matter for this task, then a choice.
+order: 2
+image: /images/skills/consider-contrast-output.jpg
+---
+
+## What it does
+
+Agents commit to the first idea that works. This skill makes the agent stop at a real decision, name two to four different approaches, and score them from 0 to 10 on dimensions that come from the task itself. Then it picks one, or builds a hybrid from the strongest parts, and keeps going.
+
+I use it all the time, mostly inline: "use consider-contrast for the storage choice, then continue."
+
+## The rule that makes it work
+
+No stock columns. Cost, speed, risk, complexity, and ease are banned unless the task makes one of them decision-critical, and then it gets renamed to the actual effect. For a database migration that means lock duration and rollback fidelity, not "risk." Each dimension has to be relevant, specific, able to separate the options, and distinct from the others.
+
+That one rule is the difference between a comparison that changes the decision and a balanced scorecard that just looks thorough.
+
+## What it makes
+
+A small table and four lines: **Choice**, **Why**, **Watch**, **Next**. Draftably got its name from several rounds of it:
+
+![A naming round for Draftably: candidate names scored on implied diagrams, guided layout, and user control](/images/skills/consider-contrast-output.jpg)
+
+*Each column is a property the name had to signal. None of them would make sense in another decision.*
+
+This page was planned with it too:
+
+| Approach | Reader gets what the skill does | Reader can read the real skill | Shows real output |
+| --- | ---: | ---: | ---: |
+| List with expanding rows | 5 | 7 | 3 |
+| List plus a page per skill | 9 | 9 | 9 |
+| List that links to GitHub | 3 | 6 | 1 |
+
+- **Choice:** a page per skill, with the story, examples, and the skill files.
+- **Watch:** finding real examples for every skill.
+
+## It's working if
+
+- Every column name would look strange in an unrelated decision.
+- The agent continues the task after the table instead of stopping.

@@ -1,0 +1,62 @@
+/* Skills list rows and the project-skills grid. The header, controls and
+   picks come from app/components/list-page.module.css. */
+.rows { margin: 8px 0 0; padding: 0; list-style: none; border-top: 1px solid var(--border-quiet); }
+.rows li + li { border-top: 1px solid var(--border-quiet); }
+
+.row,
+.row:visited { display: grid; grid-template-columns: 168px minmax(0, 1fr); gap: 22px; padding: 16px 0; color: inherit; text-decoration: none; }
+.row:hover { color: inherit; text-decoration: none; }
+.thumb { display: block; height: 105px; overflow: hidden; border-radius: 6px; background: var(--surface-quiet); }
+.thumb img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top left; transition: transform 180ms ease; }
+.row:hover .thumb img { transform: scale(1.03); }
+/* Document previews are wide pages of text; show their top left corner at a readable size. */
+.thumb img[src*="-output"] { width: 230%; height: auto; max-width: none; margin: -3.5% 0 0 -8%; transform-origin: top left; }
+.copy { display: flex; min-width: 0; flex-direction: column; gap: 6px; padding-top: 2px; }
+.title { color: var(--ink-primary); font-size: 18px; font-weight: var(--heading-weight); line-height: 1.25; letter-spacing: -.015em; transition: color 140ms ease; }
+.row:hover .title { color: var(--action-primary); }
+.summary { max-width: 680px; color: var(--ink-body); font-size: 14px; line-height: 1.5; text-wrap: pretty; }
+.meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; margin-top: 2px; color: var(--ink-muted); font-size: 12.5px; line-height: 1.4; }
+.meta code { color: var(--ink-body); font-size: 12px; }
+.metaProject { display: inline-flex; align-items: center; gap: 5px; color: var(--ink-body); }
+.metaProject img { width: 13px; height: 13px; }
+.title mark, .summary mark { border-radius: 2px; background: color-mix(in srgb, var(--accent-warm) 28%, transparent); color: inherit; }
+
+/* Fallback thumbnail: the skill's file name, so the tile still says what it is. */
+.fileTile { display: flex; width: 100%; height: 100%; box-sizing: border-box; align-items: flex-end; padding: 10px 12px; color: var(--ink-muted); font-family: var(--font-mono, ui-monospace, monospace); font-size: 11.5px; line-height: 1.3; overflow-wrap: anywhere; }
+.pickImage .fileTile { font-size: 13px; padding: 14px 16px; }
+.picks { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px; }
+
+/* Skills that ship inside projects. */
+.projectSkills { padding-top: 44px; }
+.projectLede { max-width: 640px; margin: -4px 0 14px; color: var(--ink-body); font-size: 14px; line-height: 1.5; }
+.projectGrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; }
+.projectCard,
+.projectCard:visited { display: flex; height: 100%; box-sizing: border-box; flex-direction: column; gap: 6px; padding: 14px 16px; border-radius: 8px; background: var(--surface-quiet); color: inherit; text-decoration: none; transition: background-color 140ms ease; }
+.projectCard:hover { background: var(--surface-chip); color: inherit; text-decoration: none; }
+.projectCard:focus-visible { outline: 2px solid var(--action-border); outline-offset: 2px; }
+.projectName { display: flex; align-items: center; gap: 8px; color: var(--ink-primary); font-size: 15px; font-weight: var(--heading-weight); }
+.projectName img { width: 18px; height: 18px; }
+.projectCard code { color: var(--ink-muted); font-size: 12px; }
+.projectSummary { color: var(--ink-body); font-size: 13.5px; line-height: 1.45; }
+
+@media (max-width: 900px) {
+  .picks { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .projectGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 640px) {
+  .picks { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 560px) {
+  .row { grid-template-columns: 96px minmax(0, 1fr); gap: 14px; padding: 14px 0; }
+  .thumb { height: 72px; }
+  .title { font-size: 16px; }
+  .summary { font-size: 13.5px; }
+  .meta { gap: 2px 12px; font-size: 12px; }
+  .projectGrid { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .thumb img { transition: none; }
+}

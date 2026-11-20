@@ -1,0 +1,44 @@
+---
+title: Retro
+skills: [retro]
+category: Agent workflow
+summary: A retrospective on recent agent sessions in one repo. Finds where the agent struggled and proposes fixes to its environment, not to the agent.
+order: 9
+image: /images/skills/retro-output.jpg
+---
+
+## What it does
+
+When an agent keeps making the same mistake, the fix is rarely a better prompt in the moment. It's a missing pointer in `AGENTS.md`, a lint rule, a hook, a script, or a skill rule. Retro looks at every session since the last retro in this repo and finds those gaps.
+
+It presents findings and stops. I decide what to fix.
+
+## How it works
+
+A script does all the deterministic work, so the agent never parses transcripts by hand:
+
+```bash
+python3 list_sessions.py --last-retro   # did last retro's fixes land?
+python3 list_sessions.py --ledger       # lessons from other repos' retros that apply here
+python3 list_sessions.py --scan         # failed calls, denials, slow calls, phrases I repeated
+```
+
+Then the agent sorts candidates by where the fix belongs:
+
+- **Navigation:** it took too long to find a file. Add a pointer.
+- **Automated checks:** a mistake a check could catch. Add the check, not a rule.
+- **Coding standards:** judgement calls only.
+- **Repeated phrases:** each thing I keep typing is a missing default.
+
+Findings go into a shared ledger, so a lesson learned in one repo gets checked in the others.
+
+## What it made
+
+![A retrospective for a multi-agent Visual Notes run: findings in severity order](/images/skills/retro-output.jpg)
+
+*A retrospective on a multi-agent run in Visual Notes. Each finding names its consequence for the next run, and the fixes are commands and checks, not more reminders.*
+
+## It's working if
+
+- The trend section shows last retro's numbers moving.
+- A finding that comes back a second time gets treated as more severe.

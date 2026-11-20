@@ -1,0 +1,47 @@
+---
+title: Context Recorder Breakdown
+skills: [context-recorder-breakdown]
+category: Agent workflow
+summary: Turns a screen recording with my narration and marked moments into an exhaustive feedback list, fixes, or an issue, and proves that every comment was covered.
+project: context-recorder
+order: 11
+image: /images/skills/context-recorder-output.jpg
+---
+
+## What it does
+
+I built [Context Recorder](/projects/context-recorder) to capture feedback while I use an app. I talk through what I see and press a hotkey to mark moments. The recording keeps the screen, the transcript, the marks, browser events, and saved copies of the pages.
+
+This skill turns one of those sessions into work. One command builds an evidence pack. The agent fills it in. A second command checks that nothing was skipped.
+
+## How it works
+
+```bash
+python3 recorder.py prep SESSION -o PACK   # about 10 seconds
+# the agent fills every block in PACK/ledger.md
+python3 recorder.py check PACK/ledger.md   # exit 0 = every block and every mark is covered
+```
+
+`prep` writes a ledger: the transcript in 45-second blocks with each mark inline, the image for each mark, the element I was hovering, and the dialogs and menus open on screen at that moment. It also finds the code for every label I pointed at.
+
+The agent opens every image, writes one item per distinct comment, and maps each item to code.
+
+## What it made
+
+![The explorEDA row on the byroni.us projects page, captured at mark 001](/images/skills/context-recorder-mark.jpg)
+
+![One block of a filled ledger: the transcript, mark 001, and four items mapped to code](/images/skills/context-recorder-output.jpg)
+
+*From a session where I reviewed this site's projects page. Mark 001 caught the explorEDA row. The ledger turned my comment into item F1 with the file and line to change. F2 shipped: the projects page no longer has an Archive section.*
+
+## Output shapes
+
+- An exhaustive feedback list: broken, polish, unfinished, stop doing, start doing, what worked.
+- Fix now plus a future-ideas doc.
+- Raw input for the [Software Design Sleuth](/skills/software-design-sleuth).
+- One issue with annotated screenshots.
+
+## It's working if
+
+- `check` passes, so every comment I made shows up somewhere.
+- Items point at code, not just at the screen.
