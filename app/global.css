@@ -218,7 +218,7 @@ body {
 .start-here-link:hover .start-here-title { color: var(--action-primary); }
 .start-here-title { font-size: 15.5px; font-weight: 550; line-height: 1.35; transition: color 140ms ease; }
 .start-here-why { color: var(--ink-body); font-size: 14px; line-height: 1.45; }
-.home-start-here { margin: 14px 0 0; color: var(--ink-body); font-size: 14px; }
+.home-start-here { margin: 32px 0 0; color: var(--ink-body); font-size: 14px; }
 .home-start-here a { color: var(--ink-primary); font-weight: 550; }
 
 /* Home: experience as one compact timeline, newest first */
