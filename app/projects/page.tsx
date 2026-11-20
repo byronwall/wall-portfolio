@@ -17,6 +17,7 @@ function text(value: string | string[] | undefined) {
 
 function getLinks(project: Project) {
   const links: Array<[string, string | undefined]> = [
+    ["Website", text(project.metadata.site)],
     ["Live demo", text(project.metadata.demo)],
     ["Source", text(project.metadata.repo)],
     ["Docs", text(project.metadata.docs)],
