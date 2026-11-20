@@ -1,0 +1,34 @@
+---
+title: Analyze Codex Threads
+skills: [analyze-codex-threads]
+category: Learn
+summary: Treats my Codex task history as a research corpus. Finds what I keep asking for, where agents struggle, and what should become a script or a skill.
+order: 12
+image: /images/skills/analyze-codex-threads-output.jpg
+---
+
+## What it does
+
+After a few weeks of agent work, the history holds a lot of signal: the corrections I keep giving, the commands that keep failing, the one-off scripts that got written more than once. This skill reads that history and answers a real question about it, instead of producing a fixed dashboard.
+
+The questions vary. What keeps going wrong in this project? What did I ask for over and over last week? Which workflows deserve a tool?
+
+## How it works
+
+1. **Resolve the scope** from plain language: this project, a set of projects, the last three days, the latest 20 tasks.
+2. **Gather** with the native task tools. Titles and summaries are only hints. It reads the actual turns.
+3. **Weigh the evidence.** What I wrote (requests, corrections, objections) counts most, then what the agent actually ran.
+4. **Synthesize** findings with the task IDs that support them, and separate patterns from one-offs.
+
+It is analysis only by default. It recommends scripts, skills, or doc changes, and I decide what to build.
+
+## What it made
+
+![A thread analysis for Pluck UI testing whether agents waste time rediscovering where code lives](/images/skills/analyze-codex-threads-output.jpg)
+
+*About twenty Codex threads in one repo, tested against a hypothesis: agents keep rediscovering where features live. The answer was yes for cross-cutting features, and the fix was a feature index agents read first.*
+
+## It's working if
+
+- Each finding points at the threads it came from.
+- At least one finding turns into a script or a skill rule.

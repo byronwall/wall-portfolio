@@ -14,6 +14,7 @@ export const mainNavLinks: SiteLink[] = [
   { href: "/games", label: "Games" },
   { href: "/tools", label: "Tools" },
   { href: "/blog", label: "Blog" },
+  { href: "/skills", label: "Skills" },
   // The divider in the nav sits before this link: list pages first, then the pages about me.
   { href: "/experience", label: "Experience", startsGroup: true },
   { href: "/about", label: "About" },

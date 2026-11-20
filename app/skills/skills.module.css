@@ -1,0 +1,89 @@
+/* Skills list rows and the project-skills grid. The header, controls and
+   picks come from app/components/list-page.module.css. */
+.rows { margin: 8px 0 0; padding: 0; list-style: none; border-top: 1px solid var(--border-quiet); }
+.rows li + li { border-top: 1px solid var(--border-quiet); }
+
+.row,
+.row:visited { display: grid; grid-template-columns: 168px minmax(0, 1fr); gap: 22px; padding: 16px 0; color: inherit; text-decoration: none; }
+.row:hover { color: inherit; text-decoration: none; }
+.thumb { display: block; height: 105px; overflow: hidden; border-radius: 6px; background: var(--surface-quiet); }
+.thumb img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top left; transition: transform 180ms ease; }
+.row:hover .thumb img { transform: scale(1.03); }
+.row:focus-visible { outline: 2px solid var(--action-border); outline-offset: 4px; border-radius: 6px; }
+/* Document previews are wide pages; show the top left (path bar, title, first lines) at a readable size. */
+.thumb img[src*="-output"], .pickImage img[src*="-output"] { width: 210%; height: auto; max-width: none; object-fit: initial; }
+.row:hover .thumb img[src*="-output"], .pick:hover .pickImage img[src*="-output"] { transform: none; }
+/* Draftably diagrams show whole, on the diagram's own paper color. */
+.thumb img[src$=".png"], .pickImage img[src$=".png"] { object-fit: contain; object-position: center; background: #f7f7f5; }
+.copy { display: flex; min-width: 0; flex-direction: column; gap: 6px; padding-top: 2px; }
+.title { color: var(--ink-primary); font-size: 18px; font-weight: var(--heading-weight); line-height: 1.25; letter-spacing: -.015em; transition: color 140ms ease; }
+.row:hover .title { color: var(--action-primary); }
+.summary { max-width: 680px; color: var(--ink-body); font-size: 14px; line-height: 1.5; text-wrap: pretty; }
+.meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; margin-top: 2px; color: var(--ink-muted); font-size: 12.5px; line-height: 1.4; }
+.meta code { color: var(--ink-body); font-size: 12px; }
+.partner { color: var(--ink-body); }
+.metaProject { display: inline-flex; align-items: center; gap: 5px; color: var(--ink-body); }
+.metaProject img { width: 13px; height: 13px; }
+.title mark, .summary mark { border-radius: 2px; background: color-mix(in srgb, var(--accent-warm) 28%, transparent); color: inherit; }
+
+/* Fallback thumbnail: the skill's file name, so the tile still says what it is. */
+.fileTile { display: flex; width: 100%; height: 100%; box-sizing: border-box; align-items: flex-end; padding: 10px 12px; color: var(--ink-muted); font-family: var(--font-mono, ui-monospace, monospace); font-size: 11.5px; line-height: 1.3; overflow-wrap: anywhere; }
+.pickImage .fileTile { font-size: 13px; padding: 14px 16px; }
+.picks { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px; }
+
+/* Skills that ship inside projects. */
+.projectSkills { padding-top: 44px; }
+.projectLede { max-width: 640px; margin: -4px 0 14px; color: var(--ink-body); font-size: 14px; line-height: 1.5; }
+.projectGrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; }
+.projectCard,
+.projectCard:visited { display: flex; height: 100%; box-sizing: border-box; flex-direction: column; gap: 6px; padding: 14px 16px; border-radius: 8px; background: var(--surface-quiet); color: inherit; text-decoration: none; transition: background-color 140ms ease; }
+.projectCard:hover { background: var(--surface-chip); color: inherit; text-decoration: none; }
+.projectCard:focus-visible { outline: 2px solid var(--action-border); outline-offset: 2px; }
+.projectName { display: flex; align-items: center; gap: 8px; color: var(--ink-primary); font-size: 15px; font-weight: var(--heading-weight); }
+.projectName img { width: 18px; height: 18px; }
+.projectCard code { color: var(--ink-muted); font-size: 12px; }
+.projectSummary { color: var(--ink-body); font-size: 13.5px; line-height: 1.45; }
+
+@media (max-width: 900px) {
+  .picks { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .projectGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 640px) {
+  .picks { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 560px) {
+  .row { grid-template-columns: 96px minmax(0, 1fr); gap: 14px; padding: 14px 0; }
+  .thumb { height: 72px; }
+  .title { font-size: 16px; }
+  .summary { font-size: 13.5px; }
+  .meta { gap: 2px 12px; font-size: 12px; }
+  .projectGrid { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .thumb img { transition: none; }
+}
+
+/* Rows grouped by stage, like the blog's months. */
+.stage { margin-top: 18px; }
+.resultLine + .stage, p + .stage { margin-top: 4px; }
+.stageLabel { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 0; padding: 8px 0; border-bottom: 1px solid var(--border-quiet); color: var(--ink-primary); font-size: 14px; font-weight: 650; }
+.stageLabel span { color: var(--ink-muted); font-size: 13px; font-weight: 400; }
+.stage .rows { margin-top: 0; border-top: 0; }
+
+/* The connection map: a Draftably SVG, light in both themes, with linked boxes. */
+.map { padding-top: 44px; }
+.mapLede { max-width: 640px; margin: -4px 0 14px; color: var(--ink-body); font-size: 14px; line-height: 1.5; }
+.mapDark { display: none; }
+:global([data-theme="dark"]) .mapLight { display: none; }
+:global([data-theme="dark"]) .mapDark { display: block; }
+.mapOpen { white-space: nowrap; }
+.mapFigure { max-width: 900px; overflow: hidden; border-radius: 10px; }
+.mapFigure svg { display: block; width: 100%; height: auto; }
+.mapFigure a:focus-visible { outline: 2px solid var(--action-border); outline-offset: 2px; }
+/* Boxes link to skill pages on this site: no outbound mark, no underline, a quiet hover. */
+.mapFigure :global(.link-mark) { display: none; }
+.mapFigure a, .mapFigure a * { text-decoration: none !important; }
+.mapFigure a:hover rect { filter: brightness(.96); }

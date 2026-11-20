@@ -1,0 +1,50 @@
+---
+title: Software Design Sleuth
+skills: [software-design-sleuth-full]
+category: Plan
+summary: Turns rambling notes and transcripts into what I actually want, a few contrasting approaches, rounds of product questions, and a plan that proves the risky part first.
+pick: 1
+why: Started life as Decisory. Now it runs the same question rounds inside the coding agent.
+project: decisory
+order: 1
+image: /images/skills/sleuth-intent-brief.jpg
+---
+
+## What it does
+
+I usually start a project by talking: a voice memo, a long transcript, a pile of notes. That material is messy. It has old ideas next to new ones, examples that are not requirements, and corrections halfway through. The sleuth reads all of it and writes back a short intent brief: what I want, what matters most, and what is still open.
+
+From there it can brainstorm six or seven contrasting approaches, recommend a shape, and write an implementation plan. The plan is ordered by proof. The first milestone answers the question most likely to kill the idea, with the smallest thing that can answer it.
+
+## When I reach for it
+
+- A new initiative where the input is dictation, not a spec.
+- New thinking that changes an existing plan (`update`).
+- When I want to be asked questions: `questions 5x3` runs three rounds of five product questions, and each round builds on the last answers.
+- Retiring a plan once its last milestone ships.
+
+## How it works
+
+1. Read every source before asking anything: transcripts, notes, the repo.
+2. Write the intent brief. Keep the method backstage, so the brief reads like a page, not an evidence ledger.
+3. Ask only human questions: purpose, priority, audience. Research the facts and default the reversible details.
+4. Shape the solution and challenge overbuilding.
+5. Plan milestones that each leave the system runnable, with a fast local loop for the first proof.
+
+Everything lands in `docs/intent/<slug>/`: the brief, the plan, and an `initiative-map.json` that tracks sources, decisions, and status, so a later session can pick up where the last one stopped.
+
+## What it made
+
+![An intent brief for explorEDA open in Plan Viewer: My read, What matters most, The intended experience, Boundaries](/images/skills/sleuth-intent-brief.jpg)
+
+*An intent brief for an explorEDA feature, open in Plan Viewer, which reads these plans across all my repos. The brief keeps rates deferred until a real task needs them, and the activity log on the left shows each research round that changed it.*
+
+## Where it came from
+
+[Decisory](/projects/decisory) was my first take on an agent that asks you questions to figure out what you want. I stopped using the app. The idea moved into this skill, where the questions happen next to the code.
+
+## It's working if
+
+- The brief says what I meant better than my notes did.
+- The questions are ones only I can answer.
+- Milestone one is small and answers a real question.

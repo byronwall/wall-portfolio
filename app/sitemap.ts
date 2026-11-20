@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getBlogPosts, getGames, getProjects } from "app/blog/utils";
+import { getBlogPosts, getGames, getProjects, getSkills } from "app/blog/utils";
 
 export const baseUrl = "https://byroni.us";
 
@@ -22,7 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/experience/tda-research",
   ];
 
-  const routes = ["", "/blog", "/projects", "/games", "/tools", "/about", ...experienceRoutes].map((route) => ({
+  const routes = ["", "/blog", "/projects", "/games", "/tools", "/skills", "/about", ...experienceRoutes].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date().toISOString().split("T")[0],
   }));
@@ -32,5 +32,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: game.metadata.publishedAt,
   }));
 
-  return [...routes, ...blogs, ...projects, ...games];
+  const skills = getSkills().map((skill) => ({
+    url: `${baseUrl}/skills/${skill.slug}`,
+    lastModified: new Date().toISOString().split("T")[0],
+  }));
+
+  return [...routes, ...blogs, ...projects, ...games, ...skills];
 }

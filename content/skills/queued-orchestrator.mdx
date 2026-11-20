@@ -1,0 +1,37 @@
+---
+title: Queued Orchestrator
+skills: [queued-orchestrator]
+category: Build
+summary: One session coordinates. Worker sessions build in parallel, each in its own worktree. Dependent work waits for its parent, and everything lands as one PR stack.
+pick: 3
+why: Splits big work across parallel sessions by file ownership and assembles one PR stack.
+order: 5
+uses: [consider-contrast, software-design-sleuth]
+image: /images/skills/queued-orchestrator.png
+---
+
+## What it does
+
+Big changes have several pieces, and some can run at the same time. This skill makes one Claude session the orchestrator. It reads the inputs, asks me the product questions, and splits the work. Worker sessions do the building, each in its own git worktree and branch. When a piece depends on another, it waits in a queue until its parent lands.
+
+At the end, the orchestrator assembles every branch into one stack of pull requests, foundations at the bottom, with screenshots in each PR that changes UI.
+
+## The shape of a run
+
+![Draftably diagram: an orchestrator session sends briefs to three parallel workers, queues a fourth until its parent lands, and assembles a four-layer PR stack](/images/skills/queued-orchestrator.png)
+
+*Drawn with [Draftably](/projects/draftably). The branch names are an example. The shape is the point: parallel where files don't overlap, queued where one piece needs another.*
+
+## How it works
+
+1. **Ground and decide.** The orchestrator reads just enough code to name files and root causes. Workers get facts, not "go investigate."
+2. **Split by file ownership.** Draw the work as a dependency graph. Each worker gets the files it owns and a list of files it must not touch.
+3. **Launch** independent workers in parallel with a full brief: the change, owned files, which skills apply, how to verify, and "commit as you go, don't push."
+4. **Queue** dependent pieces. Start each one when its parent reports back.
+5. **Assemble** the branches into a stack, check each layer, and submit.
+
+## It's working if
+
+- Two workers never edit the same file.
+- I can review the stack one layer at a time, and each layer makes sense on its own.
+- The orchestrator's own thread stays short, because the work happens in the workers.

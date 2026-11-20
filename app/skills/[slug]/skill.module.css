@@ -1,0 +1,35 @@
+.folder { display: block; width: fit-content; font-size: 13px; white-space: nowrap; }
+a.folder { color: var(--action-primary); }
+.prose :global(table) { font-size: 14px; }
+.prose :global(pre) { font-size: 13px; }
+/* The project page styles its first child as a lead paragraph; here the story starts with a heading. */
+.prose > :global(h2:first-child) { margin-bottom: 0 !important; font-size: 27px; line-height: 1.25; }
+.prose :global(img) { cursor: zoom-in; }
+/* The skill files get the full page width, so long lines and file names have room. */
+.files { max-width: 1120px; margin: 0 auto; padding: 8px var(--page-gutter) 48px; }
+.files h2 { margin: 0; color: var(--ink-primary); font-size: 27px; font-weight: var(--heading-weight); letter-spacing: -.025em; }
+/* Room for nested file names such as evals/regression-shape-readability.md. */
+@media (min-width: 701px) { .files :global([class*="workspace"]) { grid-template-columns: 300px minmax(0, 1fr); } }
+.files > p { max-width: 720px; margin: 10px 0 0; color: var(--ink-body); font-size: 15px; line-height: 1.6; }
+.files :global(pre) { white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* Facts under the summary: a label column and values, every row one line where it fits. */
+.facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 16px; margin: 22px 0 0; font-size: 13.5px; line-height: 1.45; }
+.facts dt { color: var(--ink-muted); font-size: 11.5px; font-weight: 630; letter-spacing: .06em; line-height: 1.7; text-transform: uppercase; }
+.facts dd { margin: 0; color: var(--ink-body); }
+.facts a { color: var(--action-primary); text-decoration: none; white-space: nowrap; }
+.facts a:hover { text-decoration: underline; }
+.factRow { display: contents; }
+
+/* Previous and next skill, in list order. */
+.pager { display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; gap: 16px; padding: 8px var(--page-gutter) 40px; }
+.pager a { display: flex; flex-direction: column; gap: 2px; color: var(--ink-primary); font-size: 15px; font-weight: var(--heading-weight); text-decoration: none; }
+.pager a span { color: var(--ink-muted); font-size: 12px; font-weight: 400; }
+.pager a:hover { color: var(--action-primary); }
+.pager .pagerAll { color: var(--action-primary); font-size: 14px; font-weight: 400; }
+.pager .pagerNext { align-items: flex-end; text-align: right; }
+.pager a:focus-visible { outline: 2px solid var(--action-border); outline-offset: 4px; border-radius: 4px; }
+@media (max-width: 560px) {
+  .pager { grid-template-columns: 1fr 1fr; }
+  .pager .pagerAll { display: none; }
+}
