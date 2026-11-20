@@ -164,6 +164,10 @@ export function getProjects() {
   return getMDXData(projectsDirectory);
 }
 
+export function getSkills() {
+  return getMDXData(path.join(process.cwd(), "content/skills"));
+}
+
 export function getGames() {
   const gamesDirectory = path.join(process.cwd(), "content/games");
 
