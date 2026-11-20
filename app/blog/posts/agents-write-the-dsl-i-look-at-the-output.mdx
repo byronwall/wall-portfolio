@@ -41,16 +41,35 @@ layout services row gap=24
 near payments orders side=right gap=32
 ```
 
-And part of a real ExplorEDA dashboard, one of the `.eda` files in the demo:
+That compiles to this:
+
+![The checkout file compiled by the Draftably CLI: the API gateway and a Domain services group with Orders and Payments sit inside a Commerce platform group. Orders persists to Postgres with a dashed async line.](/images/posts/agents-write-the-dsl-i-look-at-the-output/checkout-diagram.png)
+
+And here is a real ExplorEDA dashboard, the [earthquake depth piece](https://exploreda.dev/daily/earthquakes-depth/) from the daily collection. This is its `.eda` file, without the record table at the bottom:
 
 ```text
+eda query=events
 dashboard "How deep do strong earthquakes start?"
+grid columns=12 rowHeight=76
+latitude:num=events.latitude label="Latitude"
+longitude:num=events.longitude label="Longitude"
+mag:num=events.mag label="Magnitude"
 depth:num=events.depth label="Depth (km)"
 band:cat=events.depth_band label="Depth band"
-row @db-earthquakes-depth-band band title="Select a depth band" at=8,0,4,3
-hist @db-earthquakes-depth-hist depth bins=70 title="Earthquakes by depth" at=0,7,6,5
-scatter @db-earthquakes-depth-mag x=depth y=mag color=band title="Depth and magnitude" at=6,7,6,5
+area:cat=events.area label="Area"
+type:cat=events.mag_type label="Magnitude type"
+map @db-earthquakes-depth-map color=band title="Earthquakes by depth" at=0,0,8,7 {
+  latitudeField=latitude longitudeField=longitude sizeField=mag pointOpacity=0.5
+}
+row @db-earthquakes-depth-band band title="Select a depth band" at=8,0,4,3 x.title=Earthquakes
+row @db-earthquakes-depth-area area title="Busiest areas" at=8,3,4,4 x.title=Earthquakes
+hist @db-earthquakes-depth-hist depth bins=70 title="Earthquakes by depth" at=0,7,6,5 x.title="Depth (km)" y.title=Earthquakes
+scatter @db-earthquakes-depth-mag x=depth y=mag color=band title="Depth and magnitude" at=6,7,6,5 x.title="Depth (km)" y.title=Magnitude
 ```
+
+Seventeen lines, and this is what they turn into:
+
+![The compiled ExplorEDA dashboard: a world map of earthquakes colored by depth band, a depth band bar chart, a busiest areas bar chart, a depth histogram with a spike at 10 km, and a depth against magnitude scatter plot.](/images/posts/agents-write-the-dsl-i-look-at-the-output/exploreda-dashboard.jpg)
 
 Both are readable. You can open one and tell what it will draw. But sitting there typing them by hand is tedious, and I don't do it. The agent can write this kind of text much faster than I can, and with higher quality. For the agent, the format gives just enough structure: one statement per line, IDs to point at, errors that name a line.
 
@@ -95,7 +114,11 @@ Which ones do I keep? The ones that serve whatever I was originally trying to do
 
 ## ExplorEDA is partway there
 
-ExplorEDA points in the same direction, but it doesn't have this loop yet. It started as much more of a client and server app in the browser, not a CLI. It does have the text side now. Dashboard text compiles to the same settings the visual editor saves, and settings export back to text. There is an `exploreda-dsl` command with `check`, `fmt`, and `reference`. What it doesn't have is a `vary`: nothing that generates alternatives and ranks them for the agent.
+ExplorEDA points in the same direction, but it doesn't have this loop yet. It started as much more of a client and server app in the browser, not a CLI. It does have the text side now. Dashboard text compiles to the same settings the visual editor saves, and settings export back to text. On the published pieces, a **Source** button puts the file right above the live dashboard:
+
+![The earthquake piece on exploreda.dev with Source selected: the depth.eda text sits above the live map and depth band chart it produces.](/images/posts/agents-write-the-dsl-i-look-at-the-output/exploreda-source-view.jpg)
+
+There is an `exploreda-dsl` command with `check`, `fmt`, and `reference`. What it doesn't have is a `vary`: nothing that generates alternatives and ranks them for the agent.
 
 The goal is the same, though. If you want an agent to do a data analysis and produce a summary, a notebook or dashboard format lets it put that together much better than a person sitting there typing.
 
