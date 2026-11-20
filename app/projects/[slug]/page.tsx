@@ -92,6 +92,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   const status = getProjectStatus(project.metadata.status);
   const year = getProjectYears(project.metadata);
   const projectLinks = [
+    ["Website", project.metadata.site],
     ["Live demo", project.metadata.demo],
     ["Source", project.metadata.repo],
     ["Package", project.metadata.package],
