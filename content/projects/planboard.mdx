@@ -1,17 +1,17 @@
 ---
-title: "Plan Viewer"
+title: "Planboard"
 description: "A local reading desk for Markdown plans and tasks, with a live view of every Codex and Claude Code thread and a PR review view that reads diffs from the clone already on disk"
 date: "2026-10-18"
 publishedAt: "2026-11-02"
 summary: "A local reading desk for Markdown plans and tasks, with a live view of every Codex and Claude Code thread and a PR review view that reads diffs from the clone already on disk"
 tags: ["TypeScript", "Node.js", "Markdown", "Code Review", "Git", "AI Agents"]
-image: "/images/projects/plan-viewer/pr-treemap.png"
-repo: "https://github.com/byronwall/plan-viewer"
+image: "/images/projects/planboard/pr-treemap.png"
+repo: "https://github.com/byronwall/planboard"
 ---
 
-Plan Viewer turns a folder of Markdown daily plans and tasks into a fast, keyboard-driven app. It shows every agent thread the work starts, and the code those plans touch: worktrees, open PRs, commits, and a full diff viewer for review. The viewer never edits your files. The Markdown stays the source of truth, and agents make the changes.
+Planboard turns a folder of Markdown daily plans and tasks into a fast, keyboard-driven app. It shows every agent thread the work starts, and the code those plans touch: worktrees, open PRs, commits, and a full diff viewer for review. Planboard never edits your files. The Markdown stays the source of truth, and agents make the changes.
 
-- Source: [byronwall/plan-viewer](https://github.com/byronwall/plan-viewer)
+- Source: [byronwall/planboard](https://github.com/byronwall/planboard)
 
 ## Interface
 
@@ -19,8 +19,8 @@ Today's plan opens on launch. Each section is a card, and each card or next acti
 
 <div className="not-prose mt-6">
   <img
-    src="/images/projects/plan-viewer/today.png"
-    alt="Plan Viewer showing today's plan with scheduled tasks and milestone cards"
+    src="/images/projects/planboard/today.png"
+    alt="Planboard showing today's plan with scheduled tasks and milestone cards"
     className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
     loading="lazy"
   />
@@ -32,7 +32,7 @@ Chat Threads lists every local Codex and Claude Code thread in one table: what w
 
 <div className="not-prose mt-6">
   <img
-    src="/images/projects/plan-viewer/chats.png"
+    src="/images/projects/planboard/chats.png"
     alt="Chat Threads with waiting, running, and background threads, and subagents nested under their orchestrator"
     className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
     loading="lazy"
@@ -45,7 +45,7 @@ The Code view lists open PRs across every tracked repository, with CI state, siz
 
 <div className="not-prose mt-6">
   <img
-    src="/images/projects/plan-viewer/code-prs.png"
+    src="/images/projects/planboard/code-prs.png"
     alt="The Code view listing open pull requests across five repositories"
     className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
     loading="lazy"
@@ -56,7 +56,7 @@ A PR opens in an overview with three columns: facts, notes, and commits; the fil
 
 <div className="not-prose mt-6">
   <img
-    src="/images/projects/plan-viewer/pr-treemap.png"
+    src="/images/projects/planboard/pr-treemap.png"
     alt="A PR overview with the change treemap beside the diff of the selected file"
     className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
     loading="lazy"
@@ -67,7 +67,7 @@ Review notes are local Markdown files in the planning repository. Each note keep
 
 <div className="not-prose mt-6">
   <img
-    src="/images/projects/plan-viewer/pr-notes.png"
+    src="/images/projects/planboard/pr-notes.png"
     alt="Review notes inline in a diff, marked moved, edited, and outdated"
     className="w-full h-auto rounded-lg border border-neutral-200 dark:border-neutral-800"
     loading="lazy"
@@ -80,7 +80,7 @@ Review notes are local Markdown files in the planning repository. Each note keep
 - PR files, refs, and diffs come from the tracked local clone first, so large PRs and whole stacks open fast, even when GitHub's diff view gives up.
 - Review notes live in `plans/pr-notes/` as Markdown. An agent can read them, post them as a GitHub review, or work through them.
 - Chat Threads reads Codex's thread index and logs, Claude Code's session files and transcripts, and `lsof`, so it needs no hooks in either app. Token totals and background tasks come from one incremental pass over each log.
-- `plan-viewer lint` and `plan-viewer links` keep task front matter, work breakdowns, and links valid.
+- `planboard lint` and `planboard links` keep task front matter, work breakdowns, and links valid.
 
 ## Highlights
 
