@@ -134,7 +134,16 @@ function ImageViewer({
   const image = images[index];
   const zoomed = view.z > 1.01;
 
-  const go = useCallback((d: number) => setIndex((i) => (i + d + count) % count), [count]);
+  // dir remembers which way the last move went, for the slide-in.
+  const dir = useRef(0);
+  const show = useCallback((i: number, d: number) => {
+    dir.current = d;
+    setIndex(i);
+  }, []);
+  const go = useCallback((d: number) => {
+    dir.current = d;
+    setIndex((i) => (i + d + count) % count);
+  }, [count]);
 
   // Largest useful zoom: the image at its own pixel size, and never less than 2x.
   const maxZoom = () => {
@@ -142,6 +151,8 @@ function ImageViewer({
     if (!el || !el.offsetWidth) return 4;
     return Math.max(2, Math.min(8, el.naturalWidth / el.offsetWidth));
   };
+  // One click or tap zooms to at most 3x; on a phone, full pixel size is far too close.
+  const tapZoom = () => Math.min(3, maxZoom());
 
   // Keep the image covering the stage edge it overflows, and centered where it fits.
   const clamp = useCallback((v: View): View => {
@@ -197,6 +208,8 @@ function ImageViewer({
   useLayoutEffect(() => {
     const el = dialog.current!;
     el.showModal();
+    // Focus the dialog, not its first button, so no ring shows on a control nobody picked.
+    el.focus();
     const root = document.documentElement;
     const prev = root.style.overflow;
     root.style.overflow = "hidden";
@@ -218,10 +231,20 @@ function ImageViewer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Slide the new image in from the side the user moved toward.
+  useLayoutEffect(() => {
+    const d = dir.current;
+    dir.current = 0;
+    if (!d || reduceMotion()) return;
+    img.current?.animate([{ translate: `${d * 24}px 0`, opacity: 0.3 }, { translate: "0 0", opacity: 1 }], { duration: 200, easing: "cubic-bezier(.2, .8, .2, 1)" });
+  }, [index]);
+
   // Reset zoom on each image, keep its thumb in view, and mirror it in the URL.
   useEffect(() => {
     setView(FIT);
-    strip.current?.children[index]?.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+    const row = strip.current;
+    row?.toggleAttribute("data-overflow", row.scrollWidth > row.clientWidth);
+    row?.children[index]?.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
     history.replaceState(history.state, "", `#image-${index + 1}`);
   }, [index]);
 
@@ -250,8 +273,8 @@ function ImageViewer({
       const v = viewRef.current;
       if (e.key === "ArrowRight" && count > 1) go(1);
       else if (e.key === "ArrowLeft" && count > 1) go(-1);
-      else if (e.key === "Home") setIndex(0);
-      else if (e.key === "End") setIndex(count - 1);
+      else if (e.key === "Home") show(0, -1);
+      else if (e.key === "End") show(count - 1, 1);
       else if (e.key === "+" || e.key === "=") zoomAt(v.z * 1.5);
       else if (e.key === "-") zoomAt(v.z / 1.5);
       else if (e.key === "0") setView(FIT);
@@ -260,7 +283,7 @@ function ImageViewer({
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [go, count, zoomAt]);
+  }, [go, show, count, zoomAt]);
 
   // Pointer gestures: drag pans when zoomed and swipes between images when not;
   // two fingers pinch; a tap on the image toggles zoom, a tap outside it closes.
@@ -309,7 +332,7 @@ function ImageViewer({
     if (img.current) img.current.style.translate = "";
     const dx = e.clientX - g.x;
     if (!g.moved) {
-      if (g.onImage) zoomAt(zoomed ? 1 : maxZoom(), e.clientX, e.clientY);
+      if (g.onImage) zoomAt(zoomed ? 1 : tapZoom(), e.clientX, e.clientY);
       else if (!zoomed) close();
       return;
     }
@@ -323,6 +346,7 @@ function ImageViewer({
       ref={dialog}
       className={styles.viewer}
       aria-label="Image viewer"
+      tabIndex={-1}
       onCancel={(e) => {
         e.preventDefault();
         if (zoomed) setView(FIT);
@@ -337,22 +361,18 @@ function ImageViewer({
           <button
             type="button"
             className={styles.tool}
-            onClick={() => zoomAt(zoomed ? 1 : maxZoom())}
+            onClick={() => zoomAt(zoomed ? 1 : tapZoom())}
             aria-label={zoomed ? "Fit to screen" : "Zoom to full size"}
             title={zoomed ? "Fit (0)" : "Zoom (+)"}
           >
-            {zoomed ? (
-              <svg viewBox="0 0 16 16"><path d="M6.5 2.5v4h-4M9.5 13.5v-4h4M2.5 2.5l4 4M13.5 13.5l-4-4" /></svg>
-            ) : (
-              <svg viewBox="0 0 16 16"><path d="M9.5 2.5h4v4M6.5 13.5h-4v-4M13.5 2.5 9 7M2.5 13.5 7 9" /></svg>
-            )}
+            <Icon d={zoomed ? ICONS.zoomOut : ICONS.zoomIn} />
             <span className={styles.zoomLabel}>{zoomed ? `${Math.round(view.z * 100)}%` : "Fit"}</span>
           </button>
           <a className={styles.tool} href={image.src} target="_blank" rel="noreferrer" aria-label="Open original in a new tab" title="Open original">
-            <svg viewBox="0 0 16 16"><path d="M9 2.5h4.5V7M13.5 2.5 7.5 8.5M12 9.5v3.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-8a.5.5 0 0 1 .5-.5H7" /></svg>
+            <Icon d={ICONS.external} />
           </a>
           <button type="button" className={styles.tool} onClick={close} aria-label="Close viewer" title="Close (Esc)">
-            <svg viewBox="0 0 16 16"><path d="m3.5 3.5 9 9M12.5 3.5l-9 9" /></svg>
+            <Icon d={ICONS.close} />
           </button>
         </div>
       </div>
@@ -378,10 +398,10 @@ function ImageViewer({
         {count > 1 && (
           <>
             <button type="button" className={`${styles.side} ${styles.prev}`} onClick={() => go(-1)} aria-label="Previous image">
-              <svg viewBox="0 0 16 16"><path d="M10 3 5 8l5 5" /></svg>
+              <Icon d={ICONS.prev} />
             </button>
             <button type="button" className={`${styles.side} ${styles.next}`} onClick={() => go(1)} aria-label="Next image">
-              <svg viewBox="0 0 16 16"><path d="m6 3 5 5-5 5" /></svg>
+              <Icon d={ICONS.next} />
             </button>
           </>
         )}
@@ -398,7 +418,7 @@ function ImageViewer({
                 className={styles.thumb}
                 aria-current={i === index}
                 aria-label={`Show image ${i + 1}: ${entry.alt}`}
-                onClick={() => setIndex(i)}
+                onClick={() => show(i, Math.sign(i - index))}
               >
                 <img src={entry.src} alt="" loading="lazy" draggable={false} />
               </button>
@@ -407,6 +427,25 @@ function ImageViewer({
         )}
       </div>
     </dialog>
+  );
+}
+
+// One 16-unit icon set, drawn on the half-pixel grid for a 1.75 stroke.
+const LENS = "M11.5 7a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM10.25 10.25 13.5 13.5";
+const ICONS = {
+  zoomIn: `${LENS}M7 5v4M5 7h4`,
+  zoomOut: `${LENS}M5 7h4`,
+  external: "M9.5 2.5h4v4M13.5 2.5 8 8M11.5 9.5v3a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h3",
+  close: "M4 4l8 8M12 4l-8 8",
+  prev: "M10 3.5 5.5 8l4.5 4.5",
+  next: "M6 3.5 10.5 8 6 12.5",
+};
+
+function Icon({ d }: { d: string }) {
+  return (
+    <svg viewBox="0 0 16 16" aria-hidden="true">
+      <path d={d} />
+    </svg>
   );
 }
 
