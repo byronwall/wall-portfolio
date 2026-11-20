@@ -16,6 +16,8 @@ On top of that, I wanted my own notes, working files, and some sense of work bre
 
 Plan Viewer is a web app, but it runs off a local server, so it is local to my machine. You could run it on a server. I have gone back and forth on doing that.
 
+![Planboard as one local surface. GitHub (PRs, commits, diffs), Jira (issues, status updates) and Slack (threads) are linked, not copied. My daily plans, notes and work breakdown stay on disk and render as cards. Clicking a PR, commit hash or Jira key opens a modal over the plan. Planboard hands cards to agents, and when something gets in my way, the agents add a page or feature to Planboard.](/images/posts/a-dedicated-interface-for-the-task-at-hand/surface.png)
+
 ## Every reference opens in place
 
 The part that matters most is removing every bit of friction around related information. Here is a daily plan. It is Markdown on disk, and the viewer renders it as cards:
@@ -49,6 +51,14 @@ One morning I was having a hard time keeping track of all the chat threads runni
 So I had it update Plan Viewer to list all of the active threads, with a click that opens each one in its desktop app. A nuisance became a feature. That page has since grown into [Plan Viewer's Chat Threads page](/blog/plan-viewer-chat-threads), with subagents nested under their parents and a status for threads that wait on a background task.
 
 That is the pattern now. If I am clicking around for something or struggling to find it, I ask the agent to put it on this surface. Each fix makes the interface a little more specific to how I actually work, which is the point of having a dedicated one.
+
+## When to build one
+
+There is a decision under all of this. When a new kind of work shows up, do I make it fit the tool I already have, or do I go build a dedicated interface for it?
+
+Nearly always I start with whatever I've got. A chat thread, a Markdown file, the GitHub page. I only build something when I notice I keep fighting that tool for the same thing, and then I specialize it. The thread list above went that way: the threads were running fine without a page, until keeping track of them got in my way.
+
+![A decision rule. A new kind of work starts in the tool I already have. If I am not fighting the tool, I stay put. If I am, I specialize: build or extend a dedicated interface, and each new nuisance becomes a feature on that surface. A dashed line goes back to the question, which I keep asking.](/images/posts/a-dedicated-interface-for-the-task-at-hand/rule.png)
 
 The interface is also where agent work starts. Every card and step can hand its context to an agent. How that works, and how the rest of the day runs through one orchestrating thread, is in [how my agents run the day](/blog/how-my-agents-run-the-day).
 
