@@ -2,16 +2,20 @@
 title: "Ask for ten, then ask for 10x"
 publishedAt: 2026-11-19
 summary: 'How I get more useful work out of AI: have it explore ten options instead of handing back one, implement in a straight line, then flip it from building to evaluating with a 10x pass. It usually overshoots, and a simplifying pass dials it back.'
-image: "/images/posts/ask-for-ten-then-ask-for-10x/loop.svg"
+image: "/images/posts/ask-for-ten-then-ask-for-10x/loop.png"
 articleHero: false
 type: reflection
 ---
 
 People ask me where to get started with AI. My answer is always the same. Take some task you think it could do, and then imagine a version of that task that is ten times more, or ten times better, than what you would normally do.
 
+![The whole loop. Explore: ask for ten options, then mix and pick. Build: implement the one I like in a straight line. Evaluate: a 10x pass infers the goal and lists the gaps, the gaps get ranked and closed, and a simplify pass trims what it overdid. Then my feedback or the next round, with a dashed line back to asking for ten.](/images/posts/ask-for-ten-then-ask-for-10x/loop.png)
+
 A lot of people say, "I'll have it write an email for me." Fine. Instead of one email, have it write ten. Make each one different in some way, or have each one emphasize something different about what you are trying to say.
 
 Then mix and match. I like the tone of number one. I like the layout of number three. Give me five more like that. Then pick the best one.
+
+![One email, written fifteen ways. I ask for ten drafts that each stress something else, read them all, mix and match ("tone of 1, layout of 3"), get five more like that, and pick the one I send.](/images/posts/ask-for-ten-then-ask-for-10x/emails.png)
 
 By the time you are done, you have generated fifteen emails to send one. The fifteen are the point. You have seen a wide range of choices, and if you know what good looks like, seeing a bunch of options is way more empowering than getting one and having to iterate on it.
 
@@ -24,8 +28,6 @@ Once that space is open, it is much easier to decide what to do next. On bigger 
 For a UI, the exploration step is a set of mockups. I have Codex use its image generation to make mockups that differ in some way. I play with them a bit, get to something I like, and then kick it into implementation mode.
 
 Implementing is a straight line. The work might branch into steps that run in parallel, but there is not much exploration going on. When it is done, I am back to giving feedback.
-
-![A five-step loop. Explore: ask for ten options, then mix and pick. Build: implement in a straight line. Evaluate: run 10x to infer the goal, list the gaps, rank them and close them, then simplify what it overdid. A dashed arrow returns to feedback or the next round.](/images/posts/ask-for-ten-then-ask-for-10x/loop.svg)
 
 ## Flip from implementing to evaluating
 
@@ -46,7 +48,13 @@ I am pretty confident you can build a version of this for nearly any domain. I t
 
 There is something about a nudge that says "do better." That is the license it needs. It varies a bit by model, but Opus 5.5 is particularly good at this. Once you have landed on something that works, you can pretty much guarantee a much better version by running 10x and telling it to make the thing way better.
 
-For a real example, the [Chat Threads page in Plan Viewer (now Planboard)](/blog/plan-viewer-chat-threads) got two passes like this: a 10x pass for the structure, then a 100x pass with a ledger of 33 small defects.
+For a real example, the [Chat Threads page in Plan Viewer (now Planboard)](/blog/plan-viewer-chat-threads) got two passes like this: a 10x pass for the structure, then a 100x pass with a ledger of 33 small defects. The first version had the data and nothing else:
+
+![Before: the first Chat Threads page, a flat table of active threads with raw model IDs, no icons and no grouping.](/images/posts/plan-viewer-chat-threads/before-active.png)
+
+After the two passes, the page answers "what is waiting on me?" in its first screen:
+
+![After: the redesigned Chat Threads page with Waiting for you, Running and Background sections, subagents nested under their parents, and model names with family colors.](/images/posts/plan-viewer-chat-threads/after.png)
 
 ## Let it overshoot, then simplify
 
