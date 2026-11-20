@@ -7,7 +7,8 @@ import styles from "../projects.module.css";
 import { getOgImageUrl } from "app/og-image";
 import { getProjectStatus } from "../status";
 import { experiences } from "app/experience/data";
-import { ProjectGallery, type GalleryImage } from "./project-gallery";
+import { ViewerScope, type ViewerImage } from "app/components/image-viewer";
+import { ProjectGallery } from "./project-gallery";
 
 type ProjectPageProps = { params: Promise<{ slug: string }> };
 
@@ -34,7 +35,7 @@ function getHeadings(content: string) {
 
 // The thumbnail plus every image in the project's content, in order, once each.
 function getGalleryImages(thumbnail: string | undefined, title: string, content: string) {
-  const images: GalleryImage[] = [];
+  const images: ViewerImage[] = [];
   const add = (src: string | undefined, alt: string) => {
     if (src && !images.some((image) => image.src === src)) images.push({ src, alt: alt.trim() || title });
   };
@@ -102,6 +103,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   return (
     <main className={styles.detailPage}>
       <Link href="/projects" className={styles.backLink}>← Projects</Link>
+      <ViewerScope images={images}>
       <header className={`${styles.hero}${images.length ? "" : ` ${styles.heroTextOnly}`}`}>
         <div className={styles.heroCopy}>
           <h1 className={styles.heroTitle}>{typeof project.metadata.logo === "string" && <img className="project-logo-plate" src={project.metadata.logo} alt="" />}{project.metadata.title}</h1>
@@ -146,6 +148,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           <CustomMDX source={project.content} />
         </article>
       </div>
+      </ViewerScope>
 
       {relatedPosts.length > 0 && (
         <section className={styles.relatedPosts} aria-labelledby="related-posts-heading">

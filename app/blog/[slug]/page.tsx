@@ -6,7 +6,7 @@ import Link from "next/link";
 import { ArticleToc } from "../components/article-toc";
 import styles from "../blog.module.css";
 import { getOgImageUrl } from "app/og-image";
-import { LightboxScope } from "app/components/lightbox";
+import { ViewerScope } from "app/components/image-viewer";
 
 type BlogPageProps = {
   params: Promise<{ slug: string }>;
@@ -199,7 +199,7 @@ export default async function Blog({ params }: BlogPageProps) {
           )}
         </aside>
         <div className={`${styles.articleMain} ${isInteractive ? styles.interactiveMain : ""}`}>
-          <LightboxScope>
+          <ViewerScope>
           <header className={styles.articleHeader}>
             <h1>
               {renderArticleTitle(
@@ -218,7 +218,7 @@ export default async function Blog({ params }: BlogPageProps) {
             )}
           </header>
           <article className={`prose ${styles.articleBody} ${isInteractive ? styles.interactiveBody : ""}`}><CustomMDX source={post.content} /></article>
-          </LightboxScope>
+          </ViewerScope>
           {relatedProject && (
             <footer className={styles.articleRelated}>
               <p>Part of <Link href={`/projects/${relatedProject.slug}`}>{relatedProject.metadata.title}</Link>.</p>
