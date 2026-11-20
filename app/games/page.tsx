@@ -13,23 +13,26 @@ export const metadata = indexMetadata(
 );
 
 export default function GamesPage() {
-  const games = getGames().sort((a, b) => (Number(a.metadata.indexOrder) || 99) - (Number(b.metadata.indexOrder) || 99));
+  // Newest first.
+  const games = getGames().sort((a, b) => String(b.metadata.publishedAt).localeCompare(String(a.metadata.publishedAt)));
 
   return (
     <main className={ui.page}>
       <ListHeader
         title="Games"
-        lede="Small browser games where the rules are easy to learn and a good idea can be played instead of only explained."
+        stacked
+        lede="My son comes up with the ideas for these games. I build them with coding agents, then we play them together and fix what he finds."
       />
       <div className={ui.section}>
         <ul className={ui.picks}>
           {games.map((game) => {
             const title = game.metadata.title || game.slug;
             const tags = getGameTags(game);
+            const play = getGamePlayHref(game);
             return (
               <li key={game.slug}>
                 <article className={styles.pickCard}>
-                  <Link className={ui.pick} href={`/games/${game.slug}`}>
+                  <a className={ui.pick} href={play} target="_blank" rel="noreferrer">
                     <span className={ui.pickImage}>
                       {hasGameImage(game) && <img src={game.thumbnail} alt="" />}
                     </span>
@@ -37,11 +40,16 @@ export default function GamesPage() {
                       <span className={ui.pickTitle}>{title}</span>
                       <span className={ui.pickWhy}>{game.metadata.description || game.metadata.summary}</span>
                     </span>
-                  </Link>
-                  {tags.length > 0 && <p className={styles.pickTags}>{tags.join(" · ")}</p>}
-                  <a className={styles.play} href={getGamePlayHref(game)} target="_blank" rel="noreferrer">
-                    Play game <span aria-hidden="true">↗</span>
                   </a>
+                  {tags.length > 0 && <p className={styles.pickTags}>{tags.join(" · ")}</p>}
+                  <div className={styles.cardActions}>
+                    <a className="button button-primary" href={play} target="_blank" rel="noreferrer">
+                      Play game <span aria-hidden="true">↗</span>
+                    </a>
+                    <Link className={styles.about} href={`/games/${game.slug}`}>
+                      Read about it
+                    </Link>
+                  </div>
                 </article>
               </li>
             );
