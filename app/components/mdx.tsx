@@ -5,6 +5,7 @@ import { highlight } from 'sugar-high'
 import React from 'react'
 import remarkGfm from 'remark-gfm'
 import { CodeBlock } from 'app/components/code-block'
+import { highlightDiff, highlightDraft, highlightEda } from 'app/components/dsl-highlight'
 import { SolidResourceExplorer } from 'app/blog/components/solid-resource-explorer'
 import {
   CanvasScatterAnimationExplorer,
@@ -100,7 +101,14 @@ function Code({ children, className, ...props }) {
     )
   }
 
-  let codeHTML = highlight(children)
+  let codeHTML =
+    language === 'draft'
+      ? highlightDraft(children)
+      : language === 'eda'
+        ? highlightEda(children)
+        : language === 'diff'
+          ? highlightDiff(children)
+          : highlight(children)
   return (
     <code
       className={className}
