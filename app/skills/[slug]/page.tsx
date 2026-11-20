@@ -76,10 +76,12 @@ export default async function SkillPage({ params }: SkillPageProps) {
               <dd>
                 <Link href={`/skills?stage=${item.category}`}>{item.category}</Link>
               </dd>
-              <dt>Skill</dt>
+              <dt>{item.folders.length > 1 ? "Skills" : "Skill"}</dt>
               <dd>
                 {item.folders.map((folder) => (
-                  <code key={folder} className={styles.folder}>{folder}</code>
+                  <a key={folder} className={styles.folder} href={`${SKILLS_REPO}/${folder}`} target="_blank" rel="noreferrer">
+                    <code>{folder}</code> ↗
+                  </a>
                 ))}
               </dd>
               <dt>Size</dt>
@@ -103,15 +105,17 @@ export default async function SkillPage({ params }: SkillPageProps) {
                     </dd>
                   </div>
                 ))}
+              {item.projectSlug && (
+                <>
+                  <dt>From</dt>
+                  <dd>
+                    <Link href={`/projects/${item.projectSlug}`}>{item.projectTitle}</Link>
+                  </dd>
+                </>
+              )}
             </dl>
             <nav className={projectStyles.projectLinks} aria-label="Skill links">
               <a href="#read-the-skill">Read the skill ↓</a>
-              {item.folders.map((folder) => (
-                <a key={folder} href={`${SKILLS_REPO}/${folder}`} target="_blank" rel="noreferrer">
-                  {item.folders.length > 1 ? `${folder} on GitHub` : "GitHub"} ↗
-                </a>
-              ))}
-              {item.projectSlug && <Link href={`/projects/${item.projectSlug}`}>Project: {item.projectTitle} →</Link>}
             </nav>
           </div>
           {images.length > 0 && <ProjectGallery images={images} />}

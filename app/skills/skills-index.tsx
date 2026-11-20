@@ -23,7 +23,7 @@ function Partners({ links, needle }: { links: SkillLink[]; needle: string }) {
       {links.map((partner, index) => (
         <Fragment key={partner.slug}>
           {index > 0 && ", "}
-          {highlight(partner.title, needle)}
+          <span className={styles.partner}>{highlight(partner.title, needle)}</span>
         </Fragment>
       ))}
     </>
@@ -40,7 +40,7 @@ export function SkillsIndex({
   skills: SkillItem[];
   stages: readonly Stage[];
   projectSkills: ReturnType<typeof getProjectSkills>;
-  mapSvg: string;
+  mapSvg: { light: string; dark: string };
   dates: Record<string, string>;
 }) {
   const [{ q: query, stage }, update] = useUrlFilters(FILTER_KEYS);
@@ -186,9 +186,13 @@ export function SkillsIndex({
             <h2 className={ui.sectionLabel} id="map-heading">How they connect</h2>
             <p className={styles.mapLede}>
               Only the handoffs the skill files state. Click a box to open that skill. Drawn with{" "}
-              <Link href="/projects/draftably">Draftably</Link>.
+              <Link href="/projects/draftably">Draftably</Link>.{" "}
+              <a className={styles.mapOpen} href="/images/skills/skills-map.svg" target="_blank" rel="noreferrer">
+                Open full size ↗
+              </a>
             </p>
-            <div className={styles.mapFigure} dangerouslySetInnerHTML={{ __html: mapSvg }} />
+            <div className={`${styles.mapFigure} ${styles.mapLight}`} dangerouslySetInnerHTML={{ __html: mapSvg.light }} />
+            <div className={`${styles.mapFigure} ${styles.mapDark}`} dangerouslySetInnerHTML={{ __html: mapSvg.dark }} />
           </section>
 
           <section className={styles.projectSkills} aria-labelledby="project-skills-heading">

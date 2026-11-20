@@ -1,4 +1,5 @@
-.folder { margin-right: 10px; font-size: 13px; }
+.folder { display: block; width: fit-content; font-size: 13px; white-space: nowrap; }
+a.folder { color: var(--action-primary); }
 .prose :global(table) { font-size: 14px; }
 .prose :global(pre) { font-size: 13px; }
 /* The project page styles its first child as a lead paragraph; here the story starts with a heading. */
@@ -7,6 +8,8 @@
 /* The skill files get the full page width, so long lines and file names have room. */
 .files { max-width: 1120px; margin: 0 auto; padding: 8px var(--page-gutter) 48px; }
 .files h2 { margin: 0; color: var(--ink-primary); font-size: 27px; font-weight: var(--heading-weight); letter-spacing: -.025em; }
+/* Room for nested file names such as evals/regression-shape-readability.md. */
+@media (min-width: 701px) { .files :global([class*="workspace"]) { grid-template-columns: 300px minmax(0, 1fr); } }
 .files > p { max-width: 720px; margin: 10px 0 0; color: var(--ink-body); font-size: 15px; line-height: 1.6; }
 .files :global(pre) { white-space: pre-wrap; overflow-wrap: anywhere; }
 
@@ -25,6 +28,7 @@
 .pager a:hover { color: var(--action-primary); }
 .pager .pagerAll { color: var(--action-primary); font-size: 14px; font-weight: 400; }
 .pager .pagerNext { align-items: flex-end; text-align: right; }
+.pager a:focus-visible { outline: 2px solid var(--action-border); outline-offset: 4px; border-radius: 4px; }
 @media (max-width: 560px) {
   .pager { grid-template-columns: 1fr 1fr; }
   .pager .pagerAll { display: none; }
