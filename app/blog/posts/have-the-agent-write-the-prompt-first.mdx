@@ -1,0 +1,52 @@
+---
+title: "Have the agent write the prompt first"
+publishedAt: 2026-11-19
+summary: 'When all I have is a thin request like "make this denser", I ask the AI to evaluate the thing and write the prompt that would do it. The expanded prompt usually goes to a clean context. The same two steps, expand and then eval, give me a much better first eval pipeline for an LLM process.'
+image: "/images/posts/have-the-agent-write-the-prompt-first/expand.svg"
+articleHero: false
+type: reflection
+---
+
+Sometimes all I have is a very thin description of what I want. This UI is a little too airy. I want it a bit denser.
+
+You can give a frontier model that prompt and it will do something useful. But some agents will do the laziest possible thing. Let me trim some padding, 24 to 20 pixels. That'll make it dense.
+
+In a lot of cases I want way more than that, and it is hard to explain. "Make it denser by changing these six things" only works if I am willing to sit there and list all six. It is very difficult to pin down exactly what I want.
+
+So instead I say: I want this to be denser. Go evaluate it, and write the prompt I could give an agent to make that happen.
+
+## Decompression
+
+It is almost a planning step, but not quite. It is not that detailed. But forcing the AI to write the prompt lets you see all the words you could use to actually get what you want.
+
+I think of it as decompression. If you had a page of instructions and compressed it down to "make this more dense", this goes the other way.
+
+The prompt it writes tends to be way more detailed and actionable. And it tends to be exactly the sort of thing an agent can make sense of.
+
+![A thin request, "Make this denser", goes to a step that asks the agent to evaluate the UI and write the prompt instead. The prompt then goes to the same context, a clean context (most often), or a subagent or child session.](/images/posts/have-the-agent-write-the-prompt-first/expand.svg)
+
+## Where the prompt goes
+
+Sometimes I paste that exact prompt right back into the same context: go do it.
+
+More often I give it to a clean context. That way the new agent works only on that piece. Or I take the prompt and have it run in a subagent or a [child session](/blog/how-my-agents-run-the-day).
+
+## The same two steps for evals
+
+This works really well for evaluating LLM pipelines. With a very simple instruction like "run a subagent that evaluates this whole process", you are typically two steps away from a thorough eval pipeline.
+
+The first step is the expansion. Consider everything about this pipeline that might matter. What are the possible ways it could be configured? What are the inputs? What are the best possible outputs? Really think about it and map the space out.
+
+The second step: write a prompt for a subagent to run an eval pipeline that hill-climbs a metric of its choosing, to give us the best possible output, given everything we just described. I always tell it to hill-climb.
+
+What comes back is a pipeline with a whole world of depth and nuance that would have been incredibly difficult to put together on my own for that specific scenario. The eval it runs gives a result that is radically better than what I had before, and better than what a plain "please go eval" gives.
+
+That matters most on the first pass, when you just need an initial pipeline in place. The pipeline is good enough that you can run it for real and then dig into what you would change. Often the first pipeline you create is so far from what you want that you don't even know where to start changing things.
+
+For the hill-climb shape itself, with a measure and a gate on each change, see [hill-climbing Draftably's layout speed](/blog/hill-climbing-draftably-layout-speed). That one climbed speed, not an LLM pipeline, but the loop is the same.
+
+## Maybe a skill
+
+I am interested in turning this into a skill: take a thin statement of intent, look at the real thing, and write the prompt. It is on my list of possible follow-ups. I have not built it yet.
+
+This is the companion to [Ask for ten, then ask for 10x](/blog/ask-for-ten-then-ask-for-10x). That post is about getting options and then a better version. This one is about getting a better request.
