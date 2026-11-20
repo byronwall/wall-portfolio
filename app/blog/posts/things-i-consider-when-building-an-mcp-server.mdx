@@ -4,11 +4,15 @@ publishedAt: 2026-11-19
 summary: 'What I do in the Visual Notes MCP server, and plan for explorEDA: put agent output where people already work, make every error fixable, register every tool one way, read the call log, treat instructions as code, and let the agent file feedback.'
 project: visual-notes
 type: reference
+image: "/images/posts/things-i-consider-when-building-an-mcp-server/server.png"
+articleHero: false
 ---
 
 I have one MCP server running in production and a second one planned. [Visual Notes](https://github.com/byronwall/visual-notes) is my notes app, and Claude and ChatGPT both connect to it as a custom connector: about 100 tools across notes, research topics, tasks, events, collections, and people. [explorEDA](https://github.com/byronwall/explorEDA) is a data analysis tool, and its MCP plan lets an outside agent build analyses in a local project folder.
 
 This is the list of things I keep coming back to. It is not a spec. Every point comes from code I wrote or a plan I am working from, and I link to the real thing where I can.
+
+![The Visual Notes MCP server. Claude and ChatGPT connect through a custom connector to one registrar, which handles scope, hints, refusals and the call log for about 100 tools. The tools write to the same stores my own notes live in, tagged with one call id per call, and the Visual Notes app shows them where I already look. Errors come back through the registrar, and every call goes to an activity log.](/images/posts/things-i-consider-when-building-an-mcp-server/server.png)
 
 ## Put the output where people already look
 
@@ -40,6 +44,8 @@ explorEDA takes this further, because the whole plan depends on it. Every write 
 write_eda  { path: "returns.eda", text: "eda query=orders\nhist orders.region ..." }
   → { saved: true, views: 2, problems: [{ line: 4, message: "Unknown field returnedAt", fix: "Did you mean returned_at?" }] }
 ```
+
+![The explorEDA check-and-fix loop. The agent writes the whole returns.eda file with write_eda. The result says it saved and lists a problem on line 4 with a suggested fix, and the agent fixes it and writes again. The same file reloads in the open browser tab through the file watch. When I drag a chart there, the agent sees the change on its next look.](/images/posts/things-i-consider-when-building-an-mcp-server/check-loop.png)
 
 The first milestone is a test of exactly this. A cold agent gets a CSV and a request for a dashboard, and it has only four tools. If it reaches a built analysis in about five check-fix rounds, whole-file writes are enough. If it stalls on syntax, finer edit tools move up the plan. I would rather learn that from one recorded session than design 30 tools on a guess.
 
@@ -105,6 +111,8 @@ This one came from a post by @matt_ambrogi: give the MCP server a `submit_feedba
 The agent is the one user that reads every tool description, hits every confusing error, and wishes for a missing field in the middle of real work. Until now, I found those problems only by reading the call log after the fact, as in the audit above.
 
 The Visual Notes version is [`feedback_submit`](https://github.com/byronwall/visual-notes/pull/356) (named to match the server's `<area>_<verb>` style). The agent gives a kind (`bug`, `confusing`, or `missing`), a one-line summary, the tool, what happened, and a proposed fix. The server has no GitHub token, and I did not want to add one for this, so each report becomes a note at `work.visual-notes.feedback` that starts with a task line. That puts it in my Tasks inbox, where I already triage work. The server instructions tell the agent to use it once, after it finishes or gives up on my request, and not for my content.
+
+![The feedback loop. When an agent finishes or gives up, it calls feedback_submit once with a kind (bug, confusing or missing). The report becomes a note at work.visual-notes.feedback that starts with a task line, so it shows up in my Tasks inbox. I fix the tool or its instructions, and the next agent reads the fix.](/images/posts/things-i-consider-when-building-an-mcp-server/feedback.png)
 
 I do not know yet how often agents will call it, or whether the proposed fixes will be any good. The explorEDA plan already asks the same question in a different way. Its first proof records "which problems lacked a usable fix." A feedback tool asks the agent to write that list for you.
 
