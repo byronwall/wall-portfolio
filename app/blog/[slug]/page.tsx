@@ -131,6 +131,9 @@ export default async function Blog({ params }: BlogPageProps) {
   const relatedProject = projectSlug
     ? getProjects().find((project) => project.slug === projectSlug)
     : undefined;
+  const projectSite = relatedProject?.metadata.site || relatedProject?.metadata.demo;
+  const projectSiteUrl = typeof projectSite === "string" ? projectSite : undefined;
+  const projectSiteLabel = projectSiteUrl?.replace(/^https?:\/\//, "").replace(/\/$/, "");
   const relatedPosts = projectSlug
     ? getPostsForProject(projectSlug).filter((entry) => entry.slug !== currentPostSlug).slice(0, 3)
     : [];
@@ -174,6 +177,7 @@ export default async function Blog({ params }: BlogPageProps) {
             {interactionTime && <span>{interactionTime}</span>}
             <span>{category}</span>
             {relatedProject && <Link href={`/projects/${relatedProject.slug}`}>{relatedProject.metadata.title} →</Link>}
+            {projectSiteUrl && <a href={projectSiteUrl} target="_blank" rel="noopener noreferrer">{projectSiteLabel} ↗</a>}
           </div>
         </div>
       )}
@@ -193,6 +197,7 @@ export default async function Blog({ params }: BlogPageProps) {
                 <div><dt>Reading time</dt><dd>{readingTime}</dd></div>
                 <div><dt>Filed under</dt><dd>{category}</dd></div>
                 {relatedProject && <div><dt>Related project</dt><dd><Link href={`/projects/${relatedProject.slug}`}>{relatedProject.metadata.title} →</Link></dd></div>}
+                {projectSiteUrl && <div><dt>Website</dt><dd><a href={projectSiteUrl} target="_blank" rel="noopener noreferrer">{projectSiteLabel} ↗</a></dd></div>}
               </dl>
               {tableOfContents.length > 0 && <ArticleToc items={tableOfContents} />}
             </>
@@ -210,7 +215,7 @@ export default async function Blog({ params }: BlogPageProps) {
               )}
             </h1>
             <p className={styles.articleSummary}>{post.metadata.summary}</p>
-            <p className={styles.articleMobileMeta}>{formatDate(post.metadata.publishedAt)} · {readingTime}{interactionTime ? ` · ${interactionTime}` : ""} · {category}{relatedProject ? ` · ${relatedProject.metadata.title}` : ""}</p>
+            <p className={styles.articleMobileMeta}>{formatDate(post.metadata.publishedAt)} · {readingTime}{interactionTime ? ` · ${interactionTime}` : ""} · {category}{relatedProject ? ` · ${relatedProject.metadata.title}` : ""}{projectSiteUrl && <> · <a href={projectSiteUrl} target="_blank" rel="noopener noreferrer">{projectSiteLabel} ↗</a></>}</p>
             {post.metadata.articleHero !== "false" && post.thumbnail && (
               <div className={styles.articleHero}>
                 <img className={styles.articleHeroImage} src={post.thumbnail} alt={post.metadata.title} />
