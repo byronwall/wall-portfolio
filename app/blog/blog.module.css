@@ -85,6 +85,7 @@
 }
 .articleSummary { max-width: 690px; margin: 23px 0 0; color: var(--ink-body); font-size: 18px; line-height: 1.52; }
 .articleMobileMeta { display: none; margin-top: 18px; color: var(--ink-muted); font-family: var(--font-geist-mono); font-size: 11px; }
+.articleMobileMeta a { color: var(--action-primary); text-decoration: none; }
 .articleHero { position: relative; width: 100%; min-height: 310px; margin-top: 34px; overflow: hidden; border-radius: 9px; background: var(--surface-quiet); }
 .articleHeroImage { display: block; width: 100%; max-height: 520px; min-height: 310px; object-fit: contain; background: var(--surface-quiet); }
 .articleBody { margin-top: 44px; color: var(--ink-body); font-size: 16px; line-height: 1.72; }
