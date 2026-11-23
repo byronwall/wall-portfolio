@@ -1,15 +1,15 @@
 ---
-title: Product Grid now ships its viewer with the CLI
+title: Product Grid (now Boxtown) ships its viewer with the CLI
 publishedAt: 2026-10-04
-summary: 'A denser workspace, a local viewer inside pgm, Changesets releases, and the Codex and Claude work behind the update.'
+summary: 'A denser workspace, a local viewer inside the CLI, Changesets releases, and the Codex and Claude work behind the update.'
 image: /images/projects/product-grid-management/canvas-viewer.png
-project: product-grid-management
+project: boxtown
 type: update
 ---
 
-[Product Grid Management](/projects/product-grid-management) has changed substantially over the past week. The interface is denser, the CLI ships the editable viewer, and releases run through version pull requests. It also has a real icon now.
+[Boxtown](/projects/boxtown) (then called Product Grid Management) has changed substantially over the past week. The interface is denser, the CLI ships the editable viewer, and releases run through version pull requests. It also has a real icon now.
 
-The useful result is a shorter path from product context to agent work. You can keep notes, screenshots, and relationships in one graph, inspect them in a browser, and let Codex or Claude read and update the same data through `pgm`.
+The useful result is a shorter path from product context to agent work. You can keep notes, screenshots, and relationships in one graph, inspect them in a browser, and let Codex or Claude read and update the same data through the `boxtown` CLI.
 
 ## Less space between the work
 
@@ -36,8 +36,8 @@ These are fresh captures from the packaged viewer, using a copy of the recipe ar
 Previously, using the CLI meant having an app server available. The package now includes the editable viewer and its server runtime:
 
 ```bash
-pnpm add --global @byronwallrus/product-grid-cli
-pgm viewer --data-dir ./product-grid-data
+npm install -g boxtown
+boxtown viewer --data-dir ./boxtown-data
 ```
 
 That command opens the browser and prints the local URL and data folder. Stop it with Ctrl+C; the project files and images stay in the folder.
@@ -45,9 +45,9 @@ That command opens the browser and prints the local URL and data folder. Stop it
 Agents can use that same folder:
 
 ```bash
-pgm project list --local ./product-grid-data --json
-pgm node list --local ./product-grid-data --project <project-id> --json
-pgm node update <node-id> --local ./product-grid-data --project <project-id> --status working --json
+boxtown project list --local ./boxtown-data --json
+boxtown node list --local ./boxtown-data --project <project-id> --json
+boxtown node update <node-id> --local ./boxtown-data --project <project-id> --status working --json
 ```
 
 If a viewer is open, commands reuse it. Otherwise, a command starts a temporary runtime and stops it afterward. CLI writes reach an open viewer through production WebSocket events. The browser and terminal can therefore work against the same project without separate imports.
@@ -62,10 +62,10 @@ Claude branches added grid multi-select, structure peek, and searchable node typ
 
 The integration work is part of the story. The pending-edit PR retained the server write queue already on main and removed its duplicate lock. The last-editor filter reused the existing history projection. An optional overlapping canvas layout landed, then was removed. A merged feature does not have to remain part of the product.
 
-Product Grid also supplies context for this kind of work. A node can carry the issue, its screenshot, and the parent context. The CLI can export that scope, and an agent can attach evidence or update the node afterward. The package includes a Codex skill installer:
+Boxtown also supplies context for this kind of work. A node can carry the issue, its screenshot, and the parent context. The CLI can export that scope, and an agent can attach evidence or update the node afterward. The package includes a Codex skill installer:
 
 ```bash
-pgm skill install --agent codex --global
+boxtown skill install --agent codex --global
 ```
 
 The app's own LLM features have been removed. Codex, Claude, and other external tools create content; the CLI brings it into the graph. The workspace does not need another provider integration to hold the result.
@@ -79,7 +79,7 @@ The package checks include the bundled app. That matters because a working CLI a
 ## And an icon
 
 <div className="not-prose my-6">
-  <img src="/images/projects/product-grid-management/logo.svg" alt="Product Grid icon made from green tiles around a lighter center tile" width="96" height="96" />
+  <img src="/images/projects/product-grid-management/logo.svg" alt="Boxtown icon made from green tiles around a lighter center tile" width="96" height="96" />
 </div>
 
 The new mark uses green tiles around a lighter center tile, with a matching favicon. It gives the project a recognizable home link and browser tab while the workspace controls stay neutral.

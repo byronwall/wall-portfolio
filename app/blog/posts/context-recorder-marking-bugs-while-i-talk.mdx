@@ -7,11 +7,11 @@ project: context-recorder
 type: feature
 ---
 
-When I review one of my own apps, I find problems faster than I can write them down. The colors on a chart are wrong. A code sample has no syntax highlighting. A save button does nothing. My old process was manual: take a screenshot, crop it, paste it into [Product Grid](/projects/product-grid-management), type a note, and repeat for every issue.
+When I review one of my own apps, I find problems faster than I can write them down. The colors on a chart are wrong. A code sample has no syntax highlighting. A save button does nothing. My old process was manual: take a screenshot, crop it, paste it into [Boxtown](/projects/boxtown) (then called Product Grid), type a note, and repeat for every issue.
 
 [Context Recorder](https://github.com/byronwall/context-recorder) replaces it. It records the screen and my narration while I use whatever app I'm reviewing. When something is wrong, I press a hotkey and keep going. Afterward, each of those moments comes back with everything needed to act on it: a frame, the app and URL, what the page was doing, and what I said around it.
 
-A few constraints shaped it from the start. It has to work across the whole machine, not inside one browser tab. I don't want to modify my apps to make it work. Transcription has to be local. And the output should be Markdown, or go straight into Product Grid, which is built for annotated screenshots.
+A few constraints shaped it from the start. It has to work across the whole machine, not inside one browser tab. I don't want to modify my apps to make it work. Transcription has to be local. And the output should be Markdown, or go straight into Boxtown, which is built for annotated screenshots.
 
 ## Recording
 
@@ -60,7 +60,7 @@ Review doesn't stop when the recording does. I can add marks and region shots fr
 
 ![A region shot with RegionShot-style annotations: a rectangle around a chart, a "Revenue looks off" label, an arrow and a highlight.](/images/posts/context-recorder-marking-bugs-while-i-talk/annotated-shot.jpg)
 
-The output is plain files. Each mark gets a Markdown file with its narration window, from 20 seconds before the mark to 10 seconds after. The whole session gets one too, and **Copy as Markdown** puts either on the clipboard. **Export to Product Grid** sends the session to a project folder's grid, one node per mark, with the screenshot and full frame attached. Exporting again updates those nodes and keeps whatever I changed in the grid.
+The output is plain files. Each mark gets a Markdown file with its narration window, from 20 seconds before the mark to 10 seconds after. The whole session gets one too, and **Copy as Markdown** puts either on the clipboard. **Export to Product Grid** (now Boxtown) sends the session to a project folder's grid, one node per mark, with the screenshot and full frame attached. Exporting again updates those nodes and keeps whatever I changed in the grid.
 
 ## Where it stands
 

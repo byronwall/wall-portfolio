@@ -1,7 +1,7 @@
 ---
-title: How I triage small explorEDA UX issues with Product Grid
+title: How I triage small explorEDA UX issues with Boxtown
 publishedAt: 2026-09-28
-summary: 'I grouped 13 explorEDA UX issues with screenshots in Product Grid, then used them to guide a set of focused fixes.'
+summary: 'I grouped 13 explorEDA UX issues with screenshots in Boxtown, then used them to guide a set of focused fixes.'
 image: /images/posts/triaging-exploreda-ux-issues-with-product-grid/issue-grid.png
 project: exploreda
 type: tooling
@@ -9,9 +9,9 @@ type: tooling
 
 While testing [explorEDA](https://exploreda.dev), I kept finding small UX problems. A chart menu got in the way. A sort indicator disappeared under nearby buttons. A tracing popover was hard to read. Each issue was worth fixing, but I did not need a separate planning document for every one.
 
-I put 13 cards under one feedback node in [Product Grid Management](/projects/product-grid-management). Each card named the problem and, where useful, held a screenshot of the exact state I saw. The canvas let me scan the whole group before sending it into a fix pass.
+I put 13 cards under one feedback node in [Boxtown](/projects/boxtown), then called Product Grid Management. Each card named the problem and, where useful, held a screenshot of the exact state I saw. The canvas let me scan the whole group before sending it into a fix pass.
 
-![Product Grid canvas with 13 explorEDA feedback cards grouped around a central feedback node, many with screenshots of the affected interface](/images/posts/triaging-exploreda-ux-issues-with-product-grid/issue-grid.png)
+![Boxtown canvas with 13 explorEDA feedback cards grouped around a central feedback node, many with screenshots of the affected interface](/images/posts/triaging-exploreda-ux-issues-with-product-grid/issue-grid.png)
 
 The cards became a useful handoff. The work landed in 12 focused pull requests, with one landing-page PR covering two cards. I could review each change against the original problem instead of trying to remember what felt wrong during testing.
 
@@ -36,4 +36,4 @@ The [new Add chart flow](https://github.com/byronwall/explorEDA/pull/90) was the
 
 The grid worked well as an intake surface for a one-off pass with many concrete issues. The screenshots gave each fix a visible target, and the separate PRs kept review manageable. Larger feature work needs a fuller description of intended behavior, decisions, and dependencies before implementation starts.
 
-The code and PR screenshots show what changed. Most Product Grid cards still say planned, so I need to update those statuses before the grid can serve as a completion record.
+The code and PR screenshots show what changed. Most Boxtown cards still say planned, so I need to update those statuses before the grid can serve as a completion record.

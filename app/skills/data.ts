@@ -130,9 +130,9 @@ export const PROJECT_SKILLS: Array<{ project: string; skill: string; summary: st
     summary: "Reads Srcly's headless reports to find code-quality hotspots and rank safe refactors.",
   },
   {
-    project: "product-grid-management",
-    skill: "product-grid-context",
-    summary: "Pulls project, node, and graph context from a running Product Grid server through the pgm CLI.",
+    project: "boxtown",
+    skill: "boxtown-context",
+    summary: "Pulls project, node, and graph context from a running Boxtown server through the boxtown CLI.",
   },
   {
     project: "tsx-data-flow",
