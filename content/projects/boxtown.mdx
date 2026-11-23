@@ -1,27 +1,27 @@
 ---
-title: "Product Grid Management"
+title: "Boxtown"
 description: "A local product-planning graph with an editable viewer and a CLI for agents"
 date: "2026-05-03"
 publishedAt: "2026-05-03"
 status: "active"
-package: "https://www.npmjs.com/package/@byronwallrus/product-grid-cli"
+package: "https://www.npmjs.com/package/boxtown"
 summary: "Map product structure, attach notes and screenshots, and share the same local data between a visual workspace and coding agents."
 tags: ["SolidStart", "SolidJS", "TypeScript", "CLI", "Spatial UI", "Product Tools"]
 image: "/images/projects/product-grid-management/canvas-viewer.png"
 logo: "/images/projects/product-grid-management/logo.svg"
 ---
 
-Product Grid Management, or `pgm`, is a workspace for product ideas, UI architecture, and implementation context. A project holds a graph of nodes, relationships, markdown notes, screenshots, and metadata. You can inspect that graph visually or read and edit it from the CLI.
+Boxtown is a workspace for product ideas, UI architecture, and implementation context. A project holds a graph of nodes, relationships, markdown notes, screenshots, and metadata. You can inspect that graph visually or read and edit it from the `boxtown` CLI. It was called Product Grid Management (`pgm`) until November 2026.
 
 The October 2026 update brings a denser interface, a packaged local viewer, an automated npm release process, and a tile icon. [Read the update, including the Codex and Claude work](/blog/product-grid-local-viewer-and-agent-workflow).
 
-- Package: [@byronwallrus/product-grid-cli](https://www.npmjs.com/package/@byronwallrus/product-grid-cli)
+- Package: [boxtown](https://www.npmjs.com/package/boxtown)
 
 ## Interface
 
 The canvas shows product structure and image previews. Selecting a node opens its notes, metadata, and relationships in a compact inspector. The header stays visible while the inspector scrolls.
 
-![Current Product Grid canvas with recipe application nodes, image previews, and the selected Nav Tabs inspector](/images/projects/product-grid-management/canvas-viewer.png)
+![Current Boxtown canvas with recipe application nodes, image previews, and the selected Nav Tabs inspector](/images/projects/product-grid-management/canvas-viewer.png)
 
 The grid provides direct metadata editing, priority and status controls, and bulk status or archive actions. Sticky headers, resizable columns, and stable selection keep larger groups manageable.
 
@@ -42,15 +42,15 @@ These screenshots were captured from the packaged viewer on October 4, 2026. The
 Install the CLI with Node.js 22 or newer, then choose a local data folder:
 
 ```bash
-pnpm add --global @byronwallrus/product-grid-cli
-pgm viewer --data-dir ./product-grid-data
+npm install -g boxtown
+boxtown viewer --data-dir ./boxtown-data
 ```
 
 The command opens the editable viewer in a browser. Project files and images remain in that folder after the viewer stops. CLI commands use the same data with `--local`:
 
 ```bash
-pgm project list --local ./product-grid-data --json
-pgm node list --local ./product-grid-data --project <project-id> --json
+boxtown project list --local ./boxtown-data --json
+boxtown node list --local ./boxtown-data --project <project-id> --json
 ```
 
 Commands reuse an open viewer or start a temporary runtime when needed. CLI changes reach the viewer through live project events. Remote server access remains available through `--server`.
@@ -59,7 +59,7 @@ Commands reuse an open viewer or start a temporary runtime when needed. CLI chan
 
 Codex and Claude can use the CLI to inspect project schemas, find nodes, read scoped context, update statuses, and attach screenshots. The app itself no longer calls LLM providers. Content generation happens in external tools, which write the result through the CLI.
 
-The package includes a `product-grid-context` skill installer for Codex. Node context exports and context packs support focused handoffs without loading the entire graph. The inspector can also copy an agent prompt.
+The package includes a `boxtown-context` skill installer for Codex. Node context exports and context packs support focused handoffs without loading the entire graph. The inspector can also copy an agent prompt.
 
 ## Highlights
 
